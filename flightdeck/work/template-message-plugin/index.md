@@ -38,6 +38,7 @@
 - 已实现 `[api.戳一戳]`、`[词库.<词库名>]`、无固定深度迭代解析和循环检测。
 - 已更新包信息、README、测试脚本和运行数据忽略规则。
 - 已补齐 npm 作者、仓库、主页、问题反馈、关键词、标准 ESM 导出和公开发布配置。
+- 已添加基于 GitHub OIDC 的 npm Trusted Publisher 发布工作流和配置说明。
 
 ## Verification
 
@@ -45,6 +46,7 @@
 - `pnpm check`：Biome 与 TypeScript 检查通过。
 - `pnpm build`：构建成功并生成声明文件。
 - `npm pack --dry-run --json`：打包预览成功，仅包含 README、`dist` 和 `package.json`。
+- `.github/workflows/publish.yml`：结构检查通过，并完成测试、检查、构建和打包预览验证。
 
 ## Open questions
 

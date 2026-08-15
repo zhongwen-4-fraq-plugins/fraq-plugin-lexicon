@@ -1,0 +1,59 @@
+name: 发布 npm 包
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: 测试、构建并发布
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v6
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: 校验发布标签
+        shell: bash
+        run: |
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
+
+          if [[ "$RELEASE_TAG" != "$PACKAGE_VERSION" && "$RELEASE_TAG" != "v$PACKAGE_VERSION" ]]; then
+            echo "发布标签必须是 $PACKAGE_VERSION 或 v$PACKAGE_VERSION，当前为 $RELEASE_TAG。" >&2
+            exit 1
+          fi
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 运行测试
+        run: pnpm test
+
+      - name: 检查代码
+        run: pnpm check
+
+      - name: 构建包
+        run: pnpm build
+
+      - name: 发布到 npm
+        run: npm publish

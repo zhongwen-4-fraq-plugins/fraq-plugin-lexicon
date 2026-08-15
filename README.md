@@ -99,3 +99,20 @@ pnpm test
 pnpm check
 pnpm build
 ```
+
+## Trusted Publisher 发布
+
+工作流文件为 `.github/workflows/publish.yml`，在 GitHub Release 发布时自动运行测试、检查、构建和 `npm publish`。
+
+在 npm 包设置的 **Trusted Publisher** 中填写：
+
+- Provider：GitHub Actions
+- Organization or user：`zhongwen-4-fraq-plugins`
+- Repository：`fraq-plugin-lexicon`
+- Workflow filename：`publish.yml`
+- Environment：留空
+- Allowed actions：`npm publish`
+
+工作流使用 OIDC，不需要配置 `NPM_TOKEN`。创建 GitHub Release 时，标签必须与 `package.json` 版本一致，支持 `0.1.0` 或 `v0.1.0` 两种格式。
+
+如果 npm 上还不存在该包，需要先手动发布首个版本，再配置 Trusted Publisher。配置成功并验证发布后，建议在 npm 中禁止传统 token 发布。
