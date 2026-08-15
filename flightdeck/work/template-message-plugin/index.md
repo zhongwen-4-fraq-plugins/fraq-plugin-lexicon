@@ -40,6 +40,7 @@
 - 已补齐 npm 作者、仓库、主页、问题反馈、关键词、标准 ESM 导出和公开发布配置。
 - 已添加基于 GitHub OIDC 的 npm Trusted Publisher 发布工作流和配置说明。
 - 已添加 PR 自动审核工作流，覆盖质量门禁和同仓库评论汇总。
+- 已添加 BUG 与功能请求两个 GitHub Issue Form，并关闭空白 Issue。
 
 ## Verification
 
@@ -49,6 +50,7 @@
 - `npm pack --dry-run --json`：打包预览成功，仅包含 README、`dist` 和 `package.json`。
 - `.github/workflows/publish.yml`：结构检查通过，并完成测试、检查、构建和打包预览验证。
 - `.github/workflows/pr-review.yml`：YAML 结构检查通过。
+- `.github/ISSUE_TEMPLATE/*.yml`：YAML 解析和表单字段结构检查通过。
 
 ## Open questions
 
