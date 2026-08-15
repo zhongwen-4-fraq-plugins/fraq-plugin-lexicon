@@ -1,8 +1,8 @@
 {
-  "name": "fraq-plugin-template <-- 在这里填写你的插件的【英文】包名",
+  "name": "fraq-plugin-lexicon",
   "type": "module",
   "version": "0.1.0",
-  "description": "<-- 在这里编写你的插件的【中文】描述",
+  "description": "支持多词库、精确与模糊匹配以及嵌套词条解析的 Fraq 插件",
   "files": [
     "dist"
   ],
@@ -10,15 +10,15 @@
   "typings": "dist/index.d.mts",
   "scripts": {
     "build": "tsdown",
+    "check": "biome check . && tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
     "prepack": "pnpm build"
   },
   "keywords": [],
-  "author": "Your Name Here <-- 在这里填写你的名字",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/your-username/your-repo.git <-- 在这里填写你的插件的仓库地址"
-  },
   "license": "MIT",
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "packageManager": "pnpm@11.15.1",
   "devDependencies": {
     "@biomejs/biome": "^2.5.4",
@@ -32,6 +32,6 @@
     "@fraqjs/fraq": "^0.17.0"
   },
   "fraq": {
-    "category": "<-- 在这里填写你的插件的分类"
+    "category": "utility"
   }
 }

@@ -1,16 +1,50 @@
-import { definePlugin, param } from '@fraqjs/fraq';
+import { definePlugin } from '@fraqjs/fraq';
 
-export const ExamplePlugin = definePlugin({
-  name: 'example-plugin', // Change this to your plugin's name
-  apply(ctx) {
-    // Start coding here!
-    ctx.router
-      .command('echo')
-      .arg('content', param.str())
-      .execute((session, { content }) => {
-        session.reply(`You said: ${content}`);
-      });
+import { ApiActionRegistry } from './actions/api-action-registry';
+import { nudgeAction } from './actions/nudge-action';
+import { extractText, LexiconController } from './core/lexicon-controller';
+import { LexiconRepository } from './data/lexicon-repository';
+import { LexiconService } from './services/lexicon-service';
+import { PermissionService } from './services/permission-service';
+import { TemplateService } from './services/template-service';
+
+import { join, resolve } from 'node:path';
+
+export interface FraqPluginLexiconOptions {
+  databasePath?: string;
+  owners?: number[];
+  maxOutputLength?: number;
+}
+
+export const FraqPluginLexicon = definePlugin({
+  name: 'fraq-plugin-lexicon',
+  apply(ctx, options: FraqPluginLexiconOptions = {}) {
+    const databasePath = resolve(options.databasePath ?? join('data', 'fraq-plugin-lexicon.sqlite'));
+    const repository = new LexiconRepository(databasePath);
+    const lexiconService = new LexiconService(repository);
+    const permissionService = new PermissionService(options.owners ?? []);
+    const actionRegistry = new ApiActionRegistry();
+    actionRegistry.register('戳一戳', nudgeAction);
+
+    const templateService = new TemplateService(lexiconService, actionRegistry, ctx.client, {
+      maxOutputLength: options.maxOutputLength,
+    });
+    const controller = new LexiconController(lexiconService, templateService, permissionService);
+
+    ctx.on('message_receive', async ({ self_id, data }) => {
+      if (data.sender_id === self_id) {
+        return;
+      }
+
+      const text = extractText(data).trim();
+      const session = ctx.createSession(self_id, data);
+      if (text === '词库' || text.startsWith('词库 ')) {
+        await controller.handleManagement(session, text.slice(2));
+        return;
+      }
+      await controller.handleMessage(session);
+    });
   },
 });
 
-export default ExamplePlugin; // Also export the plugin as default
+export default FraqPluginLexicon;
