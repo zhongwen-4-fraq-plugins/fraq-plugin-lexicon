@@ -61,7 +61,7 @@
 - Source tests, checks, build, and package dry-run passed on 2026-08-15.
 - Target app removed every nl-milky reference and now installs local fraq-plugin-lexicon 0.1.0.
 - Target app still uses @fraqjs/fraq 0.14.0; the plugin declares peer dependency ^0.17.0.
-- `v0.1.0` 新运行已通过测试、检查和构建，但 `npm publish` 失败；下一步核对 Trusted Publisher 配置后重跑。
+- `v0.1.0` 已确认不能重复发布；包版本已升至 `0.1.1`，下一步推送 `v0.1.1` 验证发布。
 
 - 真实协议端是否会暴露需要额外适配的错误消息格式？
 - 后续需要增加哪些 `[api.*]` 动作？

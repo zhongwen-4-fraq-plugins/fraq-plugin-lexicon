@@ -8,7 +8,7 @@ Focus: 发布并验证 `fraq-plugin-lexicon` 词库与嵌套词条解析插件�
 
 ## Next
 
-- 配置 npm Trusted Publisher 后重跑 `v0.1.0` 工作流，确认 npm 发布成功。
+- 推送 `v0.1.1` tag，确认 npm Trusted Publisher 发布成功。
 
 - 在 npm 配置 Trusted Publisher，并在真实 Fraq 应用中验证完整交互流程。
 
