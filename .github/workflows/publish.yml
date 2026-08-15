@@ -1,15 +1,15 @@
 name: 发布 npm 包
 
 on:
-  release:
-    types: [published]
+  push:
+    tags: ['v*']
 
 permissions:
   contents: read
   id-token: write
 
 concurrency:
-  group: npm-publish-${{ github.event.release.tag_name }}
+  group: npm-publish-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -36,7 +36,7 @@ jobs:
         shell: bash
         run: |
           PACKAGE_VERSION="$(node -p "require('./package.json').version")"
-          RELEASE_TAG="${{ github.event.release.tag_name }}"
+          RELEASE_TAG="${{ github.ref_name }}"
 
           if [[ "$RELEASE_TAG" != "$PACKAGE_VERSION" && "$RELEASE_TAG" != "v$PACKAGE_VERSION" ]]; then
             echo "发布标签必须是 $PACKAGE_VERSION 或 v$PACKAGE_VERSION，当前为 $RELEASE_TAG。" >&2

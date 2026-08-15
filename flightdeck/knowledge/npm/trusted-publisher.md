@@ -15,6 +15,7 @@ READ WHEN: before creating or modifying any npm publishing workflow
 ## GitHub Actions
 
 - 必须使用 GitHub 托管运行器。
+- 当前工作流监听 `v*` Git tag 推送；推送版本 tag 会触发工作流，GitHub Release 不是必要条件。
 - 权限保持最小：`contents: read` 和 `id-token: write`。
 - 使用 Node.js 22.14 或更高版本，并确保 npm CLI 至少为 11.5.1。
 - `actions/setup-node` 指向 `https://registry.npmjs.org`，发布步骤直接运行 `npm publish`。
@@ -26,7 +27,7 @@ READ WHEN: before creating or modifying any npm publishing workflow
 - 工作流文件：`.github/workflows/publish.yml`。
 - npm 组织或用户：`zhongwen-4-fraq-plugins`。
 - 仓库：`fraq-plugin-lexicon`。
-- GitHub Release 标签必须等于包版本或在版本前添加 `v`。
+- Git tag 必须等于包版本或在版本前添加 `v`。
 
 ## 官方资料
 

@@ -8,7 +8,7 @@ Focus: 发布并验证 `fraq-plugin-lexicon` 词库与嵌套词条解析插件�
 
 ## Next
 
-- Release v0.1.0 after the target app cleanup and local lexicon installation.
+- Push a new version tag after the tag-trigger workflow change, then verify npm publishing.
 
 - 在 npm 配置 Trusted Publisher，并在真实 Fraq 应用中验证完整交互流程。
 
