@@ -56,5 +56,12 @@
 
 ## Open questions
 
+## Release verification
+
+- Source tests, checks, build, and package dry-run passed on 2026-08-15.
+- Target app removed every nl-milky reference and now installs local fraq-plugin-lexicon 0.1.0.
+- Target app still uses @fraqjs/fraq 0.14.0; the plugin declares peer dependency ^0.17.0.
+- Next action: create and push annotated tag v0.1.0, then verify the target app process.
+
 - 真实协议端是否会暴露需要额外适配的错误消息格式？
 - 后续需要增加哪些 `[api.*]` 动作？
