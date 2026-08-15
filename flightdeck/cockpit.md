@@ -4,7 +4,7 @@ Focus: 发布并验证 `fraq-plugin-lexicon` 词库与嵌套词条解析插件�
 
 ## In flight
 
-- `template-message-plugin` — MVP、npm 包配置与 Trusted Publisher 工作流已完成，待实机验证
+- `template-message-plugin` — MVP、发布和 PR 审核工作流已完成，待实机验证
 
 ## Next
 

@@ -116,3 +116,14 @@ pnpm build
 工作流使用 OIDC，不需要配置 `NPM_TOKEN`。创建 GitHub Release 时，标签必须与 `package.json` 版本一致，支持 `0.1.0` 或 `v0.1.0` 两种格式。
 
 如果 npm 上还不存在该包，需要先手动发布首个版本，再配置 Trusted Publisher。配置成功并验证发布后，建议在 npm 中禁止传统 token 发布。
+
+## 自动 PR 审核
+
+工作流文件为 `.github/workflows/pr-review.yml`，会在 PR 创建、重新打开、更新提交或标记为可审查时运行：
+
+- `pnpm test`
+- `pnpm check`
+- `pnpm build`
+- `npm pack --dry-run --json`
+
+任何质量检查失败都会让 PR 工作流失败。同一仓库的 PR 会自动更新一条审核摘要评论；来自 fork 的 PR 仍会运行全部质量检查，但不会尝试写评论。
