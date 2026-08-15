@@ -9,9 +9,9 @@ body:
     attributes:
       label: 提交前确认
       options:
-        - label: 我已更新至最新版词库插件和 FRAQ 框架，但 BUG 仍然存在
+        - label: 我已更新至**最新版**词库插件(![NPM Version](https://img.shields.io/npm/v/fraq-plugin-lexicon?label=lexicon))和 FRAQ(![NPM Version](https://img.shields.io/npm/v/%40fraqjs%2Ffraq?label=Fraq)) 框架，但 BUG 仍然存在
           required: true
-        - label: 我已阅读 Issue 列表，但仍未找到对应的解决方法
+        - label: 我已阅读[issue列表](https://github.com/zhongwen-4-fraq-plugins/fraq-plugin-lexicon/issues)，但仍未找到对应的解决方法
           required: true
   - type: textarea
     id: logs
