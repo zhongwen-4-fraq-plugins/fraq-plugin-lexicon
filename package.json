@@ -1,0 +1,37 @@
+{
+  "name": "fraq-plugin-template <-- 在这里填写你的插件的【英文】包名",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "<-- 在这里编写你的插件的【中文】描述",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index.mjs",
+  "typings": "dist/index.d.mts",
+  "scripts": {
+    "build": "tsdown",
+    "prepack": "pnpm build"
+  },
+  "keywords": [],
+  "author": "Your Name Here <-- 在这里填写你的名字",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/your-repo.git <-- 在这里填写你的插件的仓库地址"
+  },
+  "license": "MIT",
+  "packageManager": "pnpm@11.15.1",
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.4",
+    "@fraqjs/mock": "^0.1.0",
+    "@types/node": "^24.13.3",
+    "tsdown": "^0.22.12",
+    "tsx": "^4.23.1",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "@fraqjs/fraq": "^0.17.0"
+  },
+  "fraq": {
+    "category": "<-- 在这里填写你的插件的分类"
+  }
+}
