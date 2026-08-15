@@ -16,6 +16,8 @@ READ WHEN: before creating or modifying any npm publishing workflow
 
 - 必须使用 GitHub 托管运行器。
 - 当前工作流监听 `v*` Git tag 推送；推送版本 tag 会触发工作流，GitHub Release 不是必要条件。
+- 当测试、检查、构建均通过而 
+pm publish 失败时，优先核对 npm Trusted Publisher 的组织、仓库、工作流文件名和 Environment 是否与 GitHub Actions 完全一致。
 - 权限保持最小：`contents: read` 和 `id-token: write`。
 - 使用 Node.js 22.14 或更高版本，并确保 npm CLI 至少为 11.5.1。
 - `actions/setup-node` 指向 `https://registry.npmjs.org`，发布步骤直接运行 `npm publish`。
