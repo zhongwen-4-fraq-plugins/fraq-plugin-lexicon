@@ -6,20 +6,52 @@
   "files": [
     "dist"
   ],
-  "main": "dist/index.mjs",
-  "typings": "dist/index.d.mts",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "sideEffects": false,
   "scripts": {
     "build": "tsdown",
     "check": "biome check . && tsc --noEmit",
     "test": "tsx --test test/*.test.ts",
     "prepack": "pnpm build"
   },
-  "keywords": [],
+  "keywords": [
+    "fraq",
+    "fraq-plugin",
+    "milky",
+    "qq-bot",
+    "lexicon",
+    "chatbot",
+    "sqlite",
+    "template"
+  ],
+  "author": {
+    "name": "zhongwen-4",
+    "email": "2401128923@qq.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhongwen-4-fraq-plugins/fraq-plugin-lexicon.git"
+  },
+  "homepage": "https://github.com/zhongwen-4-fraq-plugins/fraq-plugin-lexicon#readme",
+  "bugs": {
+    "url": "https://github.com/zhongwen-4-fraq-plugins/fraq-plugin-lexicon/issues"
+  },
   "license": "MIT",
   "engines": {
     "node": ">=22.13.0"
   },
   "packageManager": "pnpm@11.15.1",
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.5.4",
     "@fraqjs/mock": "^0.1.0",

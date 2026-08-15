@@ -1,10 +1,10 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 验证 `fraq-plugin-lexicon` 词库与嵌套词条解析插件。
+Focus: 发布并验证 `fraq-plugin-lexicon` 词库与嵌套词条解析插件。
 
 ## In flight
 
-- `template-message-plugin` — MVP 已实现，待实机验证
+- `template-message-plugin` — MVP 与 npm 包配置已完成，待实机验证
 
 ## Next
 
