@@ -2,8 +2,11 @@ import { definePlugin } from '@fraqjs/fraq';
 
 import { ApiActionRegistry } from './actions/api-action-registry';
 import { nudgeAction } from './actions/nudge-action';
-import { extractText, LexiconController } from './core/lexicon-controller';
+import { LexiconController } from './core/lexicon-controller';
+import { MilkyEventController } from './core/milky-event-controller';
 import { LexiconRepository } from './data/lexicon-repository';
+import { createMessageContext, extractMessageText } from './data/milky-event-context';
+import { MILKY_EVENT_NAMES } from './data/milky-event-definitions';
 import { resolveCommandText } from './parsers/command-prefix-parser';
 import { LexiconService } from './services/lexicon-service';
 import { MilkyApiService } from './services/milky-api-service';
@@ -36,22 +39,33 @@ export const FraqPluginLexicon = definePlugin({
       maxOutputLength: options.maxOutputLength,
     });
     const controller = new LexiconController(lexiconService, templateService, permissionService);
+    const eventController = new MilkyEventController(lexiconService, templateService, ctx.client, ctx.logger);
 
-    ctx.on('message_receive', async ({ self_id, data }) => {
+    ctx.on('message_receive', async (event) => {
+      const { self_id, data } = event;
       if (data.sender_id === self_id) {
         return;
       }
 
-      const text = extractText(data).trim();
+      const text = extractMessageText(data).trim();
+      const messageContext = createMessageContext(event, text);
       const session = ctx.createSession(self_id, data);
       const activations = ctx.routeActivationResolver({ type: 'command', path: [], name: '词库' }, session);
       const commandText = resolveCommandText(text, activations);
       if (commandText === '词库' || commandText?.startsWith('词库 ')) {
-        await controller.handleManagement(session, commandText.slice(2));
-        return;
+        await controller.handleManagement(session, commandText.slice(2), messageContext);
+      } else {
+        await controller.handleMessage(session, messageContext);
       }
-      await controller.handleMessage(session);
+      await eventController.handle(event);
     });
+
+    for (const eventName of MILKY_EVENT_NAMES) {
+      if (eventName === 'message_receive') {
+        continue;
+      }
+      ctx.on(eventName, (event) => eventController.handle(event));
+    }
   },
 });
 

@@ -70,6 +70,30 @@ ctx.install(FraqPluginLexicon, {
 
 ## 词条语法
 
+### 事件词条
+
+将事件模板作为词条的问题，即可在对应 Milky 事件发生时执行回答：
+
+```text
+词库 添加 精确 问 [event.group_nudge] 答 收到来自 [event.data.sender_id] 的戳一戳
+词库 添加 精确 问 [event.friend_file_upload] 答 收到文件 [event.data.file_name]
+```
+
+插件监听 Fraq 提供的全部 21 个 Milky 事件。群事件匹配当前群词库和已启用的全局词库；好友事件及没有群号的事件匹配全局词库。回答产生文本时会发送到当前群或好友会话；没有可发送会话的事件仍会执行回答中的 API 词条。
+
+回答中可以使用 `[event.<字段路径>]` 读取完整事件对象，支持对象字段和数组下标：
+
+```text
+[event.event_type]
+[event.time]
+[event.self_id]
+[event.data.group_id]
+[event.data.segments.0.data.text]
+[创建变量=QQ=[event.data.sender_id]][api.send_group_nudge.user_id=[读取变量=QQ]]
+```
+
+事件字段可以进入变量、API 参数和其他嵌套词条。字符串与 JSON 会自动转义模板控制字符；字段不存在时会返回明确错误。
+
 ### API 词条
 
 ```text
@@ -78,9 +102,9 @@ ctx.install(FraqPluginLexicon, {
 [api.send_group_nudge.user_id=123456789]
 ```
 
-插件支持当前 Milky/Fraq 提供的全部 65 个英文 API 端点。用户显式填写的参数优先；未填写时会按端点需要从当前事件补充：
+插件支持当前 Milky/Fraq 提供的全部 65 个英文 API 端点。用户显式填写的参数优先；未填写时会先读取事件 `data` 中的同名字段，再按端点需要补充：
 
-- `user_id`：第一个被艾特的 QQ，其次是被回复消息的发送者，最后是当前发送者。
+- `user_id`：第一个被艾特的 QQ、被回复消息的发送者、事件中的 `user_id`、`sender_id`、`operator_id`、`initiator_id`，最后是当前发送者。
 - `group_id`：当前群号。
 - `message_scene`、`peer_id`：当前消息场景和会话 ID。
 - `message_seq`、`start_message_seq`：被回复消息的序列号，否则使用当前消息序列号。

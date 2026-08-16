@@ -1,9 +1,12 @@
-import type { MilkyClient } from '@fraqjs/fraq';
+import { type EventMap, Logger, type MilkyClient } from '@fraqjs/fraq';
 
 import { ApiActionRegistry } from '../src/actions/api-action-registry';
 import { nudgeAction } from '../src/actions/nudge-action';
+import { MilkyEventController } from '../src/core/milky-event-controller';
 import { LexiconRepository } from '../src/data/lexicon-repository';
 import { MILKY_API_ENDPOINTS } from '../src/data/milky-api-definitions';
+import { createEventContext } from '../src/data/milky-event-context';
+import { MILKY_EVENT_NAMES } from '../src/data/milky-event-definitions';
 import type { MessageContext } from '../src/models/lexicon';
 import { resolveCommandText } from '../src/parsers/command-prefix-parser';
 import { parseManagementCommand } from '../src/parsers/management-command-parser';
@@ -18,7 +21,41 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
+const groupMessageEvent = {
+  event_type: 'message_receive',
+  time: 1_700_000_000,
+  self_id: 30003,
+  data: {
+    message_scene: 'group',
+    peer_id: 10001,
+    sender_id: 20002,
+    message_seq: 30003,
+    time: 1_700_000_000,
+    segments: [{ type: 'text', data: { text: '戳我' } }],
+    group: {},
+    group_member: { role: 'admin' },
+  },
+} as EventMap['message_receive'];
+
+const groupNudgeEvent: EventMap['group_nudge'] = {
+  event_type: 'group_nudge',
+  time: 1_700_000_001,
+  self_id: 30003,
+  data: {
+    group_id: 10001,
+    sender_id: 20002,
+    receiver_id: 30003,
+    display_action: '戳了戳',
+    display_suffix: '测试[] .= \\',
+    display_action_img_url: '',
+  },
+};
+
 const groupContext: MessageContext = {
+  event: groupMessageEvent,
+  eventType: 'message_receive',
+  eventTime: groupMessageEvent.time,
+  selfId: groupMessageEvent.self_id,
   scene: 'group',
   peerId: 10001,
   senderId: 20002,
@@ -98,7 +135,18 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     type: 'getVariable',
     name: 'A',
   });
+  assert.deepEqual(parseTemplateTerm('event.data.group_id'), {
+    type: 'event',
+    path: ['data', 'group_id'],
+  });
   assert.equal(findInnermostTerm('普通文本\\[不是词条\\]'), undefined);
+});
+
+test('事件列表覆盖全部 Milky 事件', () => {
+  assert.equal(MILKY_EVENT_NAMES.length, 21);
+  assert.ok(MILKY_EVENT_NAMES.includes('bot_offline'));
+  assert.ok(MILKY_EVENT_NAMES.includes('message_receive'));
+  assert.ok(MILKY_EVENT_NAMES.includes('group_file_upload'));
 });
 
 test('匹配优先级遵循精确、作用域、长度和 ID', (context) => {
@@ -183,6 +231,71 @@ test('变量词条支持创建、读取和无限嵌套解析', async (context) =
   );
 
   assert.equal(output, '最终内容');
+});
+
+test('事件字段支持路径、数组、变量和模板转义', async (context) => {
+  const harness = createHarness(context);
+  const eventContext = createEventContext(groupNudgeEvent);
+
+  assert.equal(
+    await harness.template.render('[创建变量=QQ=[event.data.sender_id]][读取变量=QQ]-[event.event_type]', eventContext),
+    '20002-group_nudge',
+  );
+  assert.equal(await harness.template.render('[event.data.segments.0.data.text]', groupContext), '戳我');
+  assert.equal(await harness.template.render('[event.data.display_suffix]', eventContext), '测试[] .= \\');
+  await assert.rejects(() => harness.template.render('[event.data.not_exists]', eventContext), /不存在/);
+});
+
+test('事件字段自动补充 API 参数且显式参数优先', async () => {
+  const calls: Array<{ endpoint: string; params: Record<string, unknown> }> = [];
+  const client = new Proxy(
+    {},
+    {
+      get(_target, property) {
+        return async (params: Record<string, unknown>) => {
+          calls.push({ endpoint: String(property), params });
+          return {};
+        };
+      },
+    },
+  ) as MilkyClient;
+  const apiService = new MilkyApiService();
+  const eventContext = createEventContext(groupNudgeEvent);
+
+  await apiService.execute('send_group_nudge', {}, { client, message: eventContext });
+  await apiService.execute('send_group_nudge', { user_id: '90009' }, { client, message: eventContext });
+
+  assert.deepEqual(calls, [
+    { endpoint: 'send_group_nudge', params: { group_id: 10001, user_id: 20002 } },
+    { endpoint: 'send_group_nudge', params: { group_id: 10001, user_id: 90009 } },
+  ]);
+});
+
+test('事件模板匹配词库并向事件会话发送文本', async (context) => {
+  const harness = createHarness(context);
+  const eventContext = createEventContext(groupNudgeEvent);
+  const lexicon = harness.service.ensureEventDefaultLexicon(eventContext);
+  harness.repository.addEntry(lexicon.id, 'exact', '[event.group_nudge]', '收到[event.data.sender_id]', 1);
+
+  const calls: unknown[] = [];
+  const client = {
+    async send_group_message(params: unknown) {
+      calls.push(params);
+      return {};
+    },
+  } as MilkyClient;
+  const template = new TemplateService(harness.service, new ApiActionRegistry(), client);
+  const controller = new MilkyEventController(harness.service, template, client, new Logger(() => {}, 'test'));
+
+  assert.equal(harness.service.matchMessage(eventContext)?.answer, '收到[event.data.sender_id]');
+  await controller.handle(groupNudgeEvent);
+
+  assert.deepEqual(calls, [
+    {
+      group_id: 10001,
+      message: [{ type: 'text', data: { text: '收到20002' } }],
+    },
+  ]);
 });
 
 test('英文 Milky API 覆盖全部端点并使用事件默认参数', async (context) => {

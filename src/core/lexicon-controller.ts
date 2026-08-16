@@ -1,4 +1,4 @@
-import type { milky, Session } from '@fraqjs/fraq';
+import type { Session } from '@fraqjs/fraq';
 
 import { errorMessage } from '../errors';
 import type { MessageContext } from '../models/lexicon';
@@ -14,9 +14,7 @@ export class LexiconController {
     private readonly permissionService: PermissionService,
   ) {}
 
-  async handleManagement(session: Session, commandText: string): Promise<void> {
-    const context = createMessageContext(session.raw, extractText(session.raw));
-
+  async handleManagement(session: Session, commandText: string, context: MessageContext): Promise<void> {
     try {
       this.lexiconService.ensureDefaultLexicon(context);
       const command = parseManagementCommand(commandText);
@@ -88,13 +86,11 @@ export class LexiconController {
     }
   }
 
-  async handleMessage(session: Session): Promise<void> {
-    const text = extractText(session.raw).trim();
-    if (!text) {
+  async handleMessage(session: Session, context: MessageContext): Promise<void> {
+    if (!context.originalText) {
       return;
     }
 
-    const context = createMessageContext(session.raw, text);
     this.lexiconService.ensureDefaultLexicon(context);
     const match = this.lexiconService.matchMessage(context);
     if (!match) {
@@ -135,42 +131,6 @@ export class LexiconController {
   }
 }
 
-export function extractText(message: milky.IncomingMessage): string {
-  return message.segments
-    .filter((segment): segment is milky.IncomingTextSegment => segment.type === 'text')
-    .map((segment) => segment.data.text)
-    .join('');
-}
-
-function createMessageContext(message: milky.IncomingMessage, originalText: string): MessageContext {
-  const replySegment = message.segments.find(
-    (segment): segment is milky.IncomingReplySegment => segment.type === 'reply',
-  );
-  return {
-    scene: message.message_scene,
-    peerId: message.peer_id,
-    senderId: message.sender_id,
-    messageSeq: message.message_seq,
-    groupId:
-      message.message_scene === 'group'
-        ? message.peer_id
-        : message.message_scene === 'temp'
-          ? message.group?.group_id
-          : undefined,
-    groupRole: message.message_scene === 'group' ? message.group_member.role : undefined,
-    originalText,
-    segments: message.segments,
-    mentionedUserIds: message.segments.flatMap((segment) => (segment.type === 'mention' ? [segment.data.user_id] : [])),
-    reply: replySegment
-      ? {
-          messageSeq: replySegment.data.message_seq,
-          senderId: replySegment.data.sender_id,
-          segments: replySegment.data.segments,
-        }
-      : undefined,
-  };
-}
-
 function scopeLabel(scopeType: 'global' | 'group'): string {
   return scopeType === 'global' ? '全局' : '群';
 }
@@ -194,6 +154,8 @@ function helpText(): string {
     '词条：',
     '[api.<英文 API 端点>.<参数名>=<参数值>]',
     '[api.send_group_nudge] 会从当前事件读取群号和目标 QQ。',
+    '[event.<事件名>] 可作为问题匹配 Milky 事件，例如 [event.group_nudge]。',
+    '[event.<字段路径>] 可在回答中读取事件字段，例如 [event.data.user_id]。',
     '[创建变量=A=内容] 与 [读取变量=A] 可嵌套在 API 参数和返回值中。',
     '[词库.<词库名>] 使用当前消息匹配指定词库，并继续解析其回答。',
     '同名词库可使用 全局:<名称> 或 群:<名称> 明确指定作用域。',

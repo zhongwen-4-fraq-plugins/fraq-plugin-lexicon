@@ -2,6 +2,7 @@ import { LexiconError } from '../errors';
 
 export type TemplateTerm =
   | { type: 'api'; action: string; parameters: Record<string, string> }
+  | { type: 'event'; path: string[] }
   | { type: 'lexicon'; name: string }
   | { type: 'setVariable'; name: string; value: string }
   | { type: 'getVariable'; name: string };
@@ -89,6 +90,13 @@ export function parseTemplateTerm(content: string): TemplateTerm {
       parameters[key] = value;
     }
     return { type: 'api', action, parameters };
+  }
+
+  if (namespace === 'event') {
+    if (parts.length === 0 || parts.some((part) => !part)) {
+      throw new LexiconError('事件词条格式应为 [event.<事件名或字段路径>]。');
+    }
+    return { type: 'event', path: parts };
   }
 
   throw new LexiconError(`不支持的词条命名空间：${namespace || '空'}。`);

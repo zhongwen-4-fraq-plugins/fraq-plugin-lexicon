@@ -1,11 +1,11 @@
 import type { MilkyClient } from '@fraqjs/fraq';
 
 import { LexiconError } from '../errors';
-import type { MessageContext } from '../models/lexicon';
+import type { TemplateContext } from '../models/lexicon';
 
 export interface ApiActionContext {
   client: MilkyClient;
-  message: MessageContext;
+  message: TemplateContext;
 }
 
 export type ApiActionHandler = (

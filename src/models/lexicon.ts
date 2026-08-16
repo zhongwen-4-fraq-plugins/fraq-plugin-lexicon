@@ -1,4 +1,4 @@
-import type { milky } from '@fraqjs/fraq';
+import type { EventMap, milky } from '@fraqjs/fraq';
 
 export type LexiconScopeType = 'global' | 'group';
 
@@ -31,11 +31,17 @@ export interface MatchedLexiconEntry extends LexiconEntry {
   scopeId: number;
 }
 
-export interface MessageContext {
-  scene: 'friend' | 'group' | 'temp';
-  peerId: number;
-  senderId: number;
-  messageSeq: number;
+export type MilkyEvent = EventMap[keyof EventMap];
+
+export interface TemplateContext {
+  event: MilkyEvent;
+  eventType: keyof EventMap;
+  eventTime: number;
+  selfId: number;
+  scene?: 'friend' | 'group' | 'temp';
+  peerId?: number;
+  senderId?: number;
+  messageSeq?: number;
   groupId?: number;
   groupRole?: 'owner' | 'admin' | 'member';
   originalText: string;
@@ -46,6 +52,15 @@ export interface MessageContext {
     senderId: number;
     segments: milky.IncomingSegment[];
   };
+}
+
+export interface MessageContext extends TemplateContext {
+  event: EventMap['message_receive'];
+  eventType: 'message_receive';
+  scene: 'friend' | 'group' | 'temp';
+  peerId: number;
+  senderId: number;
+  messageSeq: number;
 }
 
 export interface LexiconSelector {

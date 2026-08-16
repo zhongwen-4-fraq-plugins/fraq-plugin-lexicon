@@ -5,11 +5,11 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- 单元测试、Biome、TypeScript 和构建均已通过，等待真实 Milky/Fraq 环境验证。
+- v0.1.8 已实现全部 21 个 Milky 事件的词库触发、字段模板、API 默认参数和会话文本响应，等待完整验证与发布。
 
 ## Next
 
-- 在真实 Fraq 应用中配置 `owners`，创建词库并验证消息、权限和戳一戳流程。
+- v0.1.8 已通过测试、检查、构建和打包预览，等待用户决定是否打 tag 发布。
 
 ## Read now
 
@@ -115,3 +115,13 @@
 - Target app app/package.json, package-lock.json, pnpm-lock.yaml, and versions.yml now reference 0.1.7.
 - Target app restarted successfully with Fraq 0.14.0; fraq-plugin-lexicon is applied and Hono listens on 127.0.0.1:4649 without startup errors.
 - The installed bundle contains the 65-endpoint registry, event-derived API defaults, mention/reply context fields, and variable-safe API result serialization.
+
+## Full Milky event templates
+
+- v0.1.8 listens to all 21 event names covered by Fraq `EventMap`.
+- Event lexicon questions use `[event.<event_type>]`, such as `[event.group_nudge]`.
+- Answers can read nested event values with `[event.<field path>]`, including array indexes, variables, API parameters, and unlimited nested parsing.
+- API defaults inherit same-name fields from every event `data` object; explicit parameters still win.
+- Group and friend event outputs are sent to their current conversation; events without a sendable conversation still execute API terms.
+- Event parsing and controller behavior are covered by 14 passing tests.
+- `pnpm test`, `pnpm check`, `pnpm build`, and `npm pack --dry-run --json` passed for v0.1.8 on 2026-08-16.

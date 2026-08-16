@@ -36,8 +36,11 @@ function ensureOnlyParameters(parameters: Record<string, string>, allowed: strin
   }
 }
 
-function readNumber(value: string | undefined, fallback: number, name: string): number {
+function readNumber(value: string | undefined, fallback: number | undefined, name: string): number {
   if (value === undefined || value === '') {
+    if (fallback === undefined) {
+      throw new LexiconError(`参数“${name}”缺少值，当前事件也无法提供默认值。`);
+    }
     return fallback;
   }
   const parsed = Number(value);

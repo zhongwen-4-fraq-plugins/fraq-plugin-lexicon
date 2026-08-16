@@ -1,10 +1,19 @@
 import type { milky } from '@fraqjs/fraq';
 
-import type { MessageContext } from '../models/lexicon';
+import type { TemplateContext } from '../models/lexicon';
+import { eventDataRecord } from './milky-event-context';
 
-export function createApiEventDefaults(context: MessageContext): Record<string, unknown> {
+export function createApiEventDefaults(context: TemplateContext): Record<string, unknown> {
   const sourceSegments = context.reply?.segments ?? context.segments;
-  const preferredUserId = context.mentionedUserIds[0] ?? context.reply?.senderId ?? context.senderId;
+  const eventData = eventDataRecord(context);
+  const preferredUserId =
+    context.mentionedUserIds[0] ??
+    context.reply?.senderId ??
+    readNumber(eventData.user_id) ??
+    readNumber(eventData.sender_id) ??
+    readNumber(eventData.operator_id) ??
+    readNumber(eventData.initiator_id) ??
+    context.senderId;
   const preferredMessageSeq = context.reply?.messageSeq ?? context.messageSeq;
   const mediaSegment = sourceSegments.find(isMediaSegment);
   const fileSegment = sourceSegments.find((segment): segment is milky.IncomingFileSegment => segment.type === 'file');
@@ -13,11 +22,7 @@ export function createApiEventDefaults(context: MessageContext): Record<string, 
   );
   const message = toOutgoingSegments(sourceSegments);
   const defaults: Record<string, unknown> = {
-    user_id: preferredUserId,
-    message_scene: context.scene,
-    peer_id: context.peerId,
-    message_seq: preferredMessageSeq,
-    start_message_seq: preferredMessageSeq,
+    ...definedEntries(eventData),
     no_cache: false,
     is_filtered: false,
     is_self: false,
@@ -25,6 +30,12 @@ export function createApiEventDefaults(context: MessageContext): Record<string, 
     limit: 20,
     count: 1,
   };
+
+  setDefined(defaults, 'user_id', preferredUserId);
+  setDefined(defaults, 'message_scene', context.scene);
+  setDefined(defaults, 'peer_id', context.peerId);
+  setDefined(defaults, 'message_seq', preferredMessageSeq);
+  setDefined(defaults, 'start_message_seq', preferredMessageSeq);
 
   if (context.groupId !== undefined) {
     defaults.group_id = context.groupId;
@@ -53,6 +64,20 @@ export function createApiEventDefaults(context: MessageContext): Record<string, 
   }
 
   return defaults;
+}
+
+function definedEntries(source: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(source).filter(([, value]) => value !== undefined));
+}
+
+function setDefined(target: Record<string, unknown>, name: string, value: unknown): void {
+  if (value !== undefined) {
+    target[name] = value;
+  }
+}
+
+function readNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isSafeInteger(value) ? value : undefined;
 }
 
 function toOutgoingSegments(segments: milky.IncomingSegment[]): unknown[] {

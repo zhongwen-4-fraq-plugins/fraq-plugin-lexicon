@@ -21,6 +21,8 @@ READ WHEN: when implementing or debugging Milky API calls, event handling, or me
 ## 事件与消息
 
 - 所有事件都包含 `time`、`self_id` 和 `event_type`，具体事件再附带群、好友、请求或通知字段。
+- Fraq `0.17.0` 的 `EventMap` 当前包含 21 个事件；使用覆盖 `Record<keyof EventMap, true>` 的静态表可以在协议类型新增事件时让 TypeScript 报错。
+- `fraq-plugin-lexicon` 使用 `[event.<event_type>]` 作为事件匹配文本，并使用 `[event.<字段路径>]` 读取事件对象；字段值进入模板前必须转义 `[] .= \\`。
 - 消息事件的 `data` 包含来源标识、发送者、时间、消息场景、消息序列号和消息段数组。
 - 接收消息段常见类型：文本、提及、表情、回复、图片、语音、视频、文件、转发和市场表情。
 - 发送消息段仅支持：文本、提及、回复、图片、语音和视频；发送图片、语音、视频时使用 URI。
@@ -33,7 +35,7 @@ READ WHEN: when implementing or debugging Milky API calls, event handling, or me
 ## Fraq API 模板覆盖
 
 - `fraq-plugin-lexicon` 使用英文 snake_case 端点名，并以静态定义覆盖 Fraq `0.14.0` 与 `0.17.0` 的全部 65 个端点。
-- 事件默认参数优先读取第一个艾特 QQ、回复发送者和回复消息序列号，再回退到当前发送者与当前消息序列号。
+- API 默认参数先继承事件 `data` 中与端点参数同名的字段；目标 QQ 再按艾特、回复发送者、`user_id`、`sender_id`、`operator_id`、`initiator_id` 和当前发送者的顺序选择。
 - 回复或当前消息中的消息段、媒体资源、文件和合并转发字段可作为 API 参数默认值；用户显式参数始终覆盖事件默认值。
 - API 参数与返回值可进入变量模板，并通过迭代解析继续无限嵌套；返回 JSON 会转义模板控制字符，避免被误识别为词条。
 

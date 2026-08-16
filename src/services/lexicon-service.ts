@@ -8,6 +8,7 @@ import type {
   MatchedLexiconEntry,
   MatchMode,
   MessageContext,
+  TemplateContext,
 } from '../models/lexicon';
 import { DEFAULT_LEXICON_NAME } from '../models/lexicon';
 
@@ -36,6 +37,16 @@ export class LexiconService {
     }
     this.activeLexiconIds.set(key, defaultLexicon.id);
     return defaultLexicon;
+  }
+
+  ensureEventDefaultLexicon(context: TemplateContext): Lexicon {
+    if (context.groupId === undefined) {
+      return this.ensureGlobalDefault(context.senderId ?? context.selfId);
+    }
+    return (
+      this.repository.findLexicon(DEFAULT_LEXICON_NAME, 'group', context.groupId) ??
+      this.repository.createLexicon(DEFAULT_LEXICON_NAME, 'group', context.groupId, context.senderId ?? context.selfId)
+    );
   }
 
   switchLexicon(rawName: string, context: MessageContext): Lexicon {
@@ -145,7 +156,7 @@ export class LexiconService {
     return lexicon;
   }
 
-  matchMessage(context: MessageContext, rawName?: string): MatchedLexiconEntry | undefined {
+  matchMessage(context: TemplateContext, rawName?: string): MatchedLexiconEntry | undefined {
     const lexicons = rawName
       ? this.findNamedLexicons(parseLexiconSelector(rawName), context, true)
       : this.availableLexicons(context);
@@ -156,7 +167,7 @@ export class LexiconService {
     return matches.sort(compareMatches)[0];
   }
 
-  private availableLexicons(context: MessageContext): Lexicon[] {
+  private availableLexicons(context: TemplateContext): Lexicon[] {
     if (context.groupId === undefined) {
       return this.repository.listGlobalLexicons();
     }
@@ -168,7 +179,7 @@ export class LexiconService {
 
   private findNamedLexicons(
     selector: LexiconSelector,
-    context: MessageContext,
+    context: TemplateContext,
     requireEnabledGlobal: boolean,
   ): Lexicon[] {
     const lexicons: Lexicon[] = [];

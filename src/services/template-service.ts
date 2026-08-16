@@ -2,9 +2,10 @@ import type { MilkyClient } from '@fraqjs/fraq';
 
 import type { ApiActionRegistry } from '../actions/api-action-registry';
 import { LexiconError } from '../errors';
-import type { MessageContext } from '../models/lexicon';
+import type { TemplateContext } from '../models/lexicon';
 import { findInnermostTerm, parseTemplateTerm, unescapeTemplateText } from '../parsers/template-parser';
 import type { LexiconService } from './lexicon-service';
+import { MilkyEventValueService } from './milky-event-value-service';
 
 export interface TemplateServiceOptions {
   maxOutputLength?: number;
@@ -12,6 +13,7 @@ export interface TemplateServiceOptions {
 
 export class TemplateService {
   private readonly maxOutputLength: number;
+  private readonly eventValueService = new MilkyEventValueService();
 
   constructor(
     private readonly lexiconService: LexiconService,
@@ -22,7 +24,7 @@ export class TemplateService {
     this.maxOutputLength = options.maxOutputLength ?? 65_536;
   }
 
-  async render(template: string, context: MessageContext): Promise<string> {
+  async render(template: string, context: TemplateContext): Promise<string> {
     let output = template;
     const seenStates = new Set<string>();
     const variables = new Map<string, string>();
@@ -49,7 +51,7 @@ export class TemplateService {
 
   private async executeTerm(
     term: ReturnType<typeof parseTemplateTerm>,
-    context: MessageContext,
+    context: TemplateContext,
     variables: Map<string, string>,
   ): Promise<string> {
     if (term.type === 'api') {
@@ -57,6 +59,10 @@ export class TemplateService {
         client: this.client,
         message: context,
       });
+    }
+
+    if (term.type === 'event') {
+      return this.eventValueService.resolve(term.path, context);
     }
 
     if (term.type === 'setVariable') {
