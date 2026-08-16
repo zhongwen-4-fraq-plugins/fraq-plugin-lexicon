@@ -4,7 +4,7 @@ Focus: 发布并验证 `fraq-plugin-lexicon` 词库与嵌套词条解析插件�
 
 ## In flight
 
-- `template-message-plugin` — MVP、发布、PR 审核和 Issue 表单已完成，待实机验证
+- `template-message-plugin` — 正在发布并验证 v0.1.7 全量英文 Milky API 模板
 
 ## Next
 
@@ -21,3 +21,4 @@ Focus: 发布并验证 `fraq-plugin-lexicon` 词库与嵌套词条解析插件�
 - v0.1.5 published and installed in the target app; automatic default lexicon behavior is ready for group-message verification.
 - Preparing v0.1.6: scoped template variables with recursive lexicon expansion.
 - v0.1.6 variable support is published and loaded by the target app; runtime startup verification passed.
+- Preparing v0.1.7: all 65 Fraq Milky API endpoints, event-derived defaults, and variable-aware nested API results.

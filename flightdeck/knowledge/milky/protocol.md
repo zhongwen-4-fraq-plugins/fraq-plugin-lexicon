@@ -6,9 +6,10 @@ READ WHEN: when implementing or debugging Milky API calls, event handling, or me
 
 ## 当前版本
 
-- 文档当前展示 Milky `1.3.0`，发布于 2026-08-07。
+- 官方文档当前展示 Milky `1.2`，协议包元数据显示版本为 `1.2.2`。
 - 官方提供中间表示（IR）、OpenAPI 文档和 JSON Schema，可用于生成类型、校验实现与对照协议结构。
 - TypeScript SDK 列表包含 `@fraqjs/fraq`，本项目通过 peer dependency 使用它。
+- Fraq `0.14.0` 与 `0.17.0` 当前均暴露 65 个英文 API 端点；其中 `persist_group_file` 在 Fraq 类型中标记为 Milky `1.3` 起提供，因此插件按当前 Fraq 客户端能力一并接入。
 
 ## 通信模型
 
@@ -28,6 +29,13 @@ READ WHEN: when implementing or debugging Milky API calls, event handling, or me
 
 - 群聊使用 `send_group_nudge`，参数为 `group_id` 和被戳成员的 `user_id`。
 - 好友使用 `send_friend_nudge`，参数为好友 `user_id` 和表示是否戳自己的 `is_self`。
+
+## Fraq API 模板覆盖
+
+- `fraq-plugin-lexicon` 使用英文 snake_case 端点名，并以静态定义覆盖 Fraq `0.14.0` 与 `0.17.0` 的全部 65 个端点。
+- 事件默认参数优先读取第一个艾特 QQ、回复发送者和回复消息序列号，再回退到当前发送者与当前消息序列号。
+- 回复或当前消息中的消息段、媒体资源、文件和合并转发字段可作为 API 参数默认值；用户显式参数始终覆盖事件默认值。
+- API 参数与返回值可进入变量模板，并通过迭代解析继续无限嵌套；返回 JSON 会转义模板控制字符，避免被误识别为词条。
 
 ## 兼容性规则
 

@@ -6,6 +6,7 @@ import { extractText, LexiconController } from './core/lexicon-controller';
 import { LexiconRepository } from './data/lexicon-repository';
 import { resolveCommandText } from './parsers/command-prefix-parser';
 import { LexiconService } from './services/lexicon-service';
+import { MilkyApiService } from './services/milky-api-service';
 import { PermissionService } from './services/permission-service';
 import { TemplateService } from './services/template-service';
 
@@ -25,7 +26,10 @@ export const FraqPluginLexicon = definePlugin({
     const lexiconService = new LexiconService(repository);
     lexiconService.ensureGlobalDefault(options.owners?.[0] ?? 0);
     const permissionService = new PermissionService(options.owners ?? []);
-    const actionRegistry = new ApiActionRegistry();
+    const milkyApiService = new MilkyApiService();
+    const actionRegistry = new ApiActionRegistry((name, parameters, context) =>
+      milkyApiService.execute(name, parameters, context),
+    );
     actionRegistry.register('戳一戳', nudgeAction);
 
     const templateService = new TemplateService(lexiconService, actionRegistry, ctx.client, {

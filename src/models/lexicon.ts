@@ -1,3 +1,5 @@
+import type { milky } from '@fraqjs/fraq';
+
 export type LexiconScopeType = 'global' | 'group';
 
 export const DEFAULT_LEXICON_NAME = '默认';
@@ -33,9 +35,17 @@ export interface MessageContext {
   scene: 'friend' | 'group' | 'temp';
   peerId: number;
   senderId: number;
+  messageSeq: number;
   groupId?: number;
   groupRole?: 'owner' | 'admin' | 'member';
   originalText: string;
+  segments: milky.IncomingSegment[];
+  mentionedUserIds: number[];
+  reply?: {
+    messageSeq: number;
+    senderId: number;
+    segments: milky.IncomingSegment[];
+  };
 }
 
 export interface LexiconSelector {

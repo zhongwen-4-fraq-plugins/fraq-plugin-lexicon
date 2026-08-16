@@ -3,7 +3,9 @@ import type { ApiActionHandler } from './api-action-registry';
 
 export const nudgeAction: ApiActionHandler = async (parameters, context) => {
   ensureOnlyParameters(parameters, ['user_id', 'is_self']);
-  const userId = readNumber(parameters.user_id, context.message.senderId, 'user_id');
+  const defaultUserId =
+    context.message.mentionedUserIds[0] ?? context.message.reply?.senderId ?? context.message.senderId;
+  const userId = readNumber(parameters.user_id, defaultUserId, 'user_id');
 
   if (context.message.scene === 'group') {
     if (context.message.groupId === undefined) {

@@ -3,11 +3,13 @@ import type { MilkyClient } from '@fraqjs/fraq';
 import { ApiActionRegistry } from '../src/actions/api-action-registry';
 import { nudgeAction } from '../src/actions/nudge-action';
 import { LexiconRepository } from '../src/data/lexicon-repository';
+import { MILKY_API_ENDPOINTS } from '../src/data/milky-api-definitions';
 import type { MessageContext } from '../src/models/lexicon';
 import { resolveCommandText } from '../src/parsers/command-prefix-parser';
 import { parseManagementCommand } from '../src/parsers/management-command-parser';
 import { findInnermostTerm, parseTemplateTerm } from '../src/parsers/template-parser';
 import { LexiconService } from '../src/services/lexicon-service';
+import { MilkyApiService } from '../src/services/milky-api-service';
 import { TemplateService } from '../src/services/template-service';
 
 import assert from 'node:assert/strict';
@@ -20,9 +22,12 @@ const groupContext: MessageContext = {
   scene: 'group',
   peerId: 10001,
   senderId: 20002,
+  messageSeq: 30003,
   groupId: 10001,
   groupRole: 'admin',
   originalText: '戳我',
+  segments: [{ type: 'text', data: { text: '戳我' } }],
+  mentionedUserIds: [],
 };
 
 test('管理命令可以解析添加和两种删除格式', () => {
@@ -178,6 +183,70 @@ test('变量词条支持创建、读取和无限嵌套解析', async (context) =
   );
 
   assert.equal(output, '最终内容');
+});
+
+test('英文 Milky API 覆盖全部端点并使用事件默认参数', async (context) => {
+  assert.equal(MILKY_API_ENDPOINTS.size, 65);
+  assert.ok(MILKY_API_ENDPOINTS.has('get_login_info'));
+  assert.ok(MILKY_API_ENDPOINTS.has('delete_group_folder'));
+
+  const calls: Array<{ endpoint: string; params: Record<string, unknown> }> = [];
+  const client = new Proxy(
+    {},
+    {
+      get(_target, property) {
+        return async (params: Record<string, unknown>) => {
+          calls.push({ endpoint: String(property), params });
+          return { endpoint: property, params };
+        };
+      },
+    },
+  ) as MilkyClient;
+  const apiService = new MilkyApiService();
+  const actions = new ApiActionRegistry((name, parameters, apiContext) =>
+    apiService.execute(name, parameters, apiContext),
+  );
+  const harness = createHarness(context);
+  const template = new TemplateService(harness.service, actions, client);
+  const apiContext: MessageContext = {
+    ...groupContext,
+    mentionedUserIds: [40004],
+    reply: {
+      messageSeq: 50005,
+      senderId: 60006,
+      segments: [{ type: 'text', data: { text: '回复内容' } }],
+    },
+  };
+
+  const result = await template.render('[创建变量=R=[api.send_group_message]][读取变量=R]', apiContext);
+  await apiService.execute('send_group_nudge', {}, { client, message: apiContext });
+  await apiService.execute('recall_group_message', {}, { client, message: apiContext });
+  await apiService.execute('recall_group_message', { message_seq: '70007' }, { client, message: apiContext });
+  await template.render('[创建变量=U=90009][创建变量=R=[api.send_group_nudge.user_id=[读取变量=U]]]', apiContext);
+
+  assert.deepEqual(JSON.parse(result), {
+    endpoint: 'send_group_message',
+    params: {
+      group_id: 10001,
+      message: [{ type: 'text', data: { text: '回复内容' } }],
+    },
+  });
+  assert.deepEqual(calls[1], {
+    endpoint: 'send_group_nudge',
+    params: { group_id: 10001, user_id: 40004 },
+  });
+  assert.deepEqual(calls[2], {
+    endpoint: 'recall_group_message',
+    params: { group_id: 10001, message_seq: 50005 },
+  });
+  assert.deepEqual(calls[3], {
+    endpoint: 'recall_group_message',
+    params: { group_id: 10001, message_seq: 70007 },
+  });
+  assert.deepEqual(calls[4], {
+    endpoint: 'send_group_nudge',
+    params: { group_id: 10001, user_id: 90009 },
+  });
 });
 
 test('戳一戳动作按消息场景调用对应 API', async () => {

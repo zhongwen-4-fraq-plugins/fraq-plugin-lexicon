@@ -99,3 +99,12 @@
 - Trusted Publisher run 31919315965 completed successfully for v0.1.6.
 - Target app app/package.json, package-lock.json, pnpm-lock.yaml, and versions.yml reference 0.1.6.
 - Target app restarted successfully; the installed bundle contains 创建变量 and 读取变量 handlers and listens on port 4649 without startup errors.
+
+## Full Milky API release
+
+- v0.1.7 adds all 65 English snake_case Milky API endpoints exposed by Fraq 0.14.0 and 0.17.0.
+- API parameters default from the current event, including mentioned/replied/current QQ IDs, group and peer IDs, message sequences, reply/current message segments, media resources, files, and forwarded messages.
+- Explicit parameters override event defaults; message parameters accept plain text or message-segment JSON.
+- API parameters and serialized return values support scoped variables and the existing unlimited nested-term parser.
+- Static endpoint definitions are checked against Fraq's `ApiParams` types so parameter names and scalar/message kinds cannot silently drift.
+- `pnpm test`, `pnpm check`, `pnpm build`, and `npm pack --dry-run --json` passed for v0.1.7 on 2026-08-16.

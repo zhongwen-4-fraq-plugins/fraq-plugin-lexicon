@@ -53,7 +53,7 @@ export function parseTemplateTerm(content: string): TemplateTerm {
     return {
       type: 'setVariable',
       name: validateVariableName(variableParts[1]),
-      value: unescapeTemplateText(variableParts.slice(2).join('=')),
+      value: variableParts.slice(2).join('='),
     };
   }
 
@@ -96,6 +96,10 @@ export function parseTemplateTerm(content: string): TemplateTerm {
 
 export function unescapeTemplateText(input: string): string {
   return input.replace(/\\([\\[\].=])/g, '$1');
+}
+
+export function escapeTemplateText(input: string): string {
+  return input.replace(/([\\[\].=])/g, '\\$1');
 }
 
 function splitParameter(input: string): [string, string] {

@@ -143,10 +143,14 @@ export function extractText(message: milky.IncomingMessage): string {
 }
 
 function createMessageContext(message: milky.IncomingMessage, originalText: string): MessageContext {
+  const replySegment = message.segments.find(
+    (segment): segment is milky.IncomingReplySegment => segment.type === 'reply',
+  );
   return {
     scene: message.message_scene,
     peerId: message.peer_id,
     senderId: message.sender_id,
+    messageSeq: message.message_seq,
     groupId:
       message.message_scene === 'group'
         ? message.peer_id
@@ -155,6 +159,15 @@ function createMessageContext(message: milky.IncomingMessage, originalText: stri
           : undefined,
     groupRole: message.message_scene === 'group' ? message.group_member.role : undefined,
     originalText,
+    segments: message.segments,
+    mentionedUserIds: message.segments.flatMap((segment) => (segment.type === 'mention' ? [segment.data.user_id] : [])),
+    reply: replySegment
+      ? {
+          messageSeq: replySegment.data.message_seq,
+          senderId: replySegment.data.sender_id,
+          segments: replySegment.data.segments,
+        }
+      : undefined,
   };
 }
 
@@ -179,7 +192,9 @@ function helpText(): string {
     '词库 删除 <词库名> 问 <内容>',
     '',
     '词条：',
-    '[api.戳一戳] 或 [api.戳一戳.user_id=QQ号]',
+    '[api.<英文 API 端点>.<参数名>=<参数值>]',
+    '[api.send_group_nudge] 会从当前事件读取群号和目标 QQ。',
+    '[创建变量=A=内容] 与 [读取变量=A] 可嵌套在 API 参数和返回值中。',
     '[词库.<词库名>] 使用当前消息匹配指定词库，并继续解析其回答。',
     '同名词库可使用 全局:<名称> 或 群:<名称> 明确指定作用域。',
   ].join('\n');
