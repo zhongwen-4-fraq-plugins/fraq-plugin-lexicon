@@ -1,10 +1,10 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 验证 `fraq-plugin-lexicon` v0.1.12 新变量语法与英文 nudge API。
+Focus: 准备 `fraq-plugin-lexicon` v0.2.0 后续开发。
 
 ## In flight
 
-- `template-message-plugin` — v0.1.12 已通过 Trusted Publisher 发布并安装到目标 Fraq 应用，待真实交互验证
+- `template-message-plugin` — v0.1.12 已发布安装，源码开发版本已按进位约定调整为 v0.2.0
 
 ## Next
 

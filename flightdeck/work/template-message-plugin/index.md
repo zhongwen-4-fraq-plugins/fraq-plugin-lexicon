@@ -5,7 +5,7 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.1.12 正在移除中文戳一戳 API 别名，仅保留英文 nudge API。
+- v0.1.12 已发布并安装；下一开发版本按项目进位约定调整为 v0.2.0。
 
 ## Next
 
@@ -144,6 +144,11 @@
 - Target app package.json, package-lock.json, pnpm-lock.yaml, and versions.yml now reference 0.1.9.
 - The installed bundle contains QuestionTemplateService, dynamic question matching, and event-name guards.
 - Target Fraq 0.14.0 restarted successfully; Hono listens on 127.0.0.1:4649 and the Milky WebSocket connected.
+
+## Version progression convention
+
+- In `0.x` releases, patch numbers stop at 9; the version after `0.1.9` is `0.2.0`, never `0.1.10`.
+- The source development version is now 0.2.0; npm and the target app remain on the released 0.1.12 until the next tag.
 
 ## Variable namespace update
 
