@@ -2,7 +2,9 @@ import { LexiconError } from '../errors';
 
 export type TemplateTerm =
   | { type: 'api'; action: string; parameters: Record<string, string> }
-  | { type: 'lexicon'; name: string };
+  | { type: 'lexicon'; name: string }
+  | { type: 'setVariable'; name: string; value: string }
+  | { type: 'getVariable'; name: string };
 
 export interface TermLocation {
   start: number;
@@ -43,6 +45,25 @@ export function findInnermostTerm(input: string): TermLocation | undefined {
 }
 
 export function parseTemplateTerm(content: string): TemplateTerm {
+  const variableParts = splitEscaped(content, '=');
+  if (variableParts[0] === '创建变量') {
+    if (variableParts.length < 2) {
+      throw new LexiconError('创建变量词条格式应为 [创建变量=变量名] 或 [创建变量=变量名=变量值]。');
+    }
+    return {
+      type: 'setVariable',
+      name: validateVariableName(variableParts[1]),
+      value: unescapeTemplateText(variableParts.slice(2).join('=')),
+    };
+  }
+
+  if (variableParts[0] === '读取变量') {
+    if (variableParts.length !== 2) {
+      throw new LexiconError('读取变量词条格式应为 [读取变量=变量名]。');
+    }
+    return { type: 'getVariable', name: validateVariableName(variableParts[1]) };
+  }
+
   const parts = splitEscaped(content, '.').map(unescapePart);
   const namespace = parts.shift();
 
@@ -110,6 +131,14 @@ function splitEscaped(input: string, delimiter: string): string[] {
 
 function unescapePart(input: string): string {
   return input.replace(/\\([\\[\].=])/g, '$1');
+}
+
+function validateVariableName(name: string): string {
+  const normalizedName = unescapeTemplateText(name).trim();
+  if (!normalizedName || /[\s[\]\\=]/.test(normalizedName)) {
+    throw new LexiconError('变量名不能为空，且不能包含空白、方括号、反斜杠或等号。');
+  }
+  return normalizedName;
 }
 
 function isEscaped(input: string, index: number): boolean {

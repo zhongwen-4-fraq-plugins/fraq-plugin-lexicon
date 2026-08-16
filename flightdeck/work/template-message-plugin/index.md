@@ -88,3 +88,8 @@
 - Target app app/package.json, package-lock.json, pnpm-lock.yaml, and versions.yml now reference 0.1.5.
 - Target app restarted with Fraq 0.14.0; plugin startup is clean and the existing global default lexicon is present in SQLite.
 - Group default creation remains lazy and will occur when the first message arrives from each group.
+
+## Template variable release
+
+- v0.1.6 adds [创建变量=A], [创建变量=A=内容], and [读取变量=A].
+- Variables live for one template render; values continue through the existing unlimited nested-term parser.

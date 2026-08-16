@@ -25,6 +25,7 @@ export class TemplateService {
   async render(template: string, context: MessageContext): Promise<string> {
     let output = template;
     const seenStates = new Set<string>();
+    const variables = new Map<string, string>();
 
     while (true) {
       if (output.length > this.maxOutputLength) {
@@ -41,17 +42,34 @@ export class TemplateService {
       }
 
       const term = parseTemplateTerm(location.content);
-      const replacement = await this.executeTerm(term, context);
+      const replacement = await this.executeTerm(term, context, variables);
       output = `${output.slice(0, location.start)}${replacement}${output.slice(location.end + 1)}`;
     }
   }
 
-  private async executeTerm(term: ReturnType<typeof parseTemplateTerm>, context: MessageContext): Promise<string> {
+  private async executeTerm(
+    term: ReturnType<typeof parseTemplateTerm>,
+    context: MessageContext,
+    variables: Map<string, string>,
+  ): Promise<string> {
     if (term.type === 'api') {
       return this.actionRegistry.execute(term.action, term.parameters, {
         client: this.client,
         message: context,
       });
+    }
+
+    if (term.type === 'setVariable') {
+      variables.set(term.name, term.value);
+      return '';
+    }
+
+    if (term.type === 'getVariable') {
+      const value = variables.get(term.name);
+      if (value === undefined) {
+        throw new LexiconError(`变量“${term.name}”尚未创建。`);
+      }
+      return value;
     }
 
     const match = this.lexiconService.matchMessage(context, term.name);

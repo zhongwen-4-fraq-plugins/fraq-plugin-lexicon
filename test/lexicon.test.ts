@@ -79,6 +79,20 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     action: '戳一戳',
     parameters: { user_id: '123', is_self: 'false' },
   });
+  assert.deepEqual(parseTemplateTerm('创建变量=A'), {
+    type: 'setVariable',
+    name: 'A',
+    value: '',
+  });
+  assert.deepEqual(parseTemplateTerm('创建变量=A=内容'), {
+    type: 'setVariable',
+    name: 'A',
+    value: '内容',
+  });
+  assert.deepEqual(parseTemplateTerm('读取变量=A'), {
+    type: 'getVariable',
+    name: 'A',
+  });
   assert.equal(findInnermostTerm('普通文本\\[不是词条\\]'), undefined);
 });
 
@@ -151,6 +165,19 @@ test('词库循环引用会返回明确错误', async (context) => {
   harness.repository.addEntry(second.id, 'exact', groupContext.originalText, '[词库.循环一]', 1);
 
   await assert.rejects(() => harness.template.render('[词库.循环一]', groupContext), /循环引用/);
+});
+
+test('变量词条支持创建、读取和无限嵌套解析', async (context) => {
+  const harness = createHarness(context);
+  const lexicon = harness.service.createLexicon('变量词库', 'group', groupContext);
+  harness.repository.addEntry(lexicon.id, 'exact', groupContext.originalText, '最终内容', 1);
+
+  const output = await harness.template.render(
+    '[创建变量=A=[创建变量=B=[词库.变量词库]][读取变量=B]][读取变量=A]',
+    groupContext,
+  );
+
+  assert.equal(output, '最终内容');
 });
 
 test('戳一戳动作按消息场景调用对应 API', async () => {
