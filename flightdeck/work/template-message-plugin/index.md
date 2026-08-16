@@ -108,3 +108,10 @@
 - API parameters and serialized return values support scoped variables and the existing unlimited nested-term parser.
 - Static endpoint definitions are checked against Fraq's `ApiParams` types so parameter names and scalar/message kinds cannot silently drift.
 - `pnpm test`, `pnpm check`, `pnpm build`, and `npm pack --dry-run --json` passed for v0.1.7 on 2026-08-16.
+
+## v0.1.7 release verification
+
+- Trusted Publisher run 31932938825 completed successfully for v0.1.7.
+- Target app app/package.json, package-lock.json, pnpm-lock.yaml, and versions.yml now reference 0.1.7.
+- Target app restarted successfully with Fraq 0.14.0; fraq-plugin-lexicon is applied and Hono listens on 127.0.0.1:4649 without startup errors.
+- The installed bundle contains the 65-endpoint registry, event-derived API defaults, mention/reply context fields, and variable-safe API result serialization.
