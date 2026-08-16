@@ -9,9 +9,44 @@ import type {
   MatchMode,
   MessageContext,
 } from '../models/lexicon';
+import { DEFAULT_LEXICON_NAME } from '../models/lexicon';
 
 export class LexiconService {
+  private readonly activeLexiconIds = new Map<string, number>();
+
   constructor(private readonly repository: LexiconRepository) {}
+
+  ensureGlobalDefault(createdBy: number): Lexicon {
+    return (
+      this.repository.findLexicon(DEFAULT_LEXICON_NAME, 'global', 0) ??
+      this.repository.createLexicon(DEFAULT_LEXICON_NAME, 'global', 0, createdBy)
+    );
+  }
+
+  ensureDefaultLexicon(context: MessageContext): Lexicon {
+    const defaultLexicon =
+      context.groupId === undefined
+        ? this.ensureGlobalDefault(context.senderId)
+        : (this.repository.findLexicon(DEFAULT_LEXICON_NAME, 'group', context.groupId) ??
+          this.repository.createLexicon(DEFAULT_LEXICON_NAME, 'group', context.groupId, context.senderId));
+    const key = selectionKey(context);
+    const activeLexicon = this.repository.getLexiconById(this.activeLexiconIds.get(key) ?? -1);
+    if (activeLexicon && isLexiconInContext(activeLexicon, context)) {
+      return activeLexicon;
+    }
+    this.activeLexiconIds.set(key, defaultLexicon.id);
+    return defaultLexicon;
+  }
+
+  switchLexicon(rawName: string, context: MessageContext): Lexicon {
+    const selector = parseLexiconSelector(rawName);
+    const lexicon = this.findNamedLexicons(selector, context, false)[0];
+    if (!lexicon) {
+      throw new LexiconError(`没有找到可切换的词库“${selector.name}”。`);
+    }
+    this.activeLexiconIds.set(selectionKey(context), lexicon.id);
+    return lexicon;
+  }
 
   createLexicon(name: string, scopeType: LexiconScopeType, context: MessageContext): Lexicon {
     const normalizedName = validateLexiconName(name);
@@ -32,7 +67,7 @@ export class LexiconService {
   }
 
   addEntry(
-    lexiconName: string,
+    lexiconName: string | undefined,
     matchMode: MatchMode,
     question: string,
     answer: string,
@@ -56,7 +91,7 @@ export class LexiconService {
     }
   }
 
-  deleteEntryById(lexiconName: string, entryId: number, context: MessageContext): Lexicon {
+  deleteEntryById(lexiconName: string | undefined, entryId: number, context: MessageContext): Lexicon {
     const lexicon = this.resolveManageableLexicon(lexiconName, context);
     if (!this.repository.deleteEntryById(lexicon.id, entryId)) {
       throw new LexiconError(`词库“${lexicon.name}”中没有 ID 为 ${entryId} 的词条。`);
@@ -65,7 +100,7 @@ export class LexiconService {
   }
 
   deleteEntriesByQuestion(
-    lexiconName: string,
+    lexiconName: string | undefined,
     question: string,
     context: MessageContext,
   ): { lexicon: Lexicon; count: number } {
@@ -97,7 +132,10 @@ export class LexiconService {
     return { group, global };
   }
 
-  resolveManageableLexicon(rawName: string, context: MessageContext): Lexicon {
+  resolveManageableLexicon(rawName: string | undefined, context: MessageContext): Lexicon {
+    if (!rawName) {
+      return this.ensureDefaultLexicon(context);
+    }
     const selector = parseLexiconSelector(rawName);
     const candidates = this.findNamedLexicons(selector, context, false);
     const lexicon = candidates[0];
@@ -209,4 +247,12 @@ function scopePriority(scopeType: LexiconScopeType): number {
 
 function scopeLabel(scopeType: LexiconScopeType): string {
   return scopeType === 'group' ? '群' : '全局';
+}
+
+function selectionKey(context: MessageContext): string {
+  return context.groupId === undefined ? `${context.scene}:${context.peerId}` : `group:${context.groupId}`;
+}
+
+function isLexiconInContext(lexicon: Lexicon, context: MessageContext): boolean {
+  return lexicon.scopeType === 'global' || lexicon.scopeId === context.groupId;
 }

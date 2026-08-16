@@ -18,6 +18,7 @@ export class LexiconController {
     const context = createMessageContext(session.raw, extractText(session.raw));
 
     try {
+      this.lexiconService.ensureDefaultLexicon(context);
       const command = parseManagementCommand(commandText);
       switch (command.type) {
         case 'help':
@@ -36,6 +37,11 @@ export class LexiconController {
           this.permissionService.assertCanCreate(command.scopeType, context);
           const lexicon = this.lexiconService.deleteLexicon(command.name, command.scopeType, context);
           await session.reply(`已删除${scopeLabel(lexicon.scopeType)}词库“${lexicon.name}”。`);
+          return;
+        }
+        case 'switch': {
+          const lexicon = this.lexiconService.switchLexicon(command.lexiconName, context);
+          await session.reply(`已切换当前管理词库为“${lexicon.name}”（${scopeLabel(lexicon.scopeType)}）。`);
           return;
         }
         case 'enable':
@@ -89,6 +95,7 @@ export class LexiconController {
     }
 
     const context = createMessageContext(session.raw, text);
+    this.lexiconService.ensureDefaultLexicon(context);
     const match = this.lexiconService.matchMessage(context);
     if (!match) {
       return;
@@ -162,8 +169,12 @@ function helpText(): string {
     '词库 删除库 <全局|群> <词库名>',
     '词库 启用 <全局词库名>',
     '词库 禁用 <全局词库名>',
+    '词库 切换 <词库名>',
     '词库 列表',
+    '词库 添加 <精确|模糊> 问 <内容> 答 <内容>（默认词库）',
     '词库 添加 <词库名> <精确|模糊> 问 <内容> 答 <内容>',
+    '词库 删除 id <词条ID>（默认词库）',
+    '词库 删除 问 <内容>（默认词库）',
     '词库 删除 <词库名> id <词条ID>',
     '词库 删除 <词库名> 问 <内容>',
     '',

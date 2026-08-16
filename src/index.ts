@@ -23,6 +23,7 @@ export const FraqPluginLexicon = definePlugin({
     const databasePath = resolve(options.databasePath ?? join('data', 'fraq-plugin-lexicon.sqlite'));
     const repository = new LexiconRepository(databasePath);
     const lexiconService = new LexiconService(repository);
+    lexiconService.ensureGlobalDefault(options.owners?.[0] ?? 0);
     const permissionService = new PermissionService(options.owners ?? []);
     const actionRegistry = new ApiActionRegistry();
     actionRegistry.register('戳一戳', nudgeAction);

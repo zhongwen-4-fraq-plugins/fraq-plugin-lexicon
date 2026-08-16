@@ -6,11 +6,12 @@ export type ManagementCommand =
   | { type: 'list' }
   | { type: 'create'; scopeType: LexiconScopeType; name: string }
   | { type: 'deleteLexicon'; scopeType: LexiconScopeType; name: string }
+  | { type: 'switch'; lexiconName: string }
   | { type: 'enable'; name: string }
   | { type: 'disable'; name: string }
-  | { type: 'add'; lexiconName: string; matchMode: MatchMode; question: string; answer: string }
-  | { type: 'deleteById'; lexiconName: string; entryId: number }
-  | { type: 'deleteByQuestion'; lexiconName: string; question: string };
+  | { type: 'add'; lexiconName?: string; matchMode: MatchMode; question: string; answer: string }
+  | { type: 'deleteById'; lexiconName?: string; entryId: number }
+  | { type: 'deleteByQuestion'; lexiconName?: string; question: string };
 
 export function parseManagementCommand(input: string): ManagementCommand {
   const command = input.trim();
@@ -30,6 +31,11 @@ export function parseManagementCommand(input: string): ManagementCommand {
     };
   }
 
+  const switchMatch = /^切换\s+(\S+)$/.exec(command);
+  if (switchMatch) {
+    return { type: 'switch', lexiconName: switchMatch[1] };
+  }
+
   const toggleMatch = /^(启用|禁用)\s+(\S+)$/.exec(command);
   if (toggleMatch) {
     return {
@@ -38,32 +44,55 @@ export function parseManagementCommand(input: string): ManagementCommand {
     };
   }
 
-  const addMatch = /^添加\s+(\S+)\s+(精确|模糊)\s+问\s+([\s\S]+?)\s+答\s*([\s\S]+)$/.exec(command);
-  if (addMatch) {
+  const addWithNameMatch = /^添加\s+(\S+)\s+(精确|模糊)\s+问\s+([\s\S]+?)\s+答\s*([\s\S]+)$/.exec(command);
+  const addDefaultMatch = /^添加\s+(精确|模糊)\s+问\s+([\s\S]+?)\s+答\s*([\s\S]+)$/.exec(command);
+  if (addWithNameMatch) {
     return {
       type: 'add',
-      lexiconName: addMatch[1],
-      matchMode: addMatch[2] === '精确' ? 'exact' : 'fuzzy',
-      question: addMatch[3].trim(),
-      answer: addMatch[4],
+      lexiconName: addWithNameMatch[1],
+      matchMode: addWithNameMatch[2] === '精确' ? 'exact' : 'fuzzy',
+      question: addWithNameMatch[3].trim(),
+      answer: addWithNameMatch[4],
+    };
+  }
+  if (addDefaultMatch) {
+    return {
+      type: 'add',
+      matchMode: addDefaultMatch[1] === '精确' ? 'exact' : 'fuzzy',
+      question: addDefaultMatch[2].trim(),
+      answer: addDefaultMatch[3],
     };
   }
 
-  const deleteByIdMatch = /^删除\s+(\S+)\s+id\s+(\d+)$/.exec(command);
-  if (deleteByIdMatch) {
+  const deleteByIdWithNameMatch = /^删除\s+(\S+)\s+id\s+(\d+)$/.exec(command);
+  const deleteByIdDefaultMatch = /^删除\s+id\s+(\d+)$/.exec(command);
+  if (deleteByIdWithNameMatch) {
     return {
       type: 'deleteById',
-      lexiconName: deleteByIdMatch[1],
-      entryId: Number(deleteByIdMatch[2]),
+      lexiconName: deleteByIdWithNameMatch[1],
+      entryId: Number(deleteByIdWithNameMatch[2]),
+    };
+  }
+  if (deleteByIdDefaultMatch) {
+    return {
+      type: 'deleteById',
+      entryId: Number(deleteByIdDefaultMatch[1]),
     };
   }
 
-  const deleteByQuestionMatch = /^删除\s+(\S+)\s+问\s+([\s\S]+)$/.exec(command);
-  if (deleteByQuestionMatch) {
+  const deleteByQuestionWithNameMatch = /^删除\s+(\S+)\s+问\s+([\s\S]+)$/.exec(command);
+  const deleteByQuestionDefaultMatch = /^删除\s+问\s+([\s\S]+)$/.exec(command);
+  if (deleteByQuestionWithNameMatch) {
     return {
       type: 'deleteByQuestion',
-      lexiconName: deleteByQuestionMatch[1],
-      question: deleteByQuestionMatch[2].trim(),
+      lexiconName: deleteByQuestionWithNameMatch[1],
+      question: deleteByQuestionWithNameMatch[2].trim(),
+    };
+  }
+  if (deleteByQuestionDefaultMatch) {
+    return {
+      type: 'deleteByQuestion',
+      question: deleteByQuestionDefaultMatch[1].trim(),
     };
   }
 

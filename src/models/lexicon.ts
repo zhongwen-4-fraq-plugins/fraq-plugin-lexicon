@@ -1,5 +1,7 @@
 export type LexiconScopeType = 'global' | 'group';
 
+export const DEFAULT_LEXICON_NAME = '默认';
+
 export type MatchMode = 'exact' | 'fuzzy';
 
 export interface Lexicon {

@@ -43,6 +43,20 @@ test('管理命令可以解析添加和两种删除格式', () => {
     lexiconName: '默认',
     question: '戳我',
   });
+  assert.deepEqual(parseManagementCommand('添加 精确 问 戳我 答 戳啦'), {
+    type: 'add',
+    matchMode: 'exact',
+    question: '戳我',
+    answer: '戳啦',
+  });
+  assert.deepEqual(parseManagementCommand('删除 id 12'), {
+    type: 'deleteById',
+    entryId: 12,
+  });
+  assert.deepEqual(parseManagementCommand('切换 其他'), {
+    type: 'switch',
+    lexiconName: '其他',
+  });
 });
 
 test('命令文本继承 Fraq 路由激活方式', () => {
@@ -88,6 +102,29 @@ test('匹配优先级遵循精确、作用域、长度和 ID', (context) => {
   harness.repository.addEntry(short.id, 'fuzzy', '戳', '短', 1);
   harness.repository.addEntry(long.id, 'fuzzy', '戳我一下', '长', 1);
   assert.equal(harness.service.matchMessage(lengthContext)?.answer, '长');
+});
+
+test('默认词库会自动创建并支持切换管理目标', (context) => {
+  const harness = createHarness(context);
+  const friendContext = { ...groupContext, scene: 'friend' as const, groupId: undefined, groupRole: undefined };
+
+  const globalDefault = harness.service.ensureGlobalDefault(1);
+  assert.equal(globalDefault.name, '默认');
+  assert.equal(harness.service.ensureDefaultLexicon(friendContext).id, globalDefault.id);
+
+  const groupDefault = harness.service.ensureDefaultLexicon(groupContext);
+  assert.equal(groupDefault.name, '默认');
+  assert.equal(
+    harness.service.addEntry(undefined, 'exact', '默认问题', '默认回答', groupContext).lexicon.id,
+    groupDefault.id,
+  );
+
+  const other = harness.service.createLexicon('其他', 'group', groupContext);
+  harness.service.switchLexicon(other.name, groupContext);
+  const switchedEntry = harness.service.addEntry(undefined, 'exact', '其他问题', '其他回答', groupContext);
+
+  assert.equal(switchedEntry.lexicon.id, other.id);
+  assert.equal(harness.service.resolveManageableLexicon(undefined, groupContext).id, other.id);
 });
 
 test('词库词条可以无固定深度地迭代解析', async (context) => {

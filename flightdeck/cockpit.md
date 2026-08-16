@@ -17,3 +17,4 @@ Focus: 发布并验证 `fraq-plugin-lexicon` 词库与嵌套词条解析插件�
 - 后续优先增加哪些 Milky API 词条？
 - Prefix inheritance fix is prepared for release v0.1.4; the plugin now uses Fraq's route activation resolver.
 - Target app installed v0.1.4 and restarted successfully on 2026-08-16; Fraq 0.14.0 and global / activation remain unchanged.
+- Preparing v0.1.5: automatic default lexicons and current management-lexicon switching.
