@@ -154,7 +154,7 @@ export class LexiconRepository {
     );
   }
 
-  findMatchingEntries(lexiconIds: number[], text: string): MatchedLexiconEntry[] {
+  listEntriesForLexicons(lexiconIds: number[]): MatchedLexiconEntry[] {
     if (lexiconIds.length === 0) {
       return [];
     }
@@ -170,12 +170,8 @@ export class LexiconRepository {
         FROM entries
         INNER JOIN lexicons ON lexicons.id = entries.lexicon_id
         WHERE entries.lexicon_id IN (${placeholders})
-          AND (
-            (entries.match_mode = 'exact' AND entries.question = ?)
-            OR (entries.match_mode = 'fuzzy' AND instr(?, entries.question) > 0)
-          )
       `)
-      .all(...lexiconIds, text, text) as unknown as MatchedEntryRow[];
+      .all(...lexiconIds) as unknown as MatchedEntryRow[];
 
     return rows.map(mapMatchedEntry);
   }

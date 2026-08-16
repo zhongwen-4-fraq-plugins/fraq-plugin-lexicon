@@ -25,3 +25,7 @@ export const MILKY_EVENT_DEFINITIONS = {
 } as const satisfies Readonly<Record<keyof EventMap, true>>;
 
 export const MILKY_EVENT_NAMES = Object.keys(MILKY_EVENT_DEFINITIONS) as Array<keyof EventMap>;
+
+export function isMilkyEventName(value: string): value is keyof EventMap {
+  return Object.hasOwn(MILKY_EVENT_DEFINITIONS, value);
+}

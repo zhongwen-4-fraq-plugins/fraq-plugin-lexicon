@@ -5,11 +5,11 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.1.8 已实现全部 21 个 Milky 事件的词库触发、字段模板、API 默认参数和会话文本响应，等待完整验证与发布。
+- v0.1.9 已让变量与事件词条同时支持问题和回答，问题匹配阶段不会执行 API 或词库副作用，等待完整验证与发布。
 
 ## Next
 
-- v0.1.8 已通过测试、检查、构建和打包预览，等待用户决定是否打 tag 发布。
+- v0.1.9 已通过测试、检查、构建和打包预览，等待用户决定是否打 tag 发布。
 
 ## Read now
 
@@ -125,3 +125,13 @@
 - Group and friend event outputs are sent to their current conversation; events without a sendable conversation still execute API terms.
 - Event parsing and controller behavior are covered by 14 passing tests.
 - `pnpm test`, `pnpm check`, `pnpm build`, and `npm pack --dry-run --json` passed for v0.1.8 on 2026-08-16.
+
+## Question and answer templates
+
+- v0.1.9 renders variable and event terms in both lexicon questions and answers.
+- `[event.<event_type>]` acts as a no-output event condition in both positions.
+- Event field paths and scoped variables can build dynamic question text before exact or fuzzy matching.
+- API and lexicon terms remain literal during question matching so matching cannot call external APIs or recurse into another lexicon.
+- Static questions containing ordinary brackets or API-looking text retain their previous literal matching behavior.
+- The dual-position behavior and compatibility rules are covered by 15 passing tests.
+- `pnpm test`, `pnpm check`, `pnpm build`, and `npm pack --dry-run --json` passed for v0.1.9 on 2026-08-16.

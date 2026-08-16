@@ -233,6 +233,42 @@ test('变量词条支持创建、读取和无限嵌套解析', async (context) =
   assert.equal(output, '最终内容');
 });
 
+test('变量和事件词条在问题与回答中都可使用', async (context) => {
+  const harness = createHarness(context);
+  const lexicon = harness.service.createLexicon('问答模板', 'group', groupContext);
+  harness.repository.addEntry(
+    lexicon.id,
+    'exact',
+    '[event.message_receive][创建变量=Q=戳我][读取变量=Q]',
+    '[event.message_receive][创建变量=A=[event.data.sender_id]][读取变量=A]',
+    1,
+  );
+  harness.repository.addEntry(lexicon.id, 'exact', '[event.data.sender_id]', '动态问题', 1);
+  harness.repository.addEntry(lexicon.id, 'exact', '[event.group_nudge]', '[event.group_nudge]事件回答', 1);
+  harness.repository.addEntry(lexicon.id, 'exact', '[api.send_group_nudge]', '字面 API 问题', 1);
+  harness.repository.addEntry(lexicon.id, 'exact', '[普通文本', '普通方括号问题', 1);
+
+  const messageMatch = harness.service.matchMessage(groupContext);
+  assert.ok(messageMatch);
+  assert.equal(await harness.template.render(messageMatch.answer, groupContext), '20002');
+
+  const senderContext = { ...groupContext, originalText: '20002' };
+  assert.equal(harness.service.matchMessage(senderContext)?.answer, '动态问题');
+
+  const eventContext = createEventContext(groupNudgeEvent);
+  const eventMatch = harness.service.matchMessage(eventContext);
+  assert.ok(eventMatch);
+  assert.equal(await harness.template.render(eventMatch.answer, eventContext), '事件回答');
+
+  const wrongEventContext = { ...groupContext, originalText: '[event.group_nudge]' };
+  assert.notEqual(harness.service.matchMessage(wrongEventContext)?.answer, '[event.group_nudge]事件回答');
+  assert.equal(
+    harness.service.matchMessage({ ...groupContext, originalText: '[api.send_group_nudge]' })?.answer,
+    '字面 API 问题',
+  );
+  assert.equal(harness.service.matchMessage({ ...groupContext, originalText: '[普通文本' })?.answer, '普通方括号问题');
+});
+
 test('事件字段支持路径、数组、变量和模板转义', async (context) => {
   const harness = createHarness(context);
   const eventContext = createEventContext(groupNudgeEvent);

@@ -23,6 +23,7 @@ READ WHEN: when implementing or debugging Milky API calls, event handling, or me
 - 所有事件都包含 `time`、`self_id` 和 `event_type`，具体事件再附带群、好友、请求或通知字段。
 - Fraq `0.17.0` 的 `EventMap` 当前包含 21 个事件；使用覆盖 `Record<keyof EventMap, true>` 的静态表可以在协议类型新增事件时让 TypeScript 报错。
 - `fraq-plugin-lexicon` 使用 `[event.<event_type>]` 作为事件匹配文本，并使用 `[event.<字段路径>]` 读取事件对象；字段值进入模板前必须转义 `[] .= \\`。
+- 问题模板中的 `[event.<event_type>]` 应作为无输出的事件条件；问题匹配阶段只能执行事件与变量词条，API 和词库词条必须保持字面量，避免匹配消息时产生副作用。
 - 消息事件的 `data` 包含来源标识、发送者、时间、消息场景、消息序列号和消息段数组。
 - 接收消息段常见类型：文本、提及、表情、回复、图片、语音、视频、文件、转发和市场表情。
 - 发送消息段仅支持：文本、提及、回复、图片、语音和视频；发送图片、语音、视频时使用 URI。

@@ -11,9 +11,11 @@ import type {
   TemplateContext,
 } from '../models/lexicon';
 import { DEFAULT_LEXICON_NAME } from '../models/lexicon';
+import { QuestionTemplateService } from './question-template-service';
 
 export class LexiconService {
   private readonly activeLexiconIds = new Map<string, number>();
+  private readonly questionTemplateService = new QuestionTemplateService();
 
   constructor(private readonly repository: LexiconRepository) {}
 
@@ -160,10 +162,9 @@ export class LexiconService {
     const lexicons = rawName
       ? this.findNamedLexicons(parseLexiconSelector(rawName), context, true)
       : this.availableLexicons(context);
-    const matches = this.repository.findMatchingEntries(
-      lexicons.map((lexicon) => lexicon.id),
-      context.originalText,
-    );
+    const matches = this.repository
+      .listEntriesForLexicons(lexicons.map((lexicon) => lexicon.id))
+      .filter((entry) => this.questionTemplateService.matches(entry.question, entry.matchMode, context));
     return matches.sort(compareMatches)[0];
   }
 

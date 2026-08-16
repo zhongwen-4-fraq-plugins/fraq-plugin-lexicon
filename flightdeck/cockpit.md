@@ -1,14 +1,14 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 完成 `fraq-plugin-lexicon` v0.1.8 全量 Milky 事件模板并准备发布。
+Focus: 完成 `fraq-plugin-lexicon` v0.1.9 问答双向变量与事件模板并准备发布。
 
 ## In flight
 
-- `template-message-plugin` — v0.1.8 已接入 21 个 Milky 事件并通过完整验证，待发布
+- `template-message-plugin` — v0.1.9 已支持问题和回答中的变量、事件词条并通过完整验证，待发布
 
 ## Next
 
-- 如用户要求打 tag，再发布并安装到真实 Fraq 应用验证事件交互。
+- 如用户要求打 tag，再发布并安装到真实 Fraq 应用验证问答模板。
 
 ## Open questions
 
