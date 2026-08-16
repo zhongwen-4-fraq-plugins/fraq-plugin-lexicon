@@ -135,15 +135,7 @@ ctx.install(FraqPluginLexicon, {
 
 API 返回空对象时不输出文本；其他返回值会序列化为 JSON，并可通过变量继续参与嵌套解析。完整端点定义位于 `src/data/milky-api-definitions.ts`。
 
-支持的端点按类别包括：
-
-- 账号与资料：`get_login_info`、`get_impl_info`、`get_user_profile`、`set_avatar`、`set_nickname`、`set_bio`、`get_cookies`、`get_csrf_token`。
-- 好友与消息：`get_friend_list`、`get_friend_info`、`send_private_message`、`send_group_message`、`recall_private_message`、`recall_group_message`、`get_message`、`get_history_messages`、`mark_message_as_read`、`send_friend_nudge`、`send_profile_like`、`delete_friend`。
-- 群与成员：`get_group_list`、`get_group_info`、`get_group_member_list`、`get_group_member_info`、`set_group_name`、`set_group_avatar`、`set_group_member_card`、`set_group_member_special_title`、`set_group_member_admin`、`set_group_member_mute`、`set_group_whole_mute`、`kick_group_member`、`quit_group`、`send_group_nudge`、`send_group_message_reaction`。
-- 请求与通知：`get_friend_requests`、`accept_friend_request`、`reject_friend_request`、`get_group_notifications`、`accept_group_request`、`reject_group_request`、`accept_group_invitation`、`reject_group_invitation`。
-- 公告与精华：`get_group_announcements`、`send_group_announcement`、`delete_group_announcement`、`get_group_essence_messages`、`set_group_essence_message`。
-- 资源、转发与文件：`get_custom_face_url_list`、`get_resource_temp_url`、`get_forwarded_messages`、`upload_private_file`、`upload_group_file`、`get_private_file_download_url`、`get_group_file_download_url`、`get_group_files`、`move_group_file`、`rename_group_file`、`delete_group_file`、`persist_group_file`、`create_group_folder`、`rename_group_folder`、`delete_group_folder`。
-- 会话置顶：`get_peer_pins`、`set_peer_pin`。
+截至MIlky 1.3.0，本插件已适配全部的API，具体请参考[Milky协议的API部分](https://milky.ntqqrev.org/api/system)
 
 ### 词库词条
 
