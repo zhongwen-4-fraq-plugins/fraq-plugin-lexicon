@@ -24,10 +24,14 @@ export class TemplateService {
     this.maxOutputLength = options.maxOutputLength ?? 65_536;
   }
 
-  async render(template: string, context: TemplateContext): Promise<string> {
+  async render(
+    template: string,
+    context: TemplateContext,
+    initialVariables: ReadonlyMap<string, string> = new Map(),
+  ): Promise<string> {
     let output = template;
     const seenStates = new Set<string>();
-    const variables = new Map<string, string>();
+    const variables = new Map(initialVariables);
 
     while (true) {
       if (output.length > this.maxOutputLength) {
@@ -81,6 +85,9 @@ export class TemplateService {
     const match = this.lexiconService.matchMessage(context, term.name);
     if (!match) {
       throw new LexiconError(`词库“${term.name}”没有匹配当前消息的词条。`);
+    }
+    for (const [name, value] of match.questionVariables ?? []) {
+      variables.set(name, value);
     }
     return match.answer;
   }

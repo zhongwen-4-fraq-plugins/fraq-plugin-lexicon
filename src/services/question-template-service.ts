@@ -11,19 +11,23 @@ import { MilkyEventValueService } from './milky-event-value-service';
 export class QuestionTemplateService {
   private readonly eventValueService = new MilkyEventValueService();
 
-  matches(question: string, matchMode: MatchMode, context: TemplateContext): boolean {
+  match(question: string, matchMode: MatchMode, context: TemplateContext): ReadonlyMap<string, string> | undefined {
     if (!hasQuestionTemplate(question)) {
-      return matchesText(question, matchMode, context.originalText);
+      return matchesText(question, matchMode, context.originalText) ? new Map() : undefined;
     }
 
     try {
-      return this.matchesTemplate(question, matchMode, context);
+      return this.matchTemplate(question, matchMode, context);
     } catch {
-      return false;
+      return undefined;
     }
   }
 
-  private matchesTemplate(question: string, matchMode: MatchMode, context: TemplateContext): boolean {
+  private matchTemplate(
+    question: string,
+    matchMode: MatchMode,
+    context: TemplateContext,
+  ): ReadonlyMap<string, string> | undefined {
     let output = question;
     const variables = new Map<string, string>();
     let hasMatchedEvent = false;
@@ -33,9 +37,9 @@ export class QuestionTemplateService {
       if (!location) {
         const renderedQuestion = unescapeTemplateText(output);
         if (renderedQuestion === '') {
-          return hasMatchedEvent;
+          return hasMatchedEvent ? variables : undefined;
         }
-        return matchesText(renderedQuestion, matchMode, context.originalText);
+        return matchesText(renderedQuestion, matchMode, context.originalText) ? variables : undefined;
       }
 
       const term = parseTemplateTerm(location.content);
@@ -47,13 +51,13 @@ export class QuestionTemplateService {
       } else if (term.type === 'getVariable') {
         const value = variables.get(term.name);
         if (value === undefined) {
-          return false;
+          return undefined;
         }
         replacement = value;
       } else if (term.type === 'event') {
         if (term.path.length === 1 && isMilkyEventName(term.path[0])) {
           if (context.eventType !== term.path[0]) {
-            return false;
+            return undefined;
           }
           hasMatchedEvent = true;
           replacement = '';
@@ -61,7 +65,7 @@ export class QuestionTemplateService {
           try {
             replacement = this.eventValueService.resolve(term.path, context);
           } catch {
-            return false;
+            return undefined;
           }
         }
       } else {

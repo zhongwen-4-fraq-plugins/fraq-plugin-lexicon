@@ -29,6 +29,7 @@ export interface MatchedLexiconEntry extends LexiconEntry {
   lexiconName: string;
   scopeType: LexiconScopeType;
   scopeId: number;
+  questionVariables?: ReadonlyMap<string, string>;
 }
 
 export type MilkyEvent = EventMap[keyof EventMap];

@@ -1,14 +1,14 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 准备 `fraq-plugin-lexicon` v0.2.0 后续开发。
+Focus: 完善 `fraq-plugin-lexicon` v0.2.0 问答变量作用域。
 
 ## In flight
 
-- `template-message-plugin` — v0.1.12 已发布安装，源码开发版本已按进位约定调整为 v0.2.0
+- `template-message-plugin` — v0.2.0 开发源码已支持将问题中创建的变量传递到回答和嵌套词库
 
 ## Next
 
-- 在真实群聊中验证 `[变量.创建.*]`、`[变量.读取.*]` 和英文 nudge API。
+- 验证问题变量在普通消息、Milky 事件和嵌套词库回答中的传递。
 
 ## Open questions
 

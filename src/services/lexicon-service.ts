@@ -162,9 +162,10 @@ export class LexiconService {
     const lexicons = rawName
       ? this.findNamedLexicons(parseLexiconSelector(rawName), context, true)
       : this.availableLexicons(context);
-    const matches = this.repository
-      .listEntriesForLexicons(lexicons.map((lexicon) => lexicon.id))
-      .filter((entry) => this.questionTemplateService.matches(entry.question, entry.matchMode, context));
+    const matches = this.repository.listEntriesForLexicons(lexicons.map((lexicon) => lexicon.id)).flatMap((entry) => {
+      const questionVariables = this.questionTemplateService.match(entry.question, entry.matchMode, context);
+      return questionVariables ? [{ ...entry, questionVariables }] : [];
+    });
     return matches.sort(compareMatches)[0];
   }
 

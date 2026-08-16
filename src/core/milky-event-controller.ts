@@ -24,7 +24,7 @@ export class MilkyEventController {
 
     let output: string;
     try {
-      output = await this.templateService.render(match.answer, context);
+      output = await this.templateService.render(match.answer, context, match.questionVariables);
     } catch (error) {
       await this.reportExecutionError(error, context);
       return;

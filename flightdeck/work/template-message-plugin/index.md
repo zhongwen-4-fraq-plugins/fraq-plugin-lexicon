@@ -167,3 +167,11 @@
 - Target app package.json, package-lock.json, pnpm-lock.yaml, and versions.yml now reference 0.1.12.
 - The installed bundle accepts only `[变量.创建.*]` and `[变量.读取.*]` variable terms and contains no Chinese nudge alias.
 - Target Fraq 0.14.0 restarted successfully; Hono listens on 127.0.0.1:4649 and the Milky WebSocket connected.
+
+## Question variable handoff
+
+- The v0.2.0 development source now carries variables created while matching a question into that entry's answer rendering.
+- Nested `[词库.<name>]` matches merge their question variables into the active answer scope for subsequent terms.
+- Variable scopes remain isolated between separate messages and Milky events.
+- Regression coverage includes message answers, Milky event answers, and nested lexicon expansion.
+- `pnpm test`, `pnpm check`, `pnpm build`, and `npm pack --dry-run --json` passed with 15 tests on 2026-08-16.

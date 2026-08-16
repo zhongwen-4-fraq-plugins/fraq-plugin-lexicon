@@ -210,6 +210,16 @@ test('词库词条可以无固定深度地迭代解析', async (context) => {
   assert.equal(await harness.template.render(first.answer, groupContext), '解析完成');
 });
 
+test('嵌套词库问题创建的变量会传递到外层回答', async (context) => {
+  const harness = createHarness(context);
+  const lexicon = harness.service.createLexicon('嵌套变量', 'group', groupContext);
+  harness.repository.addEntry(lexicon.id, 'exact', '[变量.创建.来源=嵌套词库]戳我', '已命中', 1);
+
+  const output = await harness.template.render('[词库.嵌套变量][变量.读取.来源]', groupContext);
+
+  assert.equal(output, '已命中嵌套词库');
+});
+
 test('词库循环引用会返回明确错误', async (context) => {
   const harness = createHarness(context);
   const first = harness.service.createLexicon('循环一', 'group', groupContext);
@@ -239,8 +249,8 @@ test('变量和事件词条在问题与回答中都可使用', async (context) =
   harness.repository.addEntry(
     lexicon.id,
     'exact',
-    '[event.message_receive][变量.创建.Q=戳我][变量.读取.Q]',
-    '[event.message_receive][变量.创建.A=[event.data.sender_id]][变量.读取.A]',
+    '[event.message_receive][变量.创建.Q=戳我][变量.创建.A=[event.data.sender_id]][变量.读取.Q]',
+    '[event.message_receive][变量.读取.A]',
     1,
   );
   harness.repository.addEntry(lexicon.id, 'exact', '[event.data.sender_id]', '动态问题', 1);
@@ -250,7 +260,10 @@ test('变量和事件词条在问题与回答中都可使用', async (context) =
 
   const messageMatch = harness.service.matchMessage(groupContext);
   assert.ok(messageMatch);
-  assert.equal(await harness.template.render(messageMatch.answer, groupContext), '20002');
+  assert.equal(
+    await harness.template.render(messageMatch.answer, groupContext, messageMatch.questionVariables),
+    '20002',
+  );
 
   const senderContext = { ...groupContext, originalText: '20002' };
   assert.equal(harness.service.matchMessage(senderContext)?.answer, '动态问题');
@@ -314,7 +327,13 @@ test('事件模板匹配词库并向事件会话发送文本', async (context) =
   const harness = createHarness(context);
   const eventContext = createEventContext(groupNudgeEvent);
   const lexicon = harness.service.ensureEventDefaultLexicon(eventContext);
-  harness.repository.addEntry(lexicon.id, 'exact', '[event.group_nudge]', '收到[event.data.sender_id]', 1);
+  harness.repository.addEntry(
+    lexicon.id,
+    'exact',
+    '[event.group_nudge][变量.创建.sender=[event.data.sender_id]]',
+    '收到[变量.读取.sender]',
+    1,
+  );
 
   const calls: unknown[] = [];
   const client = {
@@ -326,7 +345,7 @@ test('事件模板匹配词库并向事件会话发送文本', async (context) =
   const template = new TemplateService(harness.service, new ApiActionRegistry(), client);
   const controller = new MilkyEventController(harness.service, template, client, new Logger(() => {}, 'test'));
 
-  assert.equal(harness.service.matchMessage(eventContext)?.answer, '收到[event.data.sender_id]');
+  assert.equal(harness.service.matchMessage(eventContext)?.answer, '收到[变量.读取.sender]');
   await controller.handle(groupNudgeEvent);
 
   assert.deepEqual(calls, [

@@ -98,7 +98,7 @@ export class LexiconController {
     }
 
     try {
-      const reply = await this.templateService.render(match.answer, context);
+      const reply = await this.templateService.render(match.answer, context, match.questionVariables);
       if (reply) {
         await session.reply(reply);
       }
@@ -156,7 +156,7 @@ function helpText(): string {
     '[api.send_group_nudge] 会从当前事件读取群号和目标 QQ。',
     '[event.<事件名>] 可作为问题匹配 Milky 事件，例如 [event.group_nudge]。',
     '[event.<字段路径>] 可在回答中读取事件字段，例如 [event.data.user_id]。',
-    '事件与变量词条在问题和回答中都可使用，并支持互相嵌套。',
+    '事件与变量词条在问题和回答中都可使用，并支持互相嵌套。问题创建的变量可在对应回答中读取。',
     '[变量.创建.A=内容] 与 [变量.读取.A] 也可嵌套在 API 参数和返回值中。',
     '[词库.<词库名>] 使用当前消息匹配指定词库，并继续解析其回答。',
     '同名词库可使用 全局:<名称> 或 群:<名称> 明确指定作用域。',
