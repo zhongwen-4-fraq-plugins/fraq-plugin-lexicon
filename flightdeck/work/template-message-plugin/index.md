@@ -70,3 +70,9 @@
 
 - Source now resolves management command text from Fraq route activations instead of a plugin-specific prefix option.
 - Release target: v0.1.4; local tests, checks, and build pass.
+
+## Verification update
+
+- Trusted Publisher run 31917741215 completed successfully for v0.1.4.
+- Target app app/package.json, package-lock.json, pnpm-lock.yaml, and versions.yml now reference 0.1.4.
+- Target app restarted successfully with Fraq 0.14.0; the installed bundle calls routeActivationResolver and the configured / activation is present.
