@@ -15,3 +15,4 @@ Focus: 发布并验证 `fraq-plugin-lexicon` 词库与嵌套词条解析插件�
 ## Open questions
 
 - 后续优先增加哪些 Milky API 词条？
+- Prefix inheritance fix is prepared for release v0.1.4; the plugin now uses Fraq's route activation resolver.

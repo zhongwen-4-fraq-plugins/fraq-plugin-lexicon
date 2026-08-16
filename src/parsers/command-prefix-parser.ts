@@ -1,11 +1,22 @@
-export function stripCommandPrefix(input: string, prefix: string): string | undefined {
+import type { RouteActivation } from '@fraqjs/fraq';
+
+export function resolveCommandText(input: string, activations: readonly RouteActivation[]): string | undefined {
   const text = input.trim();
-  const normalizedPrefix = prefix.trim();
-  if (!normalizedPrefix) {
+  let supportsDirectActivation = false;
+
+  for (const activation of activations) {
+    if (activation.type === 'direct') {
+      supportsDirectActivation = true;
+      continue;
+    }
+    if (activation.type === 'prefix' && text.startsWith(activation.prefix)) {
+      return text.slice(activation.prefix.length).trim();
+    }
+  }
+
+  if (supportsDirectActivation) {
     return text;
   }
-  if (!text.startsWith(normalizedPrefix)) {
-    return undefined;
-  }
-  return text.slice(normalizedPrefix.length).trim();
+
+  return undefined;
 }

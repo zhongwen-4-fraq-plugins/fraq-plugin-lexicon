@@ -4,7 +4,7 @@ import { ApiActionRegistry } from '../src/actions/api-action-registry';
 import { nudgeAction } from '../src/actions/nudge-action';
 import { LexiconRepository } from '../src/data/lexicon-repository';
 import type { MessageContext } from '../src/models/lexicon';
-import { stripCommandPrefix } from '../src/parsers/command-prefix-parser';
+import { resolveCommandText } from '../src/parsers/command-prefix-parser';
 import { parseManagementCommand } from '../src/parsers/management-command-parser';
 import { findInnermostTerm, parseTemplateTerm } from '../src/parsers/template-parser';
 import { LexiconService } from '../src/services/lexicon-service';
@@ -45,10 +45,14 @@ test('管理命令可以解析添加和两种删除格式', () => {
   });
 });
 
-test('命令前缀只作用于词库管理命令', () => {
-  assert.equal(stripCommandPrefix('/词库 创建 群 main', '/'), '词库 创建 群 main');
-  assert.equal(stripCommandPrefix('词库 创建 群 main', '/'), undefined);
-  assert.equal(stripCommandPrefix('词库 创建 群 main', ''), '词库 创建 群 main');
+test('命令文本继承 Fraq 路由激活方式', () => {
+  assert.equal(resolveCommandText('/词库 创建 群 main', [{ type: 'prefix', prefix: '/' }]), '词库 创建 群 main');
+  assert.equal(resolveCommandText('词库 创建 群 main', [{ type: 'prefix', prefix: '/' }]), undefined);
+  assert.equal(resolveCommandText('词库 创建 群 main', [{ type: 'direct' }]), '词库 创建 群 main');
+  assert.equal(
+    resolveCommandText('/词库 创建 群 main', [{ type: 'direct' }, { type: 'prefix', prefix: '/' }]),
+    '词库 创建 群 main',
+  );
 });
 test('模板词条支持嵌套定位、参数和转义', () => {
   assert.deepEqual(findInnermostTerm('前[api.动作.value=[词库.默认]]后'), {

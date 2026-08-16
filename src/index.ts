@@ -4,7 +4,7 @@ import { ApiActionRegistry } from './actions/api-action-registry';
 import { nudgeAction } from './actions/nudge-action';
 import { extractText, LexiconController } from './core/lexicon-controller';
 import { LexiconRepository } from './data/lexicon-repository';
-import { stripCommandPrefix } from './parsers/command-prefix-parser';
+import { resolveCommandText } from './parsers/command-prefix-parser';
 import { LexiconService } from './services/lexicon-service';
 import { PermissionService } from './services/permission-service';
 import { TemplateService } from './services/template-service';
@@ -15,7 +15,6 @@ export interface FraqPluginLexiconOptions {
   databasePath?: string;
   owners?: number[];
   maxOutputLength?: number;
-  prefix?: string;
 }
 
 export const FraqPluginLexicon = definePlugin({
@@ -40,7 +39,8 @@ export const FraqPluginLexicon = definePlugin({
 
       const text = extractText(data).trim();
       const session = ctx.createSession(self_id, data);
-      const commandText = stripCommandPrefix(text, options.prefix ?? '');
+      const activations = ctx.routeActivationResolver({ type: 'command', path: [], name: '词库' }, session);
+      const commandText = resolveCommandText(text, activations);
       if (commandText === '词库' || commandText?.startsWith('词库 ')) {
         await controller.handleManagement(session, commandText.slice(2));
         return;

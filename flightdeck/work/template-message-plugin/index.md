@@ -65,3 +65,8 @@
 
 - 真实协议端是否会暴露需要额外适配的错误消息格式？
 - 后续需要增加哪些 `[api.*]` 动作？
+
+## Prefix inheritance release
+
+- Source now resolves management command text from Fraq route activations instead of a plugin-specific prefix option.
+- Release target: v0.1.4; local tests, checks, and build pass.
