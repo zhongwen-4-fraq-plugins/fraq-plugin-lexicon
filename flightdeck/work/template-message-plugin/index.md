@@ -175,3 +175,10 @@
 - Variable scopes remain isolated between separate messages and Milky events.
 - Regression coverage includes message answers, Milky event answers, and nested lexicon expansion.
 - `pnpm test`, `pnpm check`, `pnpm build`, and `npm pack --dry-run --json` passed with 15 tests on 2026-08-16.
+
+## v0.2.0 release verification
+
+- Annotated tag `v0.2.0` points to feature commit `085a822`.
+- Trusted Publisher workflow run `31978731331` completed successfully on 2026-08-16.
+- Target app installed `fraq-plugin-lexicon` `0.2.0`, updated `versions.yml`, and restarted successfully.
+- Target Fraq remains listening on `127.0.0.1:4649` with an established local Milky connection.

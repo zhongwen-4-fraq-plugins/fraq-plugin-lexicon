@@ -4,11 +4,11 @@ Focus: 完善 `fraq-plugin-lexicon` v0.2.0 问答变量作用域。
 
 ## In flight
 
-- `template-message-plugin` — v0.2.0 开发源码已支持将问题中创建的变量传递到回答和嵌套词库
+- `template-message-plugin` — v0.2.0 已打 tag、发布并安装到目标 Fraq 项目
 
 ## Next
 
-- 验证问题变量在普通消息、Milky 事件和嵌套词库回答中的传递。
+- 在真实群聊中验证问题变量在普通消息、Milky 事件和嵌套词库回答中的传递。
 
 ## Open questions
 
