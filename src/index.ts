@@ -1,7 +1,6 @@
 import { definePlugin } from '@fraqjs/fraq';
 
 import { ApiActionRegistry } from './actions/api-action-registry';
-import { nudgeAction } from './actions/nudge-action';
 import { LexiconController } from './core/lexicon-controller';
 import { MilkyEventController } from './core/milky-event-controller';
 import { LexiconRepository } from './data/lexicon-repository';
@@ -33,7 +32,6 @@ export const FraqPluginLexicon = definePlugin({
     const actionRegistry = new ApiActionRegistry((name, parameters, context) =>
       milkyApiService.execute(name, parameters, context),
     );
-    actionRegistry.register('戳一戳', nudgeAction);
 
     const templateService = new TemplateService(lexiconService, actionRegistry, ctx.client, {
       maxOutputLength: options.maxOutputLength,

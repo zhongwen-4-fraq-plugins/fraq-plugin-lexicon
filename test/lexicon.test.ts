@@ -1,7 +1,6 @@
 import { type EventMap, Logger, type MilkyClient } from '@fraqjs/fraq';
 
 import { ApiActionRegistry } from '../src/actions/api-action-registry';
-import { nudgeAction } from '../src/actions/nudge-action';
 import { MilkyEventController } from '../src/core/milky-event-controller';
 import { LexiconRepository } from '../src/data/lexicon-repository';
 import { MILKY_API_ENDPOINTS } from '../src/data/milky-api-definitions';
@@ -68,12 +67,12 @@ const groupContext: MessageContext = {
 };
 
 test('管理命令可以解析添加和两种删除格式', () => {
-  assert.deepEqual(parseManagementCommand('添加 默认 精确 问 戳我 答[api.戳一戳]戳啦'), {
+  assert.deepEqual(parseManagementCommand('添加 默认 精确 问 戳我 答[api.send_group_nudge]戳啦'), {
     type: 'add',
     lexiconName: '默认',
     matchMode: 'exact',
     question: '戳我',
-    answer: '[api.戳一戳]戳啦',
+    answer: '[api.send_group_nudge]戳啦',
   });
   assert.deepEqual(parseManagementCommand('删除 默认 id 12'), {
     type: 'deleteById',
@@ -116,9 +115,9 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     end: 21,
     content: '词库.默认',
   });
-  assert.deepEqual(parseTemplateTerm('api.戳一戳.user_id=123.is_self=false'), {
+  assert.deepEqual(parseTemplateTerm('api.send_friend_nudge.user_id=123.is_self=false'), {
     type: 'api',
-    action: '戳一戳',
+    action: 'send_friend_nudge',
     parameters: { user_id: '123', is_self: 'false' },
   });
   assert.throws(() => parseTemplateTerm('变量旧.创建.A'), /不支持的词条命名空间/);
@@ -400,34 +399,6 @@ test('英文 Milky API 覆盖全部端点并使用事件默认参数', async (co
     endpoint: 'send_group_nudge',
     params: { group_id: 10001, user_id: 90009 },
   });
-});
-
-test('戳一戳动作按消息场景调用对应 API', async () => {
-  const calls: Array<{ endpoint: string; params: unknown }> = [];
-  const client = {
-    async send_group_nudge(params: unknown) {
-      calls.push({ endpoint: 'send_group_nudge', params });
-      return {};
-    },
-    async send_friend_nudge(params: unknown) {
-      calls.push({ endpoint: 'send_friend_nudge', params });
-      return {};
-    },
-  } as unknown as MilkyClient;
-
-  await nudgeAction({}, { client, message: groupContext });
-  await nudgeAction(
-    { is_self: 'true' },
-    {
-      client,
-      message: { ...groupContext, scene: 'friend', groupId: undefined, groupRole: undefined },
-    },
-  );
-
-  assert.deepEqual(calls, [
-    { endpoint: 'send_group_nudge', params: { group_id: 10001, user_id: 20002 } },
-    { endpoint: 'send_friend_nudge', params: { user_id: 20002, is_self: true } },
-  ]);
 });
 
 function createHarness(context: test.TestContext): {
