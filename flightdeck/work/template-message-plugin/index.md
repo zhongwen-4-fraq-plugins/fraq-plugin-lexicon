@@ -147,10 +147,18 @@
 
 ## Variable namespace update
 
-- v0.1.12 removes the Chinese nudge alias and only accepts English nudge endpoints.
+- v0.1.11 removes the old variable syntax and only accepts `[变量.创建.A]` and `[变量.读取.A]`.
 - `[变量.创建.A=内容]` assigns an initial value.
 
 ## Nudge alias removal
 
 - v0.1.12 removes the Chinese nudge alias and the dedicated nudge action.
 - Nudge templates must use the English `send_group_nudge` or `send_friend_nudge` endpoints.
+
+## v0.1.12 release verification
+
+- Annotated tag `v0.1.12` points to merge commit `6ae195d`.
+- Trusted Publisher workflow run `31975940798` completed successfully.
+- Target app package.json, package-lock.json, pnpm-lock.yaml, and versions.yml now reference 0.1.12.
+- The installed bundle accepts only `[变量.创建.*]` and `[变量.读取.*]` variable terms and contains no Chinese nudge alias.
+- Target Fraq 0.14.0 restarted successfully; Hono listens on 127.0.0.1:4649 and the Milky WebSocket connected.
