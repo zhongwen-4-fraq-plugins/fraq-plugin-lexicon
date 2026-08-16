@@ -1,14 +1,14 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 完成 `fraq-plugin-lexicon` v0.1.11 变量命名空间清理。
+Focus: 完成 `fraq-plugin-lexicon` v0.1.12 移除中文戳一戳别名。
 
 ## In flight
 
-- `template-message-plugin` — v0.1.11 已移除旧变量语法，仅支持 `[变量.创建.A]` / `[变量.读取.A]`，待验证
+- `template-message-plugin` — v0.1.12 已移除中文戳一戳别名，仅保留英文 nudge API，待验证
 
 ## Next
 
-- 运行测试、检查、构建和打包预览，提交 v0.1.11 改动。
+- 运行测试、检查、构建和打包预览，提交 v0.1.12 改动。
 
 ## Open questions
 

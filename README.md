@@ -133,7 +133,7 @@ ctx.install(FraqPluginLexicon, {
 [变量.创建.target=123456789][变量.创建.result=[api.send_group_nudge.user_id=[变量.读取.target]]]
 ```
 
-API 返回空对象时不输出文本；其他返回值会序列化为 JSON，并可通过变量继续参与嵌套解析。完整端点定义位于 `src/data/milky-api-definitions.ts`。为了兼容已有词条，旧的 `[api.戳一戳]` 别名仍然可用。
+API 返回空对象时不输出文本；其他返回值会序列化为 JSON，并可通过变量继续参与嵌套解析。完整端点定义位于 `src/data/milky-api-definitions.ts`。
 
 支持的端点按类别包括：
 

@@ -5,7 +5,7 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.1.11 正在移除旧变量语法，仅保留 `[变量.创建.A]`、`[变量.读取.A]`。
+- v0.1.12 正在移除中文戳一戳 API 别名，仅保留英文 nudge API。
 
 ## Next
 
@@ -36,7 +36,7 @@
 - 已确认删除支持按 ID 或问题，API 错误需要详细回复。
 - 已按数据模型、数据层、解析器、服务、动作和核心控制器拆分源码。
 - 已实现群/全局多词库、全局词库按群启停和已确认的匹配优先级。
-- 已实现 `[api.戳一戳]`、`[词库.<词库名>]`、无固定深度迭代解析和循环检测。
+- 已实现 `[api.send_group_nudge]`、`[api.send_friend_nudge]`、`[词库.<词库名>]`、无固定深度迭代解析和循环检测。
 - 已更新包信息、README、测试脚本和运行数据忽略规则。
 - 已补齐 npm 作者、仓库、主页、问题反馈、关键词、标准 ESM 导出和公开发布配置。
 - 已添加基于 GitHub OIDC 的 npm Trusted Publisher 发布工作流和配置说明。
@@ -134,7 +134,7 @@
 - Event field paths and scoped variables can build dynamic question text before exact or fuzzy matching.
 - API and lexicon terms remain literal during question matching so matching cannot call external APIs or recurse into another lexicon.
 - Static questions containing ordinary brackets or API-looking text retain their previous literal matching behavior.
-- The dual-position behavior and compatibility rules are covered by 15 passing tests.
+- The dual-position behavior and API alias removal are covered by 14 passing tests.
 - `pnpm test`, `pnpm check`, `pnpm build`, and `npm pack --dry-run --json` passed for v0.1.9 on 2026-08-16.
 
 ## v0.1.9 release verification
@@ -147,5 +147,10 @@
 
 ## Variable namespace update
 
-- v0.1.11 removes the old variable syntax and only accepts `[变量.创建.A]` and `[变量.读取.A]`.
+- v0.1.12 removes the Chinese nudge alias and only accepts English nudge endpoints.
 - `[变量.创建.A=内容]` assigns an initial value.
+
+## Nudge alias removal
+
+- v0.1.12 removes the Chinese nudge alias and the dedicated nudge action.
+- Nudge templates must use the English `send_group_nudge` or `send_friend_nudge` endpoints.
