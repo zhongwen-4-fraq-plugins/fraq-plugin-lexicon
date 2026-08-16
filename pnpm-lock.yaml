@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       '@fraqjs/fraq':
-        specifier: ^0.17.0
+        specifier: ^0.14.0 || ^0.17.0
         version: 0.17.0
     devDependencies:
       '@biomejs/biome':
