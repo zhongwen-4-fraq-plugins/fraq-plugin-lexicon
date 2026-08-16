@@ -18,3 +18,4 @@ Focus: 发布并验证 `fraq-plugin-lexicon` 词库与嵌套词条解析插件�
 - Prefix inheritance fix is prepared for release v0.1.4; the plugin now uses Fraq's route activation resolver.
 - Target app installed v0.1.4 and restarted successfully on 2026-08-16; Fraq 0.14.0 and global / activation remain unchanged.
 - Preparing v0.1.5: automatic default lexicons and current management-lexicon switching.
+- v0.1.5 published and installed in the target app; automatic default lexicon behavior is ready for group-message verification.

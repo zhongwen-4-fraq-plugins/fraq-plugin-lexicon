@@ -81,3 +81,10 @@
 
 - v0.1.5 adds automatic global/group default lexicons, default-target add/delete commands, and current management lexicon switching.
 - Group defaults are created lazily on the first group message because a group ID is required.
+
+## v0.1.5 release verification
+
+- Trusted Publisher run 31918558287 completed successfully.
+- Target app app/package.json, package-lock.json, pnpm-lock.yaml, and versions.yml now reference 0.1.5.
+- Target app restarted with Fraq 0.14.0; plugin startup is clean and the existing global default lexicon is present in SQLite.
+- Group default creation remains lazy and will occur when the first message arrives from each group.
