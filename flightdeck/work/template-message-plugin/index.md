@@ -5,11 +5,11 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.1.9 已让变量与事件词条同时支持问题和回答，问题匹配阶段不会执行 API 或词库副作用，等待完整验证与发布。
+- v0.1.9 已发布并安装到目标 Fraq 应用，变量与事件词条可在问题和回答中使用，等待真实消息交互验证。
 
 ## Next
 
-- v0.1.9 已通过测试、检查、构建和打包预览，等待用户决定是否打 tag 发布。
+- 在真实群聊中验证事件条件、动态问题变量和回答事件字段。
 
 ## Read now
 
@@ -135,3 +135,11 @@
 - Static questions containing ordinary brackets or API-looking text retain their previous literal matching behavior.
 - The dual-position behavior and compatibility rules are covered by 15 passing tests.
 - `pnpm test`, `pnpm check`, `pnpm build`, and `npm pack --dry-run --json` passed for v0.1.9 on 2026-08-16.
+
+## v0.1.9 release verification
+
+- Annotated tag `v0.1.9` points to feature commit `6bf48b5`.
+- Trusted Publisher workflow run `31935651850` completed successfully on 2026-08-16.
+- Target app package.json, package-lock.json, pnpm-lock.yaml, and versions.yml now reference 0.1.9.
+- The installed bundle contains QuestionTemplateService, dynamic question matching, and event-name guards.
+- Target Fraq 0.14.0 restarted successfully; Hono listens on 127.0.0.1:4649 and the Milky WebSocket connected.

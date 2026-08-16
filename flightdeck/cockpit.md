@@ -1,18 +1,19 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 完成 `fraq-plugin-lexicon` v0.1.9 问答双向变量与事件模板并准备发布。
+Focus: 验证 `fraq-plugin-lexicon` v0.1.9 问答双向变量与事件模板。
 
 ## In flight
 
-- `template-message-plugin` — v0.1.9 已支持问题和回答中的变量、事件词条并通过完整验证，待发布
+- `template-message-plugin` — v0.1.9 已通过 Trusted Publisher 发布并安装到目标 Fraq 应用，待真实交互验证
 
 ## Next
 
-- 如用户要求打 tag，再发布并安装到真实 Fraq 应用验证问答模板。
+- 在真实群聊中验证 `[event.<事件名>]`、动态问题变量和回答事件字段。
 
 ## Open questions
 
 - 真实 Milky 服务对请求类事件是否允许直接向关联群发送文本？
+- v0.1.9 Trusted Publisher run 31935651850 succeeded; target app is running fraq-plugin-lexicon 0.1.9 on 127.0.0.1:4649.
 - Prefix inheritance fix is prepared for release v0.1.4; the plugin now uses Fraq's route activation resolver.
 - Target app installed v0.1.4 and restarted successfully on 2026-08-16; Fraq 0.14.0 and global / activation remain unchanged.
 - Preparing v0.1.5: automatic default lexicons and current management-lexicon switching.
