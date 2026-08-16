@@ -6,6 +6,11 @@ export type ApiParameterDefinition = ApiParameterKind | `${ApiParameterKind}?`;
 
 export type MilkyApiDefinition = Readonly<Record<string, ApiParameterDefinition>>;
 
+export interface ApiNumberRange {
+  minimum: number;
+  maximum: number;
+}
+
 type ApiParameterKindOf<Value> =
   NonNullable<Value> extends number
     ? 'number'

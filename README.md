@@ -120,9 +120,9 @@ ctx.install(FraqPluginLexicon, {
 
 - `user_id`：第一个被艾特的 QQ、被回复消息的发送者、事件中的 `user_id`、`sender_id`、`operator_id`、`initiator_id`，最后是当前发送者。
 - `qq`：当目标 API 支持 `user_id` 时可作为其简写；不能与 `user_id` 同时填写。
-- `group_id`：当前群号；群消息撤回等事件会根据 `message_scene=group` 将 `peer_id` 转为群号。
+- `group_id`：当前群号；群消息撤回等事件会根据 `message_scene=group` 将 `peer_id` 转为群号；有效范围为 `10001..4294967295`。
 - `message_scene`、`peer_id`：当前消息场景和会话 ID。
-- `message_seq`、`start_message_seq`：被回复消息的序列号，否则使用当前消息序列号。
+- `message_seq`、`start_message_seq`：被回复消息的序列号，否则使用当前消息序列号；`message_seq` 有效范围为 `0..9007199254740991`。
 - `message`、`content`：被回复消息的消息段，否则使用当前消息的消息段。
 - `resource_id`、`uri`、`image_uri`、`file_uri`：回复或当前消息中的首个图片、语音或视频资源。
 - `file_id`、`file_hash`、`file_name`、`forward_id`：回复或当前消息中的文件、合并转发数据。
@@ -131,7 +131,7 @@ ctx.install(FraqPluginLexicon, {
 - `is_self_send`：好友文件事件会自动继承事件中的 `is_self`。
 - `no_cache=false`、`is_filtered=false`、`is_self=false`、`is_self_send=false`、`limit=20`、`count=1`。
 
-事件自身提供的参数不会被上述默认值覆盖。调用前会检查必填参数，以及 `message_scene`、`notification_type`、`reaction_type` 等枚举参数，并直接返回可读错误。
+事件自身提供的参数不会被上述默认值覆盖。调用前会检查必填参数、`group_id` 与 `message_seq` 范围，以及 `message_scene`、`notification_type`、`reaction_type` 等枚举参数，并直接返回可读错误；显式参数和事件自动参数使用相同校验。
 
 消息参数可以直接填写文本，也可以填写消息段 JSON：
 

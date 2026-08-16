@@ -22,3 +22,4 @@ READ WHEN: when a Milky API template reports unsupported, missing, or incorrect 
 
 - `qq` 只在目标 API 存在 `user_id` 时作为简写，不能和 `user_id` 同时出现。
 - 参数进入客户端前校验未知参数、必填参数、整数、布尔值和有限枚举，避免把可解释错误推迟到 Milky 服务端。
+- 官方 JSON Schema 中所有 `group_id` 都使用 `10001..4294967295`，所有 `message_seq` 都使用 `0..9007199254740991`；范围校验必须作用于显式参数和事件默认参数。

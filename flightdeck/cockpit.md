@@ -4,7 +4,7 @@ Focus: 完善 `fraq-plugin-lexicon` v0.2.1 Milky API 参数映射。
 
 ## In flight
 
-- `template-message-plugin` — v0.2.1 参数审计与修复已完成，等待真实群聊验证
+- `template-message-plugin` — v0.2.1 参数审计、事件映射和 ID 范围校验已完成，等待真实群聊验证
 
 ## Next
 

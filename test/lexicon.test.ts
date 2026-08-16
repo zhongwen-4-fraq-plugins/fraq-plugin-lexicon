@@ -489,9 +489,29 @@ test('API 调用前校验必填参数、枚举值和可选参数', async () => {
     () => apiService.execute('get_message', { message_scene: 'channel' }, { client, message: groupContext }),
     /必须是以下值之一：friend、group、temp/,
   );
+  await assert.rejects(
+    () => apiService.execute('get_group_info', { group_id: '10000' }, { client, message: groupContext }),
+    /group_id”必须是 10001 到 4294967295 之间的整数/,
+  );
+  await assert.rejects(
+    () => apiService.execute('recall_group_message', { message_seq: '-1' }, { client, message: groupContext }),
+    /message_seq”必须是 0 到 9007199254740991 之间的整数/,
+  );
+  await assert.rejects(
+    () => apiService.execute('get_group_info', {}, { client, message: { ...groupContext, groupId: 10_000 } }),
+    /group_id”必须是 10001 到 4294967295 之间的整数/,
+  );
+  await assert.rejects(
+    () => apiService.execute('recall_group_message', {}, { client, message: { ...groupContext, messageSeq: -1 } }),
+    /message_seq”必须是 0 到 9007199254740991 之间的整数/,
+  );
+  await apiService.execute('recall_group_message', { message_seq: '0' }, { client, message: groupContext });
   await apiService.execute('set_group_member_admin', {}, { client, message: groupContext });
 
-  assert.deepEqual(calls, [{ endpoint: 'set_group_member_admin', params: { group_id: 10001, user_id: 20002 } }]);
+  assert.deepEqual(calls, [
+    { endpoint: 'recall_group_message', params: { group_id: 10001, message_seq: 0 } },
+    { endpoint: 'set_group_member_admin', params: { group_id: 10001, user_id: 20002 } },
+  ]);
 });
 
 test('事件模板匹配词库并向事件会话发送文本', async (context) => {

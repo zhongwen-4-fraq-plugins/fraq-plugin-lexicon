@@ -3,6 +3,7 @@ import type { ApiEndpointName } from '@fraqjs/fraq';
 import type { ApiActionContext } from '../actions/api-action-registry';
 import { createApiEventDefaults } from '../data/api-event-defaults';
 import { isMilkyApiEndpoint, MILKY_API_DEFINITIONS } from '../data/milky-api-definitions';
+import { MILKY_API_NUMBER_RANGES } from '../data/milky-api-number-ranges';
 import { MILKY_API_PARAMETER_VALUES } from '../data/milky-api-parameter-values';
 import { LexiconError } from '../errors';
 import type { ApiParameterDefinition, ApiParameterKind } from '../models/milky-api';
@@ -43,6 +44,8 @@ export class MilkyApiService {
     if (missingParameters.length > 0) {
       throw new LexiconError(`Milky API“${endpointName}”缺少必填参数：${missingParameters.join('、')}。`);
     }
+
+    validateNumberRanges(endpointName, apiParameters);
 
     try {
       const result = await callApi(context, endpointName, apiParameters);
@@ -111,6 +114,24 @@ function validateStringValue(value: string, endpoint: ApiEndpointName, name: str
   const allowedValues = endpointValues?.[name];
   if (allowedValues && !allowedValues.includes(value)) {
     throw new LexiconError(`参数“${name}”必须是以下值之一：${allowedValues.join('、')}。`);
+  }
+}
+
+function validateNumberRanges(endpoint: ApiEndpointName, parameters: Readonly<Record<string, unknown>>): void {
+  for (const [name, range] of Object.entries(MILKY_API_NUMBER_RANGES)) {
+    if (!Object.hasOwn(parameters, name)) {
+      continue;
+    }
+
+    const value = parameters[name];
+    if (typeof value !== 'number' || !Number.isSafeInteger(value)) {
+      throw new LexiconError(`Milky API“${endpoint}”参数“${name}”必须是安全整数。`);
+    }
+    if (value < range.minimum || value > range.maximum) {
+      throw new LexiconError(
+        `Milky API“${endpoint}”参数“${name}”必须是 ${range.minimum} 到 ${range.maximum} 之间的整数。`,
+      );
+    }
   }
 }
 

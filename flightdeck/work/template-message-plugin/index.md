@@ -190,4 +190,5 @@
 - `qq` now maps to `user_id` only when the endpoint supports `user_id`; conflicting `qq` and `user_id` values return a clear error.
 - Event defaults preserve real event values and derive `notification_type`, `reaction`, `is_self_send`, and group `peer_id -> group_id` mappings.
 - API definitions now retain Fraq `request_ZodInput` optionality, validate missing required parameters, and validate finite string enums before calling Milky.
+- `group_id` and `message_seq` now use the official JSON Schema ranges for both explicit values and event-derived defaults.
 - `pnpm check`, 18 tests, `pnpm build`, and `npm pack --dry-run --json` passed for v0.2.1 on 2026-08-16.
