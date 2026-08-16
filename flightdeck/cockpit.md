@@ -8,7 +8,7 @@ Focus: 发布并验证 `fraq-plugin-lexicon` 词库与嵌套词条解析插件�
 
 ## Next
 
-- 发布并安装 `v0.1.2`，验证 `/词库 创建 群 main`。
+- 已发布并安装 `v0.1.3`，验证 `/` 前缀和 Fraq 0.14 兼容性。
 
 - 在 npm 配置 Trusted Publisher，并在真实 Fraq 应用中验证完整交互流程。
 

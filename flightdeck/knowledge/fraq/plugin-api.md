@@ -10,6 +10,7 @@ READ WHEN: before modifying Fraq plugin event handling, permission checks, or Mi
 - 使用 `ctx.on('message_receive', handler)` 监听所有接收消息。
 - 事件包含 `self_id` 和 `data`；`data` 是按 `message_scene` 区分的消息联合类型。
 - 使用 `ctx.createSession(self_id, data)` 创建 `Session`，再通过 `session.reply(...)` 回复。
+- `ctx.on('message_receive')` 读取的是原始消息文本，不会自动消费 Fraq 路由前缀；插件需要显式接收并去除自己的管理命令前缀。
 
 ## 消息与权限
 
