@@ -5,11 +5,12 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.1.9 已发布并安装到目标 Fraq 应用，变量与事件词条可在问题和回答中使用，等待真实消息交互验证。
+- v0.1.10 正在调整变量命名空间为 `[变量.创建.A]`、`[变量.读取.A]`，并保留旧语法兼容。
 
 ## Next
 
 - 在真实群聊中验证事件条件、动态问题变量和回答事件字段。
+- 完成 v0.1.10 测试、检查、构建和打包预览，然后提交改动。
 
 ## Read now
 
@@ -143,3 +144,8 @@
 - Target app package.json, package-lock.json, pnpm-lock.yaml, and versions.yml now reference 0.1.9.
 - The installed bundle contains QuestionTemplateService, dynamic question matching, and event-name guards.
 - Target Fraq 0.14.0 restarted successfully; Hono listens on 127.0.0.1:4649 and the Milky WebSocket connected.
+
+## Variable namespace update
+
+- v0.1.10 changes the documented variable syntax to `[变量.创建.A]` and `[变量.读取.A]`.
+- `[变量.创建.A=内容]` assigns an initial value; the previous `[创建变量=...]` and `[读取变量=...]` forms remain compatible aliases.

@@ -89,7 +89,7 @@ ctx.install(FraqPluginLexicon, {
 [event.self_id]
 [event.data.group_id]
 [event.data.segments.0.data.text]
-[创建变量=QQ=[event.data.sender_id]][api.send_group_nudge.user_id=[读取变量=QQ]]
+[变量.创建.QQ=[event.data.sender_id]][api.send_group_nudge.user_id=[变量.读取.QQ]]
 ```
 
 事件字段可以进入变量、API 参数和其他嵌套词条。字符串与 JSON 会自动转义模板控制字符；字段不存在时会返回明确错误。
@@ -97,8 +97,8 @@ ctx.install(FraqPluginLexicon, {
 事件词条和变量词条在问题与回答中都可使用：
 
 ```text
-词库 添加 精确 问 [event.message_receive][创建变量=Q=戳我][读取变量=Q] 答 [event.message_receive]收到
-词库 添加 精确 问 [创建变量=QQ=[event.data.sender_id]][读取变量=QQ] 答 你的 QQ 是 [event.data.sender_id]
+词库 添加 精确 问 [event.message_receive][变量.创建.Q=戳我][变量.读取.Q] 答 [event.message_receive]收到
+词库 添加 精确 问 [变量.创建.QQ=[event.data.sender_id]][变量.读取.QQ] 答 你的 QQ 是 [event.data.sender_id]
 ```
 
 - 问题中的 `[event.<事件名>]` 是事件条件，只在当前事件名称相同时匹配，并且自身不参与文本比较。
@@ -129,8 +129,8 @@ ctx.install(FraqPluginLexicon, {
 消息参数可以直接填写文本，也可以填写消息段 JSON：
 
 ```text
-[创建变量=result=[api.send_group_message.message=Hello]]
-[创建变量=target=123456789][创建变量=result=[api.send_group_nudge.user_id=[读取变量=target]]]
+[变量.创建.result=[api.send_group_message.message=Hello]][变量.读取.result]
+[变量.创建.target=123456789][变量.创建.result=[api.send_group_nudge.user_id=[变量.读取.target]]]
 ```
 
 API 返回空对象时不输出文本；其他返回值会序列化为 JSON，并可通过变量继续参与嵌套解析。完整端点定义位于 `src/data/milky-api-definitions.ts`。为了兼容已有词条，旧的 `[api.戳一戳]` 别名仍然可用。
@@ -155,7 +155,7 @@ API 返回空对象时不输出文本；其他返回值会序列化为 JSON，�
 
 ```text
 词库 添加 入口 精确 问 戳我 答 [词库.动作库]
-词库 添加 动作库 精确 问 戳我 答 [创建变量=result=[api.send_group_nudge]]戳啦
+词库 添加 动作库 精确 问 戳我 答 [变量.创建.result=[api.send_group_nudge]]戳啦
 ```
 
 解析器不设置固定嵌套深度，使用迭代方式持续解析；检测到直接或间接循环引用时会停止并回复详细错误。
@@ -163,12 +163,12 @@ API 返回空对象时不输出文本；其他返回值会序列化为 JSON，�
 ### 变量词条
 
 ```text
-[创建变量=A]
-[创建变量=A=变量内容]
-[读取变量=A]
+[变量.创建.A]
+[变量.创建.A=变量内容]
+[变量.读取.A]
 ```
 
-变量只在当前问题或回答的单次模板解析过程中生效，问题和回答之间不会共享变量。变量内容可以继续包含词条，读取变量后会继续参与嵌套解析；回答中读取未创建变量会返回错误，问题中读取未创建变量则视为不匹配。
+变量只在当前问题或回答的单次模板解析过程中生效，问题和回答之间不会共享变量。变量内容可以继续包含词条，读取变量后会继续参与嵌套解析；回答中读取未创建变量会返回错误，问题中读取未创建变量则视为不匹配。旧的 `[创建变量=...]` 和 `[读取变量=...]` 写法仍兼容。
 
 需要输出字面量方括号、点号或等号时，可以使用反斜杠转义，例如 `\[普通文本\]`。
 

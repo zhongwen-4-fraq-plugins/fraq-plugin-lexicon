@@ -1,14 +1,14 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 验证 `fraq-plugin-lexicon` v0.1.9 问答双向变量与事件模板。
+Focus: 完成 `fraq-plugin-lexicon` v0.1.10 变量命名空间语法调整。
 
 ## In flight
 
-- `template-message-plugin` — v0.1.9 已通过 Trusted Publisher 发布并安装到目标 Fraq 应用，待真实交互验证
+- `template-message-plugin` — v0.1.10 已将变量语法调整为 `[变量.创建.A]` / `[变量.读取.A]`，待验证
 
 ## Next
 
-- 在真实群聊中验证 `[event.<事件名>]`、动态问题变量和回答事件字段。
+- 运行测试、检查、构建和打包预览，提交 v0.1.10 改动。
 
 ## Open questions
 

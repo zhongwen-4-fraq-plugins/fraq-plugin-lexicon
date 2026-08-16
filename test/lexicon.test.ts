@@ -135,6 +135,20 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     type: 'getVariable',
     name: 'A',
   });
+  assert.deepEqual(parseTemplateTerm('变量.创建.A'), {
+    type: 'setVariable',
+    name: 'A',
+    value: '',
+  });
+  assert.deepEqual(parseTemplateTerm('变量.创建.A=内容'), {
+    type: 'setVariable',
+    name: 'A',
+    value: '内容',
+  });
+  assert.deepEqual(parseTemplateTerm('变量.读取.A'), {
+    type: 'getVariable',
+    name: 'A',
+  });
   assert.deepEqual(parseTemplateTerm('event.data.group_id'), {
     type: 'event',
     path: ['data', 'group_id'],
@@ -226,7 +240,7 @@ test('变量词条支持创建、读取和无限嵌套解析', async (context) =
   harness.repository.addEntry(lexicon.id, 'exact', groupContext.originalText, '最终内容', 1);
 
   const output = await harness.template.render(
-    '[创建变量=A=[创建变量=B=[词库.变量词库]][读取变量=B]][读取变量=A]',
+    '[变量.创建.A=[变量.创建.B=[词库.变量词库]][变量.读取.B]][变量.读取.A]',
     groupContext,
   );
 
@@ -239,8 +253,8 @@ test('变量和事件词条在问题与回答中都可使用', async (context) =
   harness.repository.addEntry(
     lexicon.id,
     'exact',
-    '[event.message_receive][创建变量=Q=戳我][读取变量=Q]',
-    '[event.message_receive][创建变量=A=[event.data.sender_id]][读取变量=A]',
+    '[event.message_receive][变量.创建.Q=戳我][变量.读取.Q]',
+    '[event.message_receive][变量.创建.A=[event.data.sender_id]][变量.读取.A]',
     1,
   );
   harness.repository.addEntry(lexicon.id, 'exact', '[event.data.sender_id]', '动态问题', 1);
@@ -274,7 +288,10 @@ test('事件字段支持路径、数组、变量和模板转义', async (context
   const eventContext = createEventContext(groupNudgeEvent);
 
   assert.equal(
-    await harness.template.render('[创建变量=QQ=[event.data.sender_id]][读取变量=QQ]-[event.event_type]', eventContext),
+    await harness.template.render(
+      '[变量.创建.QQ=[event.data.sender_id]][变量.读取.QQ]-[event.event_type]',
+      eventContext,
+    ),
     '20002-group_nudge',
   );
   assert.equal(await harness.template.render('[event.data.segments.0.data.text]', groupContext), '戳我');
@@ -367,11 +384,11 @@ test('英文 Milky API 覆盖全部端点并使用事件默认参数', async (co
     },
   };
 
-  const result = await template.render('[创建变量=R=[api.send_group_message]][读取变量=R]', apiContext);
+  const result = await template.render('[变量.创建.R=[api.send_group_message]][变量.读取.R]', apiContext);
   await apiService.execute('send_group_nudge', {}, { client, message: apiContext });
   await apiService.execute('recall_group_message', {}, { client, message: apiContext });
   await apiService.execute('recall_group_message', { message_seq: '70007' }, { client, message: apiContext });
-  await template.render('[创建变量=U=90009][创建变量=R=[api.send_group_nudge.user_id=[读取变量=U]]]', apiContext);
+  await template.render('[变量.创建.U=90009][变量.创建.R=[api.send_group_nudge.user_id=[变量.读取.U]]]', apiContext);
 
   assert.deepEqual(JSON.parse(result), {
     endpoint: 'send_group_message',

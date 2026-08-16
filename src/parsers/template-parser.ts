@@ -65,24 +65,30 @@ export function parseTemplateTerm(content: string): TemplateTerm {
     return { type: 'getVariable', name: validateVariableName(variableParts[1]) };
   }
 
-  const parts = splitEscaped(content, '.').map(unescapePart);
+  const parts = splitEscaped(content, '.');
   const namespace = parts.shift();
 
+  if (namespace === '变量') {
+    return parseVariableTerm(parts);
+  }
+
+  const unescapedParts = parts.map(unescapePart);
+
   if (namespace === '词库') {
-    if (parts.length !== 1 || !parts[0]) {
+    if (unescapedParts.length !== 1 || !unescapedParts[0]) {
       throw new LexiconError('词库词条格式应为 [词库.<词库名>]。');
     }
-    return { type: 'lexicon', name: parts[0] };
+    return { type: 'lexicon', name: unescapedParts[0] };
   }
 
   if (namespace === 'api') {
-    const action = parts.shift();
+    const action = unescapedParts.shift();
     if (!action) {
       throw new LexiconError('API 词条缺少动作名称。');
     }
 
     const parameters: Record<string, string> = {};
-    for (const part of parts) {
+    for (const part of unescapedParts) {
       const [key, value] = splitParameter(part);
       if (key in parameters) {
         throw new LexiconError(`API 参数“${key}”重复。`);
@@ -93,13 +99,37 @@ export function parseTemplateTerm(content: string): TemplateTerm {
   }
 
   if (namespace === 'event') {
-    if (parts.length === 0 || parts.some((part) => !part)) {
+    if (unescapedParts.length === 0 || unescapedParts.some((part) => !part)) {
       throw new LexiconError('事件词条格式应为 [event.<事件名或字段路径>]。');
     }
-    return { type: 'event', path: parts };
+    return { type: 'event', path: unescapedParts };
   }
 
   throw new LexiconError(`不支持的词条命名空间：${namespace || '空'}。`);
+}
+
+function parseVariableTerm(parts: string[]): TemplateTerm {
+  const operation = unescapePart(parts.shift() ?? '');
+  if (operation === '读取') {
+    if (parts.length !== 1) {
+      throw new LexiconError('变量读取词条格式应为 [变量.读取.变量名]。');
+    }
+    return { type: 'getVariable', name: validateVariableName(parts[0]) };
+  }
+
+  if (operation === '创建') {
+    if (parts.length !== 1) {
+      throw new LexiconError('变量创建词条格式应为 [变量.创建.变量名] 或 [变量.创建.变量名=变量值]。');
+    }
+    const valueParts = splitEscaped(parts[0], '=');
+    return {
+      type: 'setVariable',
+      name: validateVariableName(valueParts[0]),
+      value: valueParts.slice(1).join('='),
+    };
+  }
+
+  throw new LexiconError(`不支持的变量操作：${operation || '空'}。`);
 }
 
 export function unescapeTemplateText(input: string): string {
