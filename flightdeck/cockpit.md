@@ -1,14 +1,14 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 完成 `fraq-plugin-lexicon` v0.1.10 变量命名空间语法调整。
+Focus: 完成 `fraq-plugin-lexicon` v0.1.11 变量命名空间清理。
 
 ## In flight
 
-- `template-message-plugin` — v0.1.10 已将变量语法调整为 `[变量.创建.A]` / `[变量.读取.A]`，待验证
+- `template-message-plugin` — v0.1.11 已移除旧变量语法，仅支持 `[变量.创建.A]` / `[变量.读取.A]`，待验证
 
 ## Next
 
-- 运行测试、检查、构建和打包预览，提交 v0.1.10 改动。
+- 运行测试、检查、构建和打包预览，提交 v0.1.11 改动。
 
 ## Open questions
 

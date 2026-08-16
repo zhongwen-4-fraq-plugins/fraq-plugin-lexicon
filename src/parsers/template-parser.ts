@@ -46,25 +46,6 @@ export function findInnermostTerm(input: string): TermLocation | undefined {
 }
 
 export function parseTemplateTerm(content: string): TemplateTerm {
-  const variableParts = splitEscaped(content, '=');
-  if (variableParts[0] === '创建变量') {
-    if (variableParts.length < 2) {
-      throw new LexiconError('创建变量词条格式应为 [创建变量=变量名] 或 [创建变量=变量名=变量值]。');
-    }
-    return {
-      type: 'setVariable',
-      name: validateVariableName(variableParts[1]),
-      value: variableParts.slice(2).join('='),
-    };
-  }
-
-  if (variableParts[0] === '读取变量') {
-    if (variableParts.length !== 2) {
-      throw new LexiconError('读取变量词条格式应为 [读取变量=变量名]。');
-    }
-    return { type: 'getVariable', name: validateVariableName(variableParts[1]) };
-  }
-
   const parts = splitEscaped(content, '.');
   const namespace = parts.shift();
 

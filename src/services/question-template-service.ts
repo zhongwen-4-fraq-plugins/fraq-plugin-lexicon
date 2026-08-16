@@ -74,7 +74,7 @@ export class QuestionTemplateService {
 }
 
 function hasQuestionTemplate(question: string): boolean {
-  return /(^|[^\\])\[(?:event\.|变量\.(?:创建|读取)\.|创建变量=|读取变量=)/.test(question);
+  return /(^|[^\\])\[(?:event\.|变量\.(?:创建|读取)\.)/.test(question);
 }
 
 function matchesText(question: string, matchMode: MatchMode, originalText: string): boolean {

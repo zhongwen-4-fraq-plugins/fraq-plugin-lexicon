@@ -121,20 +121,7 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     action: '戳一戳',
     parameters: { user_id: '123', is_self: 'false' },
   });
-  assert.deepEqual(parseTemplateTerm('创建变量=A'), {
-    type: 'setVariable',
-    name: 'A',
-    value: '',
-  });
-  assert.deepEqual(parseTemplateTerm('创建变量=A=内容'), {
-    type: 'setVariable',
-    name: 'A',
-    value: '内容',
-  });
-  assert.deepEqual(parseTemplateTerm('读取变量=A'), {
-    type: 'getVariable',
-    name: 'A',
-  });
+  assert.throws(() => parseTemplateTerm('变量旧.创建.A'), /不支持的词条命名空间/);
   assert.deepEqual(parseTemplateTerm('变量.创建.A'), {
     type: 'setVariable',
     name: 'A',

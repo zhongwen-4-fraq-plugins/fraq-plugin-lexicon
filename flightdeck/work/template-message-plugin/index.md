@@ -5,7 +5,7 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.1.10 正在调整变量命名空间为 `[变量.创建.A]`、`[变量.读取.A]`，并保留旧语法兼容。
+- v0.1.11 正在移除旧变量语法，仅保留 `[变量.创建.A]`、`[变量.读取.A]`。
 
 ## Next
 
@@ -92,14 +92,14 @@
 
 ## Template variable release
 
-- v0.1.6 adds [创建变量=A], [创建变量=A=内容], and [读取变量=A].
+- v0.1.6 adds `[变量.创建.A]`, `[变量.创建.A=内容]`, and `[变量.读取.A]`.
 - Variables live for one template render; values continue through the existing unlimited nested-term parser.
 
 ## Variable release verification
 
 - Trusted Publisher run 31919315965 completed successfully for v0.1.6.
 - Target app app/package.json, package-lock.json, pnpm-lock.yaml, and versions.yml reference 0.1.6.
-- Target app restarted successfully; the installed bundle contains 创建变量 and 读取变量 handlers and listens on port 4649 without startup errors.
+- Target app restarted successfully; the installed bundle contains 变量.创建 and 变量.读取 handlers and listens on port 4649 without startup errors.
 
 ## Full Milky API release
 
@@ -147,5 +147,5 @@
 
 ## Variable namespace update
 
-- v0.1.10 changes the documented variable syntax to `[变量.创建.A]` and `[变量.读取.A]`.
-- `[变量.创建.A=内容]` assigns an initial value; the previous `[创建变量=...]` and `[读取变量=...]` forms remain compatible aliases.
+- v0.1.11 removes the old variable syntax and only accepts `[变量.创建.A]` and `[变量.读取.A]`.
+- `[变量.创建.A=内容]` assigns an initial value.
