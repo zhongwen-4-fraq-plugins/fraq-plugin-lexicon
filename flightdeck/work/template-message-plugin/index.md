@@ -93,3 +93,9 @@
 
 - v0.1.6 adds [创建变量=A], [创建变量=A=内容], and [读取变量=A].
 - Variables live for one template render; values continue through the existing unlimited nested-term parser.
+
+## Variable release verification
+
+- Trusted Publisher run 31919315965 completed successfully for v0.1.6.
+- Target app app/package.json, package-lock.json, pnpm-lock.yaml, and versions.yml reference 0.1.6.
+- Target app restarted successfully; the installed bundle contains 创建变量 and 读取变量 handlers and listens on port 4649 without startup errors.

@@ -20,3 +20,4 @@ Focus: 发布并验证 `fraq-plugin-lexicon` 词库与嵌套词条解析插件�
 - Preparing v0.1.5: automatic default lexicons and current management-lexicon switching.
 - v0.1.5 published and installed in the target app; automatic default lexicon behavior is ready for group-message verification.
 - Preparing v0.1.6: scoped template variables with recursive lexicon expansion.
+- v0.1.6 variable support is published and loaded by the target app; runtime startup verification passed.
