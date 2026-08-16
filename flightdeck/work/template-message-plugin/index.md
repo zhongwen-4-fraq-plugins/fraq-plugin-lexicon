@@ -5,18 +5,19 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.1.12 已发布并安装；下一开发版本按项目进位约定调整为 v0.2.0。
+- v0.2.0 已发布并安装；当前开发版本为 v0.2.1，正在修复 Milky API 参数映射。
 
 ## Next
 
-- 在真实群聊中验证事件条件、动态问题变量和回答事件字段。
-- 完成 v0.1.10 测试、检查、构建和打包预览，然后提交改动。
+- 在真实群聊中验证 `[api.get_group_member_info.qq=<QQ>]` 和事件自动参数。
+- 用户确认后为 v0.2.1 打 tag、发布并安装到目标 Fraq 项目。
 
 ## Read now
 
 - `src/index.ts`
 - `package.json`
 - `flightdeck/knowledge/milky/protocol.md`
+- `flightdeck/knowledge/milky/api-parameter-mapping.md`
 - `flightdeck/knowledge/fraq/plugin-api.md`
 - `flightdeck/work/template-message-plugin/design.md`
 
@@ -182,3 +183,11 @@
 - Trusted Publisher workflow run `31978731331` completed successfully on 2026-08-16.
 - Target app installed `fraq-plugin-lexicon` `0.2.0`, updated `versions.yml`, and restarted successfully.
 - Target Fraq remains listening on `127.0.0.1:4649` with an established local Milky connection.
+
+## v0.2.1 API parameter audit
+
+- Fraq 0.14 and 0.17 expose the same 65 API endpoints with identical request parameter names, types, and optionality.
+- `qq` now maps to `user_id` only when the endpoint supports `user_id`; conflicting `qq` and `user_id` values return a clear error.
+- Event defaults preserve real event values and derive `notification_type`, `reaction`, `is_self_send`, and group `peer_id -> group_id` mappings.
+- API definitions now retain Fraq `request_ZodInput` optionality, validate missing required parameters, and validate finite string enums before calling Milky.
+- `pnpm check`, 18 tests, `pnpm build`, and `npm pack --dry-run --json` passed for v0.2.1 on 2026-08-16.

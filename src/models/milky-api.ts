@@ -2,7 +2,9 @@ import type { ApiEndpointName, ApiParams } from '@fraqjs/fraq';
 
 export type ApiParameterKind = 'boolean' | 'message' | 'number' | 'string';
 
-export type MilkyApiDefinition = Readonly<Record<string, ApiParameterKind>>;
+export type ApiParameterDefinition = ApiParameterKind | `${ApiParameterKind}?`;
+
+export type MilkyApiDefinition = Readonly<Record<string, ApiParameterDefinition>>;
 
 type ApiParameterKindOf<Value> =
   NonNullable<Value> extends number
@@ -17,6 +19,21 @@ type ApiParameterKindOf<Value> =
 
 export type MilkyApiDefinitions = Readonly<{
   [Endpoint in ApiEndpointName]: Readonly<{
-    [Name in keyof NonNullable<ApiParams<Endpoint>>]-?: ApiParameterKindOf<NonNullable<ApiParams<Endpoint>>[Name]>;
+    [Name in keyof NonNullable<ApiParams<Endpoint>>]-?: undefined extends NonNullable<ApiParams<Endpoint>>[Name]
+      ? `${ApiParameterKindOf<NonNullable<ApiParams<Endpoint>>[Name]>}?`
+      : ApiParameterKindOf<NonNullable<ApiParams<Endpoint>>[Name]>;
   }>;
 }>;
+
+type StringParameterName<Endpoint extends ApiEndpointName> = {
+  [Name in keyof NonNullable<ApiParams<Endpoint>>]: NonNullable<NonNullable<ApiParams<Endpoint>>[Name]> extends string
+    ? Name
+    : never;
+}[keyof NonNullable<ApiParams<Endpoint>>] &
+  string;
+
+export type MilkyApiParameterValues = Readonly<
+  Partial<{
+    [Endpoint in ApiEndpointName]: Readonly<Partial<Record<StringParameterName<Endpoint>, readonly string[]>>>;
+  }>
+>;

@@ -42,7 +42,9 @@ export function createEventContext(event: MilkyEvent): TemplateContext {
   }
 
   const data = asRecord(event.data);
-  const groupId = firstNumber(data.group_id);
+  const messageScene = readMessageScene(data.message_scene);
+  const eventPeerId = firstNumber(data.peer_id);
+  const groupId = firstNumber(data.group_id, messageScene === 'group' ? eventPeerId : undefined);
   const senderId = firstNumber(
     data.sender_id,
     data.user_id,
@@ -51,7 +53,7 @@ export function createEventContext(event: MilkyEvent): TemplateContext {
     data.invitor_id,
     data.friend_id,
   );
-  const peerId = groupId ?? firstNumber(data.peer_id, data.user_id, data.sender_id, data.initiator_id, data.friend_id);
+  const peerId = eventPeerId ?? groupId ?? firstNumber(data.user_id, data.sender_id, data.initiator_id, data.friend_id);
   const canReplyPrivately = event.event_type === 'friend_nudge' || event.event_type === 'friend_file_upload';
 
   return {
@@ -59,7 +61,9 @@ export function createEventContext(event: MilkyEvent): TemplateContext {
     eventType: event.event_type,
     eventTime: event.time,
     selfId: event.self_id,
-    scene: groupId !== undefined ? 'group' : canReplyPrivately && peerId !== undefined ? 'friend' : undefined,
+    scene:
+      messageScene ??
+      (groupId !== undefined ? 'group' : canReplyPrivately && peerId !== undefined ? 'friend' : undefined),
     peerId,
     senderId,
     messageSeq: firstNumber(data.message_seq),
@@ -91,4 +95,8 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function firstNumber(...values: unknown[]): number | undefined {
   return values.find((value): value is number => typeof value === 'number' && Number.isSafeInteger(value));
+}
+
+function readMessageScene(value: unknown): 'friend' | 'group' | 'temp' | undefined {
+  return value === 'friend' || value === 'group' || value === 'temp' ? value : undefined;
 }

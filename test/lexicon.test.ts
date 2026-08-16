@@ -50,6 +50,61 @@ const groupNudgeEvent: EventMap['group_nudge'] = {
   },
 };
 
+const groupJoinRequestEvent: EventMap['group_join_request'] = {
+  event_type: 'group_join_request',
+  time: 1_700_000_002,
+  self_id: 30003,
+  data: {
+    group_id: 10001,
+    notification_seq: 40004,
+    is_filtered: true,
+    initiator_id: 20002,
+    comment: '申请入群',
+  },
+};
+
+const groupReactionEvent: EventMap['group_message_reaction'] = {
+  event_type: 'group_message_reaction',
+  time: 1_700_000_003,
+  self_id: 30003,
+  data: {
+    group_id: 10001,
+    user_id: 20002,
+    message_seq: 50005,
+    face_id: '66',
+    reaction_type: 'face',
+    is_add: false,
+  },
+};
+
+const friendFileUploadEvent: EventMap['friend_file_upload'] = {
+  event_type: 'friend_file_upload',
+  time: 1_700_000_004,
+  self_id: 30003,
+  data: {
+    user_id: 20002,
+    file_id: 'file-id',
+    file_name: '测试.txt',
+    file_size: 1024,
+    file_hash: 'file-hash',
+    is_self: true,
+  },
+};
+
+const groupRecallEvent: EventMap['message_recall'] = {
+  event_type: 'message_recall',
+  time: 1_700_000_005,
+  self_id: 30003,
+  data: {
+    message_scene: 'group',
+    peer_id: 10001,
+    message_seq: 60006,
+    sender_id: 20002,
+    operator_id: 70007,
+    display_suffix: '',
+  },
+};
+
 const groupContext: MessageContext = {
   event: groupMessageEvent,
   eventType: 'message_receive',
@@ -321,6 +376,122 @@ test('事件字段自动补充 API 参数且显式参数优先', async () => {
     { endpoint: 'send_group_nudge', params: { group_id: 10001, user_id: 20002 } },
     { endpoint: 'send_group_nudge', params: { group_id: 10001, user_id: 90009 } },
   ]);
+});
+
+test('API 参数 qq 可作为 user_id 简写', async () => {
+  const calls: Array<{ endpoint: string; params: Record<string, unknown> }> = [];
+  const client = new Proxy(
+    {},
+    {
+      get(_target, property) {
+        return async (params: Record<string, unknown>) => {
+          calls.push({ endpoint: String(property), params });
+          return {};
+        };
+      },
+    },
+  ) as MilkyClient;
+  const apiService = new MilkyApiService();
+
+  await apiService.execute('get_group_member_info', { qq: '90009' }, { client, message: groupContext });
+
+  assert.deepEqual(calls, [
+    {
+      endpoint: 'get_group_member_info',
+      params: { group_id: 10001, user_id: 90009, no_cache: false },
+    },
+  ]);
+  await assert.rejects(
+    () =>
+      apiService.execute('get_group_member_info', { qq: '90009', user_id: '80008' }, { client, message: groupContext }),
+    /不能同时使用/,
+  );
+  await assert.rejects(
+    () => apiService.execute('get_group_info', { qq: '90009' }, { client, message: groupContext }),
+    /不支持参数“qq”/,
+  );
+});
+
+test('API 事件默认值保留原值并转换协议参数', async () => {
+  const calls: Array<{ endpoint: string; params: Record<string, unknown> }> = [];
+  const client = new Proxy(
+    {},
+    {
+      get(_target, property) {
+        return async (params: Record<string, unknown>) => {
+          calls.push({ endpoint: String(property), params });
+          return {};
+        };
+      },
+    },
+  ) as MilkyClient;
+  const apiService = new MilkyApiService();
+
+  await apiService.execute('accept_group_request', {}, { client, message: createEventContext(groupJoinRequestEvent) });
+  await apiService.execute(
+    'send_group_message_reaction',
+    {},
+    {
+      client,
+      message: createEventContext(groupReactionEvent),
+    },
+  );
+  await apiService.execute(
+    'get_private_file_download_url',
+    {},
+    {
+      client,
+      message: createEventContext(friendFileUploadEvent),
+    },
+  );
+  await apiService.execute('recall_group_message', {}, { client, message: createEventContext(groupRecallEvent) });
+
+  assert.deepEqual(calls, [
+    {
+      endpoint: 'accept_group_request',
+      params: { notification_seq: 40004, notification_type: 'join_request', group_id: 10001, is_filtered: true },
+    },
+    {
+      endpoint: 'send_group_message_reaction',
+      params: { group_id: 10001, message_seq: 50005, reaction: '66', reaction_type: 'face', is_add: false },
+    },
+    {
+      endpoint: 'get_private_file_download_url',
+      params: { user_id: 20002, file_id: 'file-id', file_hash: 'file-hash', is_self_send: true },
+    },
+    {
+      endpoint: 'recall_group_message',
+      params: { group_id: 10001, message_seq: 60006 },
+    },
+  ]);
+});
+
+test('API 调用前校验必填参数、枚举值和可选参数', async () => {
+  const calls: Array<{ endpoint: string; params: Record<string, unknown> }> = [];
+  const client = new Proxy(
+    {},
+    {
+      get(_target, property) {
+        return async (params: Record<string, unknown>) => {
+          calls.push({ endpoint: String(property), params });
+          return {};
+        };
+      },
+    },
+  ) as MilkyClient;
+  const apiService = new MilkyApiService();
+
+  await assert.rejects(
+    () => apiService.execute('get_cookies', {}, { client, message: groupContext }),
+    /缺少必填参数：domain/,
+  );
+  await assert.rejects(
+    () => apiService.execute('get_message', { message_scene: 'channel' }, { client, message: groupContext }),
+    /必须是以下值之一：friend、group、temp/,
+  );
+  await apiService.execute('set_group_member_admin', {}, { client, message: groupContext });
+
+  assert.deepEqual(calls, [{ endpoint: 'set_group_member_admin', params: { group_id: 10001, user_id: 20002 } }]);
 });
 
 test('事件模板匹配词库并向事件会话发送文本', async (context) => {

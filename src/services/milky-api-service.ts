@@ -3,8 +3,10 @@ import type { ApiEndpointName } from '@fraqjs/fraq';
 import type { ApiActionContext } from '../actions/api-action-registry';
 import { createApiEventDefaults } from '../data/api-event-defaults';
 import { isMilkyApiEndpoint, MILKY_API_DEFINITIONS } from '../data/milky-api-definitions';
+import { MILKY_API_PARAMETER_VALUES } from '../data/milky-api-parameter-values';
 import { LexiconError } from '../errors';
-import type { ApiParameterKind } from '../models/milky-api';
+import type { ApiParameterDefinition, ApiParameterKind } from '../models/milky-api';
+import { normalizeApiParameters } from '../parsers/api-parameter-parser';
 import { escapeTemplateText } from '../parsers/template-parser';
 
 export class MilkyApiService {
@@ -14,22 +16,32 @@ export class MilkyApiService {
     }
 
     const definition = MILKY_API_DEFINITIONS[endpointName];
-    const unknownParameter = Object.keys(parameters).find((name) => !(name in definition));
+    const normalizedParameters = normalizeApiParameters(parameters, definition);
+    const unknownParameter = Object.keys(normalizedParameters).find((name) => !(name in definition));
     if (unknownParameter) {
       throw new LexiconError(`Milky API“${endpointName}”不支持参数“${unknownParameter}”。`);
     }
 
     const eventDefaults = createApiEventDefaults(context.message);
     const apiParameters: Record<string, unknown> = {};
-    for (const [name, kind] of Object.entries(definition)) {
-      const explicitValue = parameters[name];
+    const missingParameters: string[] = [];
+    for (const [name, parameterDefinition] of Object.entries(definition)) {
+      const explicitValue = normalizedParameters[name];
       if (explicitValue !== undefined) {
-        apiParameters[name] = parseParameterValue(explicitValue, kind, name);
+        apiParameters[name] = parseParameterValue(explicitValue, parameterDefinition, endpointName, name);
         continue;
       }
       if (Object.hasOwn(eventDefaults, name)) {
         apiParameters[name] = eventDefaults[name];
+        continue;
       }
+      if (!isOptionalParameter(parameterDefinition)) {
+        missingParameters.push(name);
+      }
+    }
+
+    if (missingParameters.length > 0) {
+      throw new LexiconError(`Milky API“${endpointName}”缺少必填参数：${missingParameters.join('、')}。`);
     }
 
     try {
@@ -54,8 +66,15 @@ async function callApi(
   return method.call(context.client, parameters);
 }
 
-function parseParameterValue(value: string, kind: ApiParameterKind, name: string): unknown {
+function parseParameterValue(
+  value: string,
+  definition: ApiParameterDefinition,
+  endpoint: ApiEndpointName,
+  name: string,
+): unknown {
+  const kind = parameterKind(definition);
   if (kind === 'string') {
+    validateStringValue(value, endpoint, name);
     return value;
   }
   if (kind === 'number') {
@@ -75,6 +94,24 @@ function parseParameterValue(value: string, kind: ApiParameterKind, name: string
     throw new LexiconError(`参数“${name}”必须是 true 或 false。`);
   }
   return parseMessage(value, name);
+}
+
+function parameterKind(definition: ApiParameterDefinition): ApiParameterKind {
+  return (definition.endsWith('?') ? definition.slice(0, -1) : definition) as ApiParameterKind;
+}
+
+function isOptionalParameter(definition: ApiParameterDefinition): boolean {
+  return definition.endsWith('?');
+}
+
+function validateStringValue(value: string, endpoint: ApiEndpointName, name: string): void {
+  const endpointValues = MILKY_API_PARAMETER_VALUES[endpoint] as
+    | Readonly<Record<string, readonly string[]>>
+    | undefined;
+  const allowedValues = endpointValues?.[name];
+  if (allowedValues && !allowedValues.includes(value)) {
+    throw new LexiconError(`参数“${name}”必须是以下值之一：${allowedValues.join('、')}。`);
+  }
 }
 
 function parseMessage(value: string, name: string): unknown[] {

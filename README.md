@@ -113,18 +113,25 @@ ctx.install(FraqPluginLexicon, {
 [api.<英文 API 端点>.<参数名>=<参数值>]
 [api.send_group_nudge]
 [api.send_group_nudge.user_id=123456789]
+[api.get_group_member_info.qq=123456789]
 ```
 
 插件支持当前 Milky/Fraq 提供的全部 65 个英文 API 端点。用户显式填写的参数优先；未填写时会先读取事件 `data` 中的同名字段，再按端点需要补充：
 
 - `user_id`：第一个被艾特的 QQ、被回复消息的发送者、事件中的 `user_id`、`sender_id`、`operator_id`、`initiator_id`，最后是当前发送者。
-- `group_id`：当前群号。
+- `qq`：当目标 API 支持 `user_id` 时可作为其简写；不能与 `user_id` 同时填写。
+- `group_id`：当前群号；群消息撤回等事件会根据 `message_scene=group` 将 `peer_id` 转为群号。
 - `message_scene`、`peer_id`：当前消息场景和会话 ID。
 - `message_seq`、`start_message_seq`：被回复消息的序列号，否则使用当前消息序列号。
 - `message`、`content`：被回复消息的消息段，否则使用当前消息的消息段。
 - `resource_id`、`uri`、`image_uri`、`file_uri`：回复或当前消息中的首个图片、语音或视频资源。
 - `file_id`、`file_hash`、`file_name`、`forward_id`：回复或当前消息中的文件、合并转发数据。
+- `notification_type`：根据 `group_join_request` 或 `group_invited_join_request` 事件自动生成。
+- `reaction`：群消息反应事件会自动将 `face_id` 转为 API 使用的 `reaction`。
+- `is_self_send`：好友文件事件会自动继承事件中的 `is_self`。
 - `no_cache=false`、`is_filtered=false`、`is_self=false`、`is_self_send=false`、`limit=20`、`count=1`。
+
+事件自身提供的参数不会被上述默认值覆盖。调用前会检查必填参数，以及 `message_scene`、`notification_type`、`reaction_type` 等枚举参数，并直接返回可读错误。
 
 消息参数可以直接填写文本，也可以填写消息段 JSON：
 
@@ -135,7 +142,7 @@ ctx.install(FraqPluginLexicon, {
 
 API 返回空对象时不输出文本；其他返回值会序列化为 JSON，并可通过变量继续参与嵌套解析。完整端点定义位于 `src/data/milky-api-definitions.ts`。
 
-截至MIlky 1.3.0，本插件已适配全部的API，具体请参考[Milky协议的API部分](https://milky.ntqqrev.org/api/system)
+本插件已适配 Fraq 0.14 与 0.17 暴露的全部 65 个 Milky API，具体参数请参考 [Milky 协议 API](https://milky.ntqqrev.org/api/system)。
 
 ### 词库词条
 

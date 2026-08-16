@@ -22,13 +22,13 @@ export function createApiEventDefaults(context: TemplateContext): Record<string,
   );
   const message = toOutgoingSegments(sourceSegments);
   const defaults: Record<string, unknown> = {
-    ...definedEntries(eventData),
     no_cache: false,
     is_filtered: false,
     is_self: false,
     is_self_send: false,
     limit: 20,
     count: 1,
+    ...definedEntries(eventData),
   };
 
   setDefined(defaults, 'user_id', preferredUserId);
@@ -36,6 +36,13 @@ export function createApiEventDefaults(context: TemplateContext): Record<string,
   setDefined(defaults, 'peer_id', context.peerId);
   setDefined(defaults, 'message_seq', preferredMessageSeq);
   setDefined(defaults, 'start_message_seq', preferredMessageSeq);
+  setDefined(defaults, 'notification_type', notificationType(context.eventType));
+  setDefined(defaults, 'reaction', readString(eventData.reaction) ?? readString(eventData.face_id));
+
+  const isSelfSend = readBoolean(eventData.is_self_send) ?? readBoolean(eventData.is_self);
+  if (isSelfSend !== undefined) {
+    defaults.is_self_send = isSelfSend;
+  }
 
   if (context.groupId !== undefined) {
     defaults.group_id = context.groupId;
@@ -78,6 +85,24 @@ function setDefined(target: Record<string, unknown>, name: string, value: unknow
 
 function readNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isSafeInteger(value) ? value : undefined;
+}
+
+function readBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
+function readString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function notificationType(eventType: TemplateContext['eventType']): string | undefined {
+  if (eventType === 'group_join_request') {
+    return 'join_request';
+  }
+  if (eventType === 'group_invited_join_request') {
+    return 'invited_join_request';
+  }
+  return undefined;
 }
 
 function toOutgoingSegments(segments: milky.IncomingSegment[]): unknown[] {

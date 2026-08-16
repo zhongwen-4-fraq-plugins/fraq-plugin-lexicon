@@ -1,24 +1,16 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 完善 `fraq-plugin-lexicon` v0.2.0 问答变量作用域。
+Focus: 完善 `fraq-plugin-lexicon` v0.2.1 Milky API 参数映射。
 
 ## In flight
 
-- `template-message-plugin` — v0.2.0 已打 tag、发布并安装到目标 Fraq 项目
+- `template-message-plugin` — v0.2.1 参数审计与修复已完成，等待真实群聊验证
 
 ## Next
 
-- 在真实群聊中验证问题变量在普通消息、Milky 事件和嵌套词库回答中的传递。
+- 验证 `get_group_member_info` 的 `qq` 简写，以及群请求、消息反应、文件和撤回事件自动参数。
+- 用户确认后打 v0.2.1 tag、发布并安装到目标 Fraq 项目。
 
 ## Open questions
 
-- 真实 Milky 服务对请求类事件是否允许直接向关联群发送文本？
-- v0.1.12 Trusted Publisher run 31975940798 succeeded; target app is running fraq-plugin-lexicon 0.1.12 on 127.0.0.1:4649.
-- Prefix inheritance fix is prepared for release v0.1.4; the plugin now uses Fraq's route activation resolver.
-- Target app installed v0.1.4 and restarted successfully on 2026-08-16; Fraq 0.14.0 and global / activation remain unchanged.
-- Preparing v0.1.5: automatic default lexicons and current management-lexicon switching.
-- v0.1.5 published and installed in the target app; automatic default lexicon behavior is ready for group-message verification.
-- Preparing v0.1.6: scoped template variables with recursive lexicon expansion.
-- v0.1.6 variable support is published and loaded by the target app; runtime startup verification passed.
-- Preparing v0.1.7: all 65 Fraq Milky API endpoints, event-derived defaults, and variable-aware nested API results.
-- v0.1.7 published through Trusted Publisher run 31932938825 and loaded by the target Fraq 0.14.0 app on port 4649.
+- 真实 Milky 服务是否还存在 Fraq 类型未覆盖的实现特有参数差异？
