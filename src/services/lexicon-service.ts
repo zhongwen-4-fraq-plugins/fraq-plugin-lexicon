@@ -104,6 +104,14 @@ export class LexiconService {
     }
   }
 
+  getLexiconEntry(lexicon: Lexicon, entryId: number): LexiconEntry {
+    const entry = this.repository.getEntryById(entryId);
+    if (!entry || entry.lexiconId !== lexicon.id) {
+      throw new LexiconError(`词库“${lexicon.name}”中没有 ID 为 ${entryId} 的词条。`);
+    }
+    return entry;
+  }
+
   deleteEntryById(lexiconName: string | undefined, entryId: number, context: MessageContext): Lexicon {
     const lexicon = this.resolveManageableLexicon(lexiconName, context);
     if (!this.repository.deleteEntryById(lexicon.id, entryId)) {

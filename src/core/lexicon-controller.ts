@@ -1,7 +1,7 @@
 import type { Session } from '@fraqjs/fraq';
 
 import { errorMessage } from '../errors';
-import type { MessageContext } from '../models/lexicon';
+import type { Lexicon, LexiconEntry, MessageContext } from '../models/lexicon';
 import { parseManagementCommand } from '../parsers/management-command-parser';
 import type { LexiconService } from '../services/lexicon-service';
 import type { PermissionService } from '../services/permission-service';
@@ -65,6 +65,13 @@ export class LexiconController {
             context,
           );
           await session.reply(`已添加词条 ${result.entry.id} 到词库“${result.lexicon.name}”。`);
+          return;
+        }
+        case 'query': {
+          const lexicon = this.lexiconService.resolveManageableLexicon(command.lexiconName, context);
+          this.permissionService.assertCanManageLexicon(lexicon, context);
+          const entry = this.lexiconService.getLexiconEntry(lexicon, command.entryId);
+          await session.reply(formatEntry(lexicon, entry));
           return;
         }
         case 'deleteById': {
@@ -135,6 +142,16 @@ function scopeLabel(scopeType: 'global' | 'group'): string {
   return scopeType === 'global' ? '全局' : '群';
 }
 
+function formatEntry(lexicon: Lexicon, entry: LexiconEntry): string {
+  return [
+    `词条 ${entry.id}：`,
+    `词库：${lexicon.name}（${scopeLabel(lexicon.scopeType)}）`,
+    `匹配：${entry.matchMode === 'exact' ? '精确' : '模糊'}`,
+    `问：${entry.question}`,
+    `答：${entry.answer}`,
+  ].join('\n');
+}
+
 function helpText(): string {
   return [
     '词库命令：',
@@ -144,10 +161,12 @@ function helpText(): string {
     '词库 禁用 <全局词库名>',
     '词库 切换 <词库名>',
     '词库 列表',
-    '词库 添加 <精确|模糊> 问 <内容> 答 <内容>（默认词库）',
+    '词库 查询 <词条ID>（当前词库）',
+    '词库 查询 <词库名> <词条ID>',
+    '词库 添加 <精确|模糊> 问 <内容> 答 <内容>（当前词库）',
     '词库 添加 <词库名> <精确|模糊> 问 <内容> 答 <内容>',
-    '词库 删除 id <词条ID>（默认词库）',
-    '词库 删除 问 <内容>（默认词库）',
+    '词库 删除 id <词条ID>（当前词库）',
+    '词库 删除 问 <内容>（当前词库）',
     '词库 删除 <词库名> id <词条ID>',
     '词库 删除 <词库名> 问 <内容>',
     '',

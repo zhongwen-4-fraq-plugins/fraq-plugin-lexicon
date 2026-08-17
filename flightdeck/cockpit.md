@@ -1,14 +1,16 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: `fraq-plugin-lexicon` v0.2.2 已发布并安装，等待真实群聊验证消息段模板。
+Focus: 完善 `fraq-plugin-lexicon` v0.2.3 词条 ID 查询命令。
 
 ## In flight
 
-- `template-message-plugin` — v0.2.2 已发布到 npm、安装到目标 Fraq 项目并通过启动验证
+- `template-message-plugin` — v0.2.3 已支持使用当前或指定词库按 ID 查询词条
 
 ## Next
 
 - 在真实群聊中验证消息段取值和文本消息段构建模板。
+- 在真实群聊中验证 `词库 查询 <词条ID>` 和 `词库 查询 <词库名> <词条ID>`。
+- 用户确认后为 v0.2.3 打 tag、发布并安装到目标 Fraq 项目。
 
 ## Open questions
 

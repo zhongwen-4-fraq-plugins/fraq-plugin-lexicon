@@ -5,12 +5,13 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.2.1 已发布并安装；当前开发版本为 v0.2.2，正在增加中文消息段取值和文本消息段构建模板。
+- v0.2.2 已发布并安装；当前开发版本为 v0.2.3，已增加按词条 ID 查询当前或指定词库的管理命令。
 
 ## Next
 
 - 在真实群聊中验证 `[api.get_group_member_info.user_id=[消息.取值.mention.user_id]]` 和 `[api.send_group_message.message=[消息.构建.text.内容]]`。
-- 用户确认后为 v0.2.2 打 tag、发布并安装到目标 Fraq 项目。
+- 在真实群聊中验证 `词库 查询 <词条ID>` 和 `词库 查询 <词库名> <词条ID>`。
+- 用户确认后为 v0.2.3 打 tag、发布并安装到目标 Fraq 项目。
 
 ## Read now
 
@@ -219,3 +220,11 @@
 - 目标项目 root/app 的 package manifest、pnpm lockfile、npm lockfile、`versions.yml`、活动 node_modules 和 Fraq 包缓存均已同步为 `0.2.2`。
 - 目标项目安装包包含 `[消息.取值.*]`、`[消息.构建.text.*]` 和消息段构建服务代码。
 - 目标 Fraq 已重新启动，成功加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649` 并重新连接 Milky WebSocket。
+
+## v0.2.3 entry query command
+
+- `词库 查询 <词条ID>` 使用当前管理词库，切换词库后会随当前选择查询。
+- `词库 查询 <词库名> <词条ID>` 查询指定词库，并继续支持 `全局:<名称>` 与 `群:<名称>` 选择器。
+- 查询前复用词库管理权限检查，结果展示词库作用域、匹配方式、问题和回答。
+- 查询服务会校验词条 ID 确实属于目标词库，避免跨词库读取同一 ID。
+- `pnpm test`、`pnpm check`、`pnpm build` 和 `npm pack --dry-run --json` 均通过，共 21 个测试。

@@ -9,6 +9,7 @@ export type ManagementCommand =
   | { type: 'switch'; lexiconName: string }
   | { type: 'enable'; name: string }
   | { type: 'disable'; name: string }
+  | { type: 'query'; lexiconName?: string; entryId: number }
   | { type: 'add'; lexiconName?: string; matchMode: MatchMode; question: string; answer: string }
   | { type: 'deleteById'; lexiconName?: string; entryId: number }
   | { type: 'deleteByQuestion'; lexiconName?: string; question: string };
@@ -41,6 +42,22 @@ export function parseManagementCommand(input: string): ManagementCommand {
     return {
       type: toggleMatch[1] === '启用' ? 'enable' : 'disable',
       name: toggleMatch[2],
+    };
+  }
+
+  const queryWithNameMatch = /^查询\s+(\S+)\s+(\d+)$/.exec(command);
+  const queryDefaultMatch = /^查询\s+(\d+)$/.exec(command);
+  if (queryWithNameMatch) {
+    return {
+      type: 'query',
+      lexiconName: queryWithNameMatch[1],
+      entryId: Number(queryWithNameMatch[2]),
+    };
+  }
+  if (queryDefaultMatch) {
+    return {
+      type: 'query',
+      entryId: Number(queryDefaultMatch[1]),
     };
   }
 

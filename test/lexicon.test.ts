@@ -121,7 +121,7 @@ const groupContext: MessageContext = {
   mentionedUserIds: [],
 };
 
-test('管理命令可以解析添加和两种删除格式', () => {
+test('管理命令可以解析查询、添加和两种删除格式', () => {
   assert.deepEqual(parseManagementCommand('添加 默认 精确 问 戳我 答[api.send_group_nudge]戳啦'), {
     type: 'add',
     lexiconName: '默认',
@@ -152,6 +152,15 @@ test('管理命令可以解析添加和两种删除格式', () => {
   assert.deepEqual(parseManagementCommand('切换 其他'), {
     type: 'switch',
     lexiconName: '其他',
+  });
+  assert.deepEqual(parseManagementCommand('查询 12'), {
+    type: 'query',
+    entryId: 12,
+  });
+  assert.deepEqual(parseManagementCommand('查询 其他 12'), {
+    type: 'query',
+    lexiconName: '其他',
+    entryId: 12,
   });
 });
 
@@ -260,6 +269,22 @@ test('默认词库会自动创建并支持切换管理目标', (context) => {
 
   assert.equal(switchedEntry.lexicon.id, other.id);
   assert.equal(harness.service.resolveManageableLexicon(undefined, groupContext).id, other.id);
+});
+
+test('词条查询默认使用当前词库并校验指定词库', (context) => {
+  const harness = createHarness(context);
+  const defaultLexicon = harness.service.ensureDefaultLexicon(groupContext);
+  const defaultEntry = harness.service.addEntry(undefined, 'exact', '默认问题', '默认回答', groupContext).entry;
+  const other = harness.service.createLexicon('其他', 'group', groupContext);
+  const otherEntry = harness.service.addEntry(other.name, 'fuzzy', '其他问题', '其他回答', groupContext).entry;
+
+  assert.equal(harness.service.getLexiconEntry(defaultLexicon, defaultEntry.id).answer, '默认回答');
+  assert.equal(harness.service.getLexiconEntry(other, otherEntry.id).matchMode, 'fuzzy');
+  assert.throws(() => harness.service.getLexiconEntry(defaultLexicon, otherEntry.id), /没有 ID/);
+
+  harness.service.switchLexicon(other.name, groupContext);
+  const currentLexicon = harness.service.resolveManageableLexicon(undefined, groupContext);
+  assert.equal(harness.service.getLexiconEntry(currentLexicon, otherEntry.id).question, '其他问题');
 });
 
 test('词库词条可以无固定深度地迭代解析', async (context) => {

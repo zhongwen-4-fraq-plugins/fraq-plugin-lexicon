@@ -1,7 +1,7 @@
 {
   "name": "fraq-plugin-lexicon",
   "type": "module",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "支持多词库、精确与模糊匹配以及嵌套词条解析的 Fraq 插件",
   "files": [
     "dist"
