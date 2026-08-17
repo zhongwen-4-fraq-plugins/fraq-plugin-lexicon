@@ -3,6 +3,7 @@ import { LexiconError } from '../errors';
 export type TemplateTerm =
   | { type: 'api'; action: string; parameters: Record<string, string> }
   | { type: 'event'; path: string[] }
+  | { type: 'incomingSegment'; segmentType: string; path: string[] }
   | { type: 'lexicon'; name: string }
   | { type: 'setVariable'; name: string; value: string }
   | { type: 'getVariable'; name: string };
@@ -84,6 +85,14 @@ export function parseTemplateTerm(content: string): TemplateTerm {
       throw new LexiconError('事件词条格式应为 [event.<事件名或字段路径>]。');
     }
     return { type: 'event', path: unescapedParts };
+  }
+
+  if (namespace === 'is') {
+    const segmentType = unescapedParts.shift();
+    if (!segmentType || unescapedParts.length === 0 || unescapedParts.some((part) => !part)) {
+      throw new LexiconError('消息段词条格式应为 [is.<消息段类型>.<字段路径>]。');
+    }
+    return { type: 'incomingSegment', segmentType, path: unescapedParts };
   }
 
   throw new LexiconError(`不支持的词条命名空间：${namespace || '空'}。`);

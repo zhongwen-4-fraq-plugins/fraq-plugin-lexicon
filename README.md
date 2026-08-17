@@ -94,7 +94,7 @@ ctx.install(FraqPluginLexicon, {
 
 事件字段可以进入变量、API 参数和其他嵌套词条。字符串与 JSON 会自动转义模板控制字符；字段不存在时会返回明确错误。
 
-事件词条和变量词条在问题与回答中都可使用：
+事件词条、消息段词条和变量词条在问题与回答中都可使用：
 
 ```text
 词库 添加 精确 问 [event.message_receive][变量.创建.Q=戳我][变量.读取.Q] 答 [event.message_receive]收到
@@ -106,6 +106,25 @@ ctx.install(FraqPluginLexicon, {
 - 问题中的事件字段会先转换为当前字段值，再按照精确或模糊模式与消息文本比较。
 - 问题中的变量拥有独立作用域，可以创建、读取并嵌套事件字段。
 - 为避免匹配消息时产生副作用，问题中的 API 和词库词条保持字面量，不会执行。
+
+### 消息段词条
+
+```text
+[is.<消息段类型>.<字段路径>]
+[is.mention.user_id]
+[is.reply.sender_id]
+[is.reply.segments.0.data.text]
+```
+
+`is` 会读取当前消息中第一个指定类型的 IncomingSegment，字段路径从消息段的 `data` 开始，因此不需要再写一层 `data`。对象字段和数组下标都可继续嵌套读取；消息段或字段不存在时会返回明确错误。
+
+消息段值可以进入变量、问题和 API 参数。例如发送 `getinfo` 并艾特群成员时：
+
+```text
+词库 添加 精确 问 getinfo 答 [api.get_group_member_info.user_id=[is.mention.user_id]]
+```
+
+完整消息段类型和字段请参考 [Milky IncomingSegment](https://milky.ntqqrev.org/struct/IncomingSegment)。
 
 ### API 词条
 

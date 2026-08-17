@@ -6,10 +6,12 @@ import {
   parseTemplateTerm,
   unescapeTemplateText,
 } from '../parsers/template-parser';
+import { IncomingSegmentValueService } from './incoming-segment-value-service';
 import { MilkyEventValueService } from './milky-event-value-service';
 
 export class QuestionTemplateService {
   private readonly eventValueService = new MilkyEventValueService();
+  private readonly segmentValueService = new IncomingSegmentValueService();
 
   match(question: string, matchMode: MatchMode, context: TemplateContext): ReadonlyMap<string, string> | undefined {
     if (!hasQuestionTemplate(question)) {
@@ -68,6 +70,12 @@ export class QuestionTemplateService {
             return undefined;
           }
         }
+      } else if (term.type === 'incomingSegment') {
+        try {
+          replacement = this.segmentValueService.resolve(term.segmentType, term.path, context);
+        } catch {
+          return undefined;
+        }
       } else {
         replacement = escapeTemplateText(`[${location.content}]`);
       }
@@ -78,7 +86,7 @@ export class QuestionTemplateService {
 }
 
 function hasQuestionTemplate(question: string): boolean {
-  return /(^|[^\\])\[(?:event\.|变量\.(?:创建|读取)\.)/.test(question);
+  return /(^|[^\\])\[(?:event\.|is\.|变量\.(?:创建|读取)\.)/.test(question);
 }
 
 function matchesText(question: string, matchMode: MatchMode, originalText: string): boolean {

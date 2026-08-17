@@ -5,12 +5,12 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.2.0 已发布并安装；当前开发版本为 v0.2.1，正在修复 Milky API 参数映射。
+- v0.2.1 已发布并安装；当前开发版本为 v0.2.2，正在增加 IncomingSegment 取值模板。
 
 ## Next
 
-- 在真实群聊中验证 `[api.get_group_member_info.qq=<QQ>]` 和事件自动参数。
-- 用户确认后为 v0.2.1 打 tag、发布并安装到目标 Fraq 项目。
+- 在真实群聊中验证 `[api.get_group_member_info.user_id=[is.mention.user_id]]`。
+- 用户确认后为 v0.2.2 打 tag、发布并安装到目标 Fraq 项目。
 
 ## Read now
 
@@ -18,6 +18,7 @@
 - `package.json`
 - `flightdeck/knowledge/milky/protocol.md`
 - `flightdeck/knowledge/milky/api-parameter-mapping.md`
+- `flightdeck/knowledge/milky/incoming-segment-template.md`
 - `flightdeck/knowledge/fraq/plugin-api.md`
 - `flightdeck/work/template-message-plugin/design.md`
 
@@ -201,3 +202,11 @@
 - The installed app bundle contains the `group_id` and `message_seq` range validation code.
 - Target Fraq restarted successfully, loaded `fraq-plugin-lexicon`, listens on `127.0.0.1:4649`, and reconnected to Milky.
 - pnpm left an inactive `0.2.0` copy under `app/node_modules/.ignored`; recursive cleanup was blocked by the execution safety policy and `pnpm prune` did not remove it. Active module resolution is confirmed as `0.2.1`.
+
+## v0.2.2 IncomingSegment templates
+
+- `[is.<segment type>.<field path>]` reads from the first matching current-message segment's `data` object.
+- Nested object fields and array indexes are supported, including reply segment paths such as `[is.reply.segments.0.data.text]`.
+- `is` terms work in questions and answers and can be nested into variables and API parameters.
+- The original `get_group_member_info` failure can now be avoided with `[api.get_group_member_info.user_id=[is.mention.user_id]]`, which passes the actual mentioned QQ.
+- `pnpm check`, 19 tests, `pnpm build`, and `npm pack --dry-run --json` passed for v0.2.2 on 2026-08-17.

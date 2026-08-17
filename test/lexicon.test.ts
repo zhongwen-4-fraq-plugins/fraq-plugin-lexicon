@@ -194,6 +194,12 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     type: 'event',
     path: ['data', 'group_id'],
   });
+  assert.deepEqual(parseTemplateTerm('is.mention.user_id'), {
+    type: 'incomingSegment',
+    segmentType: 'mention',
+    path: ['user_id'],
+  });
+  assert.throws(() => parseTemplateTerm('is.mention'), /消息段词条格式/);
   assert.equal(findInnermostTerm('普通文本\\[不是词条\\]'), undefined);
 });
 
@@ -351,6 +357,68 @@ test('事件字段支持路径、数组、变量和模板转义', async (context
   assert.equal(await harness.template.render('[event.data.segments.0.data.text]', groupContext), '戳我');
   assert.equal(await harness.template.render('[event.data.display_suffix]', eventContext), '测试[] .= \\');
   await assert.rejects(() => harness.template.render('[event.data.not_exists]', eventContext), /不存在/);
+});
+
+test('消息段词条支持问题、回答、嵌套路径和 API 参数', async (context) => {
+  const harness = createHarness(context);
+  const segmentContext: MessageContext = {
+    ...groupContext,
+    originalText: '40004',
+    segments: [
+      { type: 'text', data: { text: '40004' } },
+      { type: 'mention', data: { user_id: 40004, name: '目标成员' } },
+      {
+        type: 'reply',
+        data: {
+          message_seq: 50005,
+          sender_id: 60006,
+          time: 1_700_000_000,
+          segments: [{ type: 'text', data: { text: '回复内容' } }],
+        },
+      },
+    ],
+    mentionedUserIds: [40004],
+  };
+  const lexicon = harness.service.createLexicon('消息段模板', 'group', segmentContext);
+  harness.repository.addEntry(
+    lexicon.id,
+    'exact',
+    '[变量.创建.Q=[is.mention.user_id]][变量.读取.Q]',
+    '[is.reply.segments.0.data.text]-[is.mention.user_id]',
+    1,
+  );
+
+  const match = harness.service.matchMessage(segmentContext);
+  assert.ok(match);
+  assert.equal(await harness.template.render(match.answer, segmentContext, match.questionVariables), '回复内容-40004');
+  await assert.rejects(() => harness.template.render('[is.image.resource_id]', segmentContext), /不存在“image”消息段/);
+
+  const calls: Array<{ endpoint: string; params: Record<string, unknown> }> = [];
+  const client = new Proxy(
+    {},
+    {
+      get(_target, property) {
+        return async (params: Record<string, unknown>) => {
+          calls.push({ endpoint: String(property), params });
+          return {};
+        };
+      },
+    },
+  ) as MilkyClient;
+  const apiService = new MilkyApiService();
+  const actions = new ApiActionRegistry((name, parameters, apiContext) =>
+    apiService.execute(name, parameters, apiContext),
+  );
+  const template = new TemplateService(harness.service, actions, client);
+
+  await template.render('[api.get_group_member_info.user_id=[is.mention.user_id]]', segmentContext);
+
+  assert.deepEqual(calls, [
+    {
+      endpoint: 'get_group_member_info',
+      params: { group_id: 10001, user_id: 40004, no_cache: false },
+    },
+  ]);
 });
 
 test('事件字段自动补充 API 参数且显式参数优先', async () => {

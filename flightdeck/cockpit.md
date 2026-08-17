@@ -1,15 +1,15 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 验证已发布的 `fraq-plugin-lexicon` v0.2.1 Milky API 参数映射。
+Focus: 完善 `fraq-plugin-lexicon` v0.2.2 IncomingSegment 取值模板。
 
 ## In flight
 
-- `template-message-plugin` — v0.2.1 已发布、安装并正常启动，等待真实群聊验证
+- `template-message-plugin` — v0.2.2 消息段字段读取已实现并完成完整验证
 
 ## Next
 
-- 验证 `get_group_member_info` 的 `qq` 简写，以及群请求、消息反应、文件和撤回事件自动参数。
-- 验证后根据实际 Milky 返回继续补充实现差异适配。
+- 在真实群聊中验证艾特成员查询模板。
+- 用户确认后打 v0.2.2 tag、发布并安装到目标 Fraq 项目。
 
 ## Open questions
 

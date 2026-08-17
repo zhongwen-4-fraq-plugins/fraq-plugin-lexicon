@@ -4,6 +4,7 @@ import type { ApiActionRegistry } from '../actions/api-action-registry';
 import { LexiconError } from '../errors';
 import type { TemplateContext } from '../models/lexicon';
 import { findInnermostTerm, parseTemplateTerm, unescapeTemplateText } from '../parsers/template-parser';
+import { IncomingSegmentValueService } from './incoming-segment-value-service';
 import type { LexiconService } from './lexicon-service';
 import { MilkyEventValueService } from './milky-event-value-service';
 
@@ -14,6 +15,7 @@ export interface TemplateServiceOptions {
 export class TemplateService {
   private readonly maxOutputLength: number;
   private readonly eventValueService = new MilkyEventValueService();
+  private readonly segmentValueService = new IncomingSegmentValueService();
 
   constructor(
     private readonly lexiconService: LexiconService,
@@ -67,6 +69,10 @@ export class TemplateService {
 
     if (term.type === 'event') {
       return this.eventValueService.resolve(term.path, context);
+    }
+
+    if (term.type === 'incomingSegment') {
+      return this.segmentValueService.resolve(term.segmentType, term.path, context);
     }
 
     if (term.type === 'setVariable') {
