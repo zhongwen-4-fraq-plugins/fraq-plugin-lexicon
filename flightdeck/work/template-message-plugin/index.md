@@ -192,3 +192,12 @@
 - API definitions now retain Fraq `request_ZodInput` optionality, validate missing required parameters, and validate finite string enums before calling Milky.
 - `group_id` and `message_seq` now use the official JSON Schema ranges for both explicit values and event-derived defaults.
 - `pnpm check`, 18 tests, `pnpm build`, and `npm pack --dry-run --json` passed for v0.2.1 on 2026-08-16.
+
+## v0.2.1 release verification
+
+- Annotated tag `v0.2.1` points to feature commit `91ab977` and is present on the remote.
+- Trusted Publisher workflow run `31980658775` completed successfully on 2026-08-16, and npm serves `fraq-plugin-lexicon@0.2.1`.
+- Target root/app package manifests, pnpm lockfiles, npm lockfiles, `versions.yml`, active node_modules, and Fraq package cache now reference `0.2.1`.
+- The installed app bundle contains the `group_id` and `message_seq` range validation code.
+- Target Fraq restarted successfully, loaded `fraq-plugin-lexicon`, listens on `127.0.0.1:4649`, and reconnected to Milky.
+- pnpm left an inactive `0.2.0` copy under `app/node_modules/.ignored`; recursive cleanup was blocked by the execution safety policy and `pnpm prune` did not remove it. Active module resolution is confirmed as `0.2.1`.
