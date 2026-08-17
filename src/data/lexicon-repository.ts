@@ -141,6 +141,13 @@ export class LexiconRepository {
     return row ? mapEntry(row) : undefined;
   }
 
+  updateEntry(lexiconId: number, entryId: number, question: string, answer: string): LexiconEntry | undefined {
+    const result = this.database
+      .prepare('UPDATE entries SET question = ?, answer = ? WHERE lexicon_id = ? AND id = ?')
+      .run(question, answer, lexiconId, entryId);
+    return result.changes > 0 ? this.getEntryById(entryId) : undefined;
+  }
+
   deleteEntryById(lexiconId: number, entryId: number): boolean {
     return (
       this.database.prepare('DELETE FROM entries WHERE lexicon_id = ? AND id = ?').run(lexiconId, entryId).changes > 0

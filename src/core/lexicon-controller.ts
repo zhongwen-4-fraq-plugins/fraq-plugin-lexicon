@@ -74,6 +74,13 @@ export class LexiconController {
           await session.reply(formatEntry(lexicon, entry));
           return;
         }
+        case 'update': {
+          const lexicon = this.lexiconService.resolveManageableLexicon(command.lexiconName, context);
+          this.permissionService.assertCanManageLexicon(lexicon, context);
+          const entry = this.lexiconService.updateEntry(lexicon, command.entryId, command.question, command.answer);
+          await session.reply(`已修改词库“${lexicon.name}”中的词条 ${entry.id}。\n${formatEntry(lexicon, entry)}`);
+          return;
+        }
         case 'deleteById': {
           const lexicon = this.lexiconService.resolveManageableLexicon(command.lexiconName, context);
           this.permissionService.assertCanManageLexicon(lexicon, context);
@@ -163,6 +170,8 @@ function helpText(): string {
     '词库 列表',
     '词库 查询 <词条ID>（当前词库）',
     '词库 查询 <词库名> <词条ID>',
+    '词库 修改 <词条ID> [问 <新问题>] 答 <新回答>（当前词库）',
+    '词库 修改 <词库名> <词条ID> [问 <新问题>] 答 <新回答>',
     '词库 添加 <精确|模糊> 问 <内容> 答 <内容>（当前词库）',
     '词库 添加 <词库名> <精确|模糊> 问 <内容> 答 <内容>',
     '词库 删除 id <词条ID>（当前词库）',

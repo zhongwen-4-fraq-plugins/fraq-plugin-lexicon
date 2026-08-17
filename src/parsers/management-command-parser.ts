@@ -10,6 +10,7 @@ export type ManagementCommand =
   | { type: 'enable'; name: string }
   | { type: 'disable'; name: string }
   | { type: 'query'; lexiconName?: string; entryId: number }
+  | { type: 'update'; lexiconName?: string; entryId: number; question?: string; answer: string }
   | { type: 'add'; lexiconName?: string; matchMode: MatchMode; question: string; answer: string }
   | { type: 'deleteById'; lexiconName?: string; entryId: number }
   | { type: 'deleteByQuestion'; lexiconName?: string; question: string };
@@ -58,6 +59,26 @@ export function parseManagementCommand(input: string): ManagementCommand {
     return {
       type: 'query',
       entryId: Number(queryDefaultMatch[1]),
+    };
+  }
+
+  const updateWithNameMatch = /^修改\s+(\S+)\s+(\d+)(?:\s+问\s+([\s\S]+?))?\s+答\s*([\s\S]+)$/.exec(command);
+  const updateDefaultMatch = /^修改\s+(\d+)(?:\s+问\s+([\s\S]+?))?\s+答\s*([\s\S]+)$/.exec(command);
+  if (updateWithNameMatch) {
+    return {
+      type: 'update',
+      lexiconName: updateWithNameMatch[1],
+      entryId: Number(updateWithNameMatch[2]),
+      question: updateWithNameMatch[3]?.trim(),
+      answer: updateWithNameMatch[4],
+    };
+  }
+  if (updateDefaultMatch) {
+    return {
+      type: 'update',
+      entryId: Number(updateDefaultMatch[1]),
+      question: updateDefaultMatch[2]?.trim(),
+      answer: updateDefaultMatch[3],
     };
   }
 

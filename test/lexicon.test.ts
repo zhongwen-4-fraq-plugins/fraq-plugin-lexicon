@@ -121,7 +121,7 @@ const groupContext: MessageContext = {
   mentionedUserIds: [],
 };
 
-test('管理命令可以解析查询、添加和两种删除格式', () => {
+test('管理命令可以解析查询、修改、添加和两种删除格式', () => {
   assert.deepEqual(parseManagementCommand('添加 默认 精确 问 戳我 答[api.send_group_nudge]戳啦'), {
     type: 'add',
     lexiconName: '默认',
@@ -161,6 +161,32 @@ test('管理命令可以解析查询、添加和两种删除格式', () => {
     type: 'query',
     lexiconName: '其他',
     entryId: 12,
+  });
+  assert.deepEqual(parseManagementCommand('修改 12 答 新回答'), {
+    type: 'update',
+    entryId: 12,
+    question: undefined,
+    answer: '新回答',
+  });
+  assert.deepEqual(parseManagementCommand('修改 12 问 新问题 答 新回答'), {
+    type: 'update',
+    entryId: 12,
+    question: '新问题',
+    answer: '新回答',
+  });
+  assert.deepEqual(parseManagementCommand('修改 其他 12 答 指定回答'), {
+    type: 'update',
+    lexiconName: '其他',
+    entryId: 12,
+    question: undefined,
+    answer: '指定回答',
+  });
+  assert.deepEqual(parseManagementCommand('修改 其他 12 问 指定问题 答 指定回答'), {
+    type: 'update',
+    lexiconName: '其他',
+    entryId: 12,
+    question: '指定问题',
+    answer: '指定回答',
   });
 });
 
@@ -285,6 +311,28 @@ test('词条查询默认使用当前词库并校验指定词库', (context) => {
   harness.service.switchLexicon(other.name, groupContext);
   const currentLexicon = harness.service.resolveManageableLexicon(undefined, groupContext);
   assert.equal(harness.service.getLexiconEntry(currentLexicon, otherEntry.id).question, '其他问题');
+});
+
+test('词条修改支持保留问题或同时更新问答', (context) => {
+  const harness = createHarness(context);
+  const defaultLexicon = harness.service.ensureDefaultLexicon(groupContext);
+  const first = harness.service.addEntry(undefined, 'exact', '原问题', '原回答', groupContext).entry;
+  const second = harness.service.addEntry(undefined, 'exact', '保留问题', '第二回答', groupContext).entry;
+  const other = harness.service.createLexicon('其他', 'group', groupContext);
+  const otherEntry = harness.service.addEntry(other.name, 'fuzzy', '其他问题', '其他回答', groupContext).entry;
+
+  const answerOnly = harness.service.updateEntry(defaultLexicon, first.id, undefined, '新回答');
+  assert.equal(answerOnly.question, '原问题');
+  assert.equal(answerOnly.answer, '新回答');
+  assert.equal(answerOnly.matchMode, 'exact');
+
+  const questionAndAnswer = harness.service.updateEntry(other, otherEntry.id, '新问题', '新指定回答');
+  assert.equal(questionAndAnswer.question, '新问题');
+  assert.equal(questionAndAnswer.answer, '新指定回答');
+  assert.equal(questionAndAnswer.matchMode, 'fuzzy');
+
+  assert.throws(() => harness.service.updateEntry(defaultLexicon, otherEntry.id, undefined, '错误回答'), /没有 ID/);
+  assert.throws(() => harness.service.updateEntry(defaultLexicon, second.id, '原问题', '冲突回答'), /已经存在/);
 });
 
 test('词库词条可以无固定深度地迭代解析', async (context) => {

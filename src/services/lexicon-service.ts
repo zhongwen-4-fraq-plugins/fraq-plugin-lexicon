@@ -112,6 +112,29 @@ export class LexiconService {
     return entry;
   }
 
+  updateEntry(lexicon: Lexicon, entryId: number, question: string | undefined, answer: string): LexiconEntry {
+    if (!answer) {
+      throw new LexiconError('回答内容不能为空。');
+    }
+    const currentEntry = this.getLexiconEntry(lexicon, entryId);
+    const nextQuestion = question ?? currentEntry.question;
+    if (!nextQuestion) {
+      throw new LexiconError('问题内容不能为空。');
+    }
+    try {
+      const updatedEntry = this.repository.updateEntry(lexicon.id, entryId, nextQuestion, answer);
+      if (!updatedEntry) {
+        throw new LexiconError(`词库“${lexicon.name}”中没有 ID 为 ${entryId} 的词条。`);
+      }
+      return updatedEntry;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
+        throw new LexiconError('该词库中已经存在相同匹配方式和问题的词条。');
+      }
+      throw error;
+    }
+  }
+
   deleteEntryById(lexiconName: string | undefined, entryId: number, context: MessageContext): Lexicon {
     const lexicon = this.resolveManageableLexicon(lexiconName, context);
     if (!this.repository.deleteEntryById(lexicon.id, entryId)) {
