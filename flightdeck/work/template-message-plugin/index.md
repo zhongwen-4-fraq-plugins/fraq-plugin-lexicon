@@ -211,3 +211,11 @@
 - `[消息.构建.text.<content>]` builds a text message segment and can be nested into API `message` parameters or variables.
 - The original `get_group_member_info` failure can now be avoided with `[api.get_group_member_info.user_id=[消息.取值.mention.user_id]]`, which passes the actual mentioned QQ.
 - `pnpm check`, 20 tests, `pnpm build`, and `npm pack --dry-run --json` passed for v0.2.2 on 2026-08-17.
+
+## v0.2.2 release verification
+
+- 注解标签 `v0.2.2` 指向功能提交 `c172ae6`，远程标签已存在。
+- npm Trusted Publisher 工作流运行 `32009080694` 已成功完成，npm `latest` 为 `fraq-plugin-lexicon@0.2.2`。
+- 目标项目 root/app 的 package manifest、pnpm lockfile、npm lockfile、`versions.yml`、活动 node_modules 和 Fraq 包缓存均已同步为 `0.2.2`。
+- 目标项目安装包包含 `[消息.取值.*]`、`[消息.构建.text.*]` 和消息段构建服务代码。
+- 目标 Fraq 已重新启动，成功加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649` 并重新连接 Milky WebSocket。
