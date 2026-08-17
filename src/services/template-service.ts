@@ -6,6 +6,7 @@ import type { TemplateContext } from '../models/lexicon';
 import { findInnermostTerm, parseTemplateTerm, unescapeTemplateText } from '../parsers/template-parser';
 import { IncomingSegmentValueService } from './incoming-segment-value-service';
 import type { LexiconService } from './lexicon-service';
+import { MessageSegmentBuildService } from './message-segment-build-service';
 import { MilkyEventValueService } from './milky-event-value-service';
 
 export interface TemplateServiceOptions {
@@ -16,6 +17,7 @@ export class TemplateService {
   private readonly maxOutputLength: number;
   private readonly eventValueService = new MilkyEventValueService();
   private readonly segmentValueService = new IncomingSegmentValueService();
+  private readonly segmentBuildService = new MessageSegmentBuildService();
 
   constructor(
     private readonly lexiconService: LexiconService,
@@ -71,8 +73,12 @@ export class TemplateService {
       return this.eventValueService.resolve(term.path, context);
     }
 
-    if (term.type === 'incomingSegment') {
+    if (term.type === 'messageValue') {
       return this.segmentValueService.resolve(term.segmentType, term.path, context);
+    }
+
+    if (term.type === 'messageBuild') {
+      return this.segmentBuildService.build(term.segmentType, term.content);
     }
 
     if (term.type === 'setVariable') {

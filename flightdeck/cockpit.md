@@ -1,14 +1,14 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 完善 `fraq-plugin-lexicon` v0.2.2 IncomingSegment 取值模板。
+Focus: 完善 `fraq-plugin-lexicon` v0.2.2 中文消息段取值与构建模板。
 
 ## In flight
 
-- `template-message-plugin` — v0.2.2 消息段字段读取已实现并完成完整验证
+- `template-message-plugin` — v0.2.2 消息段取值和文本消息段构建已实现并完成完整验证
 
 ## Next
 
-- 在真实群聊中验证艾特成员查询模板。
+- 在真实群聊中验证消息段取值和文本消息段构建模板。
 - 用户确认后打 v0.2.2 tag、发布并安装到目标 Fraq 项目。
 
 ## Open questions

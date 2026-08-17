@@ -194,12 +194,19 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     type: 'event',
     path: ['data', 'group_id'],
   });
-  assert.deepEqual(parseTemplateTerm('is.mention.user_id'), {
-    type: 'incomingSegment',
+  assert.deepEqual(parseTemplateTerm('消息.取值.mention.user_id'), {
+    type: 'messageValue',
     segmentType: 'mention',
     path: ['user_id'],
   });
-  assert.throws(() => parseTemplateTerm('is.mention'), /消息段词条格式/);
+  assert.deepEqual(parseTemplateTerm('消息.构建.text.内容'), {
+    type: 'messageBuild',
+    segmentType: 'text',
+    content: '内容',
+  });
+  assert.throws(() => parseTemplateTerm('消息.取值.mention'), /消息取值词条格式/);
+  assert.throws(() => parseTemplateTerm('消息.构建.text.内容.多余'), /消息构建词条格式/);
+  assert.throws(() => parseTemplateTerm('is.mention.user_id'), /不支持的词条命名空间/);
   assert.equal(findInnermostTerm('普通文本\\[不是词条\\]'), undefined);
 });
 
@@ -383,15 +390,18 @@ test('消息段词条支持问题、回答、嵌套路径和 API 参数', async 
   harness.repository.addEntry(
     lexicon.id,
     'exact',
-    '[变量.创建.Q=[is.mention.user_id]][变量.读取.Q]',
-    '[is.reply.segments.0.data.text]-[is.mention.user_id]',
+    '[变量.创建.Q=[消息.取值.mention.user_id]][变量.读取.Q]',
+    '[消息.取值.reply.segments.0.data.text]-[消息.取值.mention.user_id]',
     1,
   );
 
   const match = harness.service.matchMessage(segmentContext);
   assert.ok(match);
   assert.equal(await harness.template.render(match.answer, segmentContext, match.questionVariables), '回复内容-40004');
-  await assert.rejects(() => harness.template.render('[is.image.resource_id]', segmentContext), /不存在“image”消息段/);
+  await assert.rejects(
+    () => harness.template.render('[消息.取值.image.resource_id]', segmentContext),
+    /不存在“image”消息段/,
+  );
 
   const calls: Array<{ endpoint: string; params: Record<string, unknown> }> = [];
   const client = new Proxy(
@@ -411,12 +421,61 @@ test('消息段词条支持问题、回答、嵌套路径和 API 参数', async 
   );
   const template = new TemplateService(harness.service, actions, client);
 
-  await template.render('[api.get_group_member_info.user_id=[is.mention.user_id]]', segmentContext);
+  await template.render('[api.get_group_member_info.user_id=[消息.取值.mention.user_id]]', segmentContext);
 
   assert.deepEqual(calls, [
     {
       endpoint: 'get_group_member_info',
       params: { group_id: 10001, user_id: 40004, no_cache: false },
+    },
+  ]);
+});
+
+test('消息构建词条支持文本、变量嵌套和 API 消息参数', async (context) => {
+  const harness = createHarness(context);
+  const segmentContext: MessageContext = {
+    ...groupContext,
+    originalText: '构建消息',
+  };
+  const template = harness.template;
+
+  assert.deepEqual(JSON.parse(await template.render('[消息.构建.text.内容]', segmentContext)), {
+    type: 'text',
+    data: { text: '内容' },
+  });
+  assert.deepEqual(
+    JSON.parse(await template.render('[变量.创建.A=动态内容][消息.构建.text.[变量.读取.A]]', segmentContext)),
+    { type: 'text', data: { text: '动态内容' } },
+  );
+  await assert.rejects(() => template.render('[消息.构建.image.内容]', segmentContext), /暂不支持构建“image”消息段/);
+
+  const calls: Array<{ endpoint: string; params: Record<string, unknown> }> = [];
+  const client = new Proxy(
+    {},
+    {
+      get(_target, property) {
+        return async (params: Record<string, unknown>) => {
+          calls.push({ endpoint: String(property), params });
+          return {};
+        };
+      },
+    },
+  ) as MilkyClient;
+  const apiService = new MilkyApiService();
+  const actions = new ApiActionRegistry((name, parameters, apiContext) =>
+    apiService.execute(name, parameters, apiContext),
+  );
+  const apiTemplate = new TemplateService(harness.service, actions, client);
+
+  await apiTemplate.render('[api.send_group_message.message=[消息.构建.text.内容]]', segmentContext);
+
+  assert.deepEqual(calls, [
+    {
+      endpoint: 'send_group_message',
+      params: {
+        group_id: 10001,
+        message: [{ type: 'text', data: { text: '内容' } }],
+      },
     },
   ]);
 });

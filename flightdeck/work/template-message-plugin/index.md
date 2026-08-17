@@ -5,11 +5,11 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.2.1 已发布并安装；当前开发版本为 v0.2.2，正在增加 IncomingSegment 取值模板。
+- v0.2.1 已发布并安装；当前开发版本为 v0.2.2，正在增加中文消息段取值和文本消息段构建模板。
 
 ## Next
 
-- 在真实群聊中验证 `[api.get_group_member_info.user_id=[is.mention.user_id]]`。
+- 在真实群聊中验证 `[api.get_group_member_info.user_id=[消息.取值.mention.user_id]]` 和 `[api.send_group_message.message=[消息.构建.text.内容]]`。
 - 用户确认后为 v0.2.2 打 tag、发布并安装到目标 Fraq 项目。
 
 ## Read now
@@ -205,8 +205,9 @@
 
 ## v0.2.2 IncomingSegment templates
 
-- `[is.<segment type>.<field path>]` reads from the first matching current-message segment's `data` object.
-- Nested object fields and array indexes are supported, including reply segment paths such as `[is.reply.segments.0.data.text]`.
-- `is` terms work in questions and answers and can be nested into variables and API parameters.
-- The original `get_group_member_info` failure can now be avoided with `[api.get_group_member_info.user_id=[is.mention.user_id]]`, which passes the actual mentioned QQ.
-- `pnpm check`, 19 tests, `pnpm build`, and `npm pack --dry-run --json` passed for v0.2.2 on 2026-08-17.
+- `[消息.取值.<segment type>.<field path>]` reads from the first matching current-message segment's `data` object.
+- Nested object fields and array indexes are supported, including reply segment paths such as `[消息.取值.reply.segments.0.data.text]`.
+- `消息.取值` terms work in questions and answers and can be nested into variables and API parameters; the old `[is.*]` syntax is removed.
+- `[消息.构建.text.<content>]` builds a text message segment and can be nested into API `message` parameters or variables.
+- The original `get_group_member_info` failure can now be avoided with `[api.get_group_member_info.user_id=[消息.取值.mention.user_id]]`, which passes the actual mentioned QQ.
+- `pnpm check`, 20 tests, `pnpm build`, and `npm pack --dry-run --json` passed for v0.2.2 on 2026-08-17.

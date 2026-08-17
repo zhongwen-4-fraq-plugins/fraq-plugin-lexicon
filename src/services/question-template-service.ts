@@ -70,7 +70,7 @@ export class QuestionTemplateService {
             return undefined;
           }
         }
-      } else if (term.type === 'incomingSegment') {
+      } else if (term.type === 'messageValue') {
         try {
           replacement = this.segmentValueService.resolve(term.segmentType, term.path, context);
         } catch {
@@ -86,7 +86,7 @@ export class QuestionTemplateService {
 }
 
 function hasQuestionTemplate(question: string): boolean {
-  return /(^|[^\\])\[(?:event\.|is\.|变量\.(?:创建|读取)\.)/.test(question);
+  return /(^|[^\\])\[(?:event\.|消息\.取值\.|变量\.(?:创建|读取)\.)/.test(question);
 }
 
 function matchesText(question: string, matchMode: MatchMode, originalText: string): boolean {
