@@ -5,14 +5,13 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.2.2 已发布并安装；当前开发版本为 v0.2.4，已增加词条 ID 查询和问答修改命令。
+- v0.2.4 已发布并安装，包含词条 ID 查询和问答修改命令。
 
 ## Next
 
 - 在真实群聊中验证 `[api.get_group_member_info.user_id=[消息.取值.mention.user_id]]` 和 `[api.send_group_message.message=[消息.构建.text.内容]]`。
 - 在真实群聊中验证 `词库 查询 <词条ID>` 和 `词库 查询 <词库名> <词条ID>`。
 - 在真实群聊中验证 `词库 修改 <词条ID> [问 <新问题>] 答 <新回答>`。
-- 用户确认后为 v0.2.4 打 tag、发布并安装到目标 Fraq 项目。
 
 ## Read now
 
@@ -237,3 +236,11 @@
 - 省略“问”时保留原问题；无论是否修改问题，原精确/模糊匹配方式保持不变。
 - 修改前复用词库管理权限和词条归属校验；修改问题触发唯一键冲突时返回明确错误。
 - `pnpm test`、`pnpm check`、`pnpm build` 和 `npm pack --dry-run --json` 均通过，共 22 个测试。
+
+## v0.2.4 release verification
+
+- 注解标签 `v0.2.4` 指向功能提交 `3a7534f`，远程标签已存在。
+- npm Trusted Publisher 工作流运行 `32080575300` 于 2026-08-17 成功完成，npm `latest` 为 `fraq-plugin-lexicon@0.2.4`。
+- 目标项目 root/app 的 package manifest、pnpm lockfile、npm lockfile、`versions.yml`、活动 node_modules 和 Fraq 包缓存均已同步为 `0.2.4`。
+- 目标项目安装包已确认包含当前/指定词库查询命令，以及保留问题或同时修改问答的命令。
+- 目标 Fraq 已重新启动，成功加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649` 并重新连接 Milky WebSocket。
