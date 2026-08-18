@@ -245,7 +245,7 @@ pnpm build
 
 ## Trusted Publisher 发布
 
-工作流文件为 `.github/workflows/publish.yml`，在 GitHub Release 发布时自动运行测试、检查、构建和 `npm publish`。
+工作流文件为 `.github/workflows/publish.yml`。推送版本 tag 后，同一工作流会先运行测试、检查、构建和 `npm publish`；只有 npm 发布任务成功完成，才会继续生成发布说明并创建或更新 GitHub Release。
 
 在 npm 包设置的 **Trusted Publisher** 中填写：
 

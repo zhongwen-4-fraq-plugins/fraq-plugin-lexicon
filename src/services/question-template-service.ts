@@ -146,9 +146,6 @@ export class QuestionTemplateService {
       if (result === undefined) {
         continue;
       }
-      if (result !== 'true' && result !== 'false') {
-        return undefined;
-      }
       if (result === 'true') {
         replaceVariables(variables, conditionVariables);
         state.hasMatchedEvent = conditionState.hasMatchedEvent;

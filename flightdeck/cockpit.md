@@ -1,10 +1,10 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: `fraq-plugin-lexicon` v0.2.7 已发布并安装，继续验证显式逻辑条件分支。
+Focus: 完善 `fraq-plugin-lexicon` v0.2.8 串行 npm 发布与 GitHub Release 工作流。
 
 ## In flight
 
-- `template-message-plugin` — v0.2.7 已发布并安装，支持 `[逻辑.如果]`、`[逻辑.否则如果]`、`[逻辑.否则]` 和嵌套条件块
+- `template-message-plugin` — v0.2.8 已将 GitHub Release 合并为 npm 发布成功后的后置任务
 
 ## Next
 

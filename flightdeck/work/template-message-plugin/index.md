@@ -5,7 +5,7 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.2.7 已发布并安装，包含自动 Release、文本逻辑词条和显式逻辑条件分支。
+- v0.2.7 已发布并安装；当前开发版本为 v0.2.8，正在合并 npm 发布与 GitHub Release 工作流。
 
 ## Next
 
@@ -283,3 +283,12 @@
 - 目标项目根目录与 `app` 的 manifest、pnpm/npm 锁文件、`versions.yml` 和已安装包均已同步为 `fraq-plugin-lexicon@0.2.7`。
 - 目标 Fraq 已重新启动并加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649`，Milky WebSocket 已连接。
 - 本轮未发现遗留的 `tsx --test`、`node --test` 或词库测试进程。
+
+## v0.2.8 merged release workflow
+
+- GitHub Release 已从独立的 `.github/workflows/release.yml` 合并到 `.github/workflows/publish.yml`。
+- `release` job 使用 `needs: publish`，依靠 GitHub Actions 的默认依赖行为确保 `npm publish` 成功完成后才生成发布说明并创建或更新 Release。
+- Release job 使用独立的 `contents: write` 权限，npm publish job 继续使用 Trusted Publisher 所需的最小 OIDC 权限。
+- Release job 检出当前发布 tag，并继续使用 `--verify-tag` 避免为不存在的标签创建 Release。
+- 已移除回答与问题条件解析中重复的 `true/false` 返回值校验；外层逻辑词条已保证非失败结果为布尔字符串。
+- YAML 解析、29 个测试、静态检查、构建和 `npm pack --dry-run --json` 均已通过。

@@ -89,9 +89,6 @@ export class TemplateService {
       }
       const conditionVariables = new Map(variables);
       const result = await this.renderInternal(branch.condition, context, conditionVariables, 'condition');
-      if (result !== 'true' && result !== 'false') {
-        throw new LexiconError('逻辑条件必须返回 true 或 false。');
-      }
       if (result === 'true') {
         replaceVariables(variables, conditionVariables);
         return branch.content;

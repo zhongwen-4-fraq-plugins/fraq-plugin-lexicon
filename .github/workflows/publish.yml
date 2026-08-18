@@ -57,3 +57,39 @@ jobs:
 
       - name: 发布到 npm
         run: npm publish
+
+  release:
+    name: 生成发布说明并创建 Release
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: 检出发布提交
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: 生成发布说明
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          node .github/scripts/generate-release-notes.mjs "$RELEASE_TAG" > release-notes.md
+          cat release-notes.md
+
+      - name: 创建或更新 Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          RELEASE_TITLE="${RELEASE_TAG#v}"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release edit "$RELEASE_TAG" --title "$RELEASE_TITLE" --notes-file release-notes.md --latest
+          else
+            gh release create "$RELEASE_TAG" --verify-tag --title "$RELEASE_TITLE" --notes-file release-notes.md --latest
+          fi
