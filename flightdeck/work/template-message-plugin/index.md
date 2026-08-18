@@ -311,3 +311,11 @@
 - 目标项目根目录与 `app` 的 manifest、pnpm/npm 锁文件、`versions.yml` 和已安装包均已同步为 `fraq-plugin-lexicon@0.2.8`。
 - 目标 Fraq 已完整重新启动并加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649`，Milky WebSocket 已连接。
 - 本轮未发现遗留的 `tsx --test`、`node --test` 或词库测试进程。
+
+## v0.2.9 user input request term
+
+- 新增 `[逻辑.请求用户输入]`，先发送当前可见前置文本，再等待同一机器人、会话和用户的下一条消息并继续解析。
+- 等待状态由独立服务管理，默认 5 分钟超时；词库管理命令保持优先且不会被当作输入，普通输入消息不会继续触发其他词库。
+- 用户输入会转义为普通文本，避免输入内容中的 API、变量或其他模板被意外执行。
+- 请求词条可嵌套在变量、API、词库回答和已选条件分支中，并支持多个请求依次等待；问题模板和布尔条件参数不允许请求输入。
+- `pnpm check`、32 项测试、`pnpm build` 和 `npm pack --dry-run --json` 均已通过，打包版本为 `fraq-plugin-lexicon@0.2.9`。

@@ -123,6 +123,8 @@ export class QuestionTemplateService {
         } catch {
           return undefined;
         }
+      } else if (term.type === 'requestInput') {
+        return undefined;
       } else {
         replacement = escapeTemplateText(`[${location.content}]`);
       }

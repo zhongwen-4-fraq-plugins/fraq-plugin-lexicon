@@ -106,7 +106,14 @@ export class LexiconController {
     }
 
     try {
-      const reply = await this.templateService.render(match.answer, context, match.questionVariables);
+      const reply = await this.templateService.render(
+        match.answer,
+        context,
+        match.questionVariables,
+        async (prompt) => {
+          await session.reply(prompt);
+        },
+      );
       if (reply) {
         await session.reply(reply);
       }
@@ -192,6 +199,7 @@ function helpText(): string {
     '[消息.构建.text.<内容>] 构建文本消息段，可嵌套到 API 的 message 参数。',
     '[逻辑.or.<文本1>.<文本2>...] 在条件外随机选择一项。',
     '[逻辑.and.<文本1>.<文本2>...] 在条件外依次拼接。',
+    '[逻辑.请求用户输入] 发送此前文本并等待同一用户在同一会话中的下一条消息。',
     '[逻辑.如果][逻辑.<or|and|in>.<参数...>]内容[逻辑.否则]内容[逻辑.如果.结束] 执行条件分支。',
     '[逻辑.否则如果] 和 [逻辑.否则] 可省略；条件块支持无限嵌套。',
     '事件、消息段与变量词条在问题和回答中都可使用，并支持互相嵌套。问题创建的变量可在对应回答中读取。',

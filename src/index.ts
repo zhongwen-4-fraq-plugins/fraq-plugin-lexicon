@@ -11,6 +11,7 @@ import { LexiconService } from './services/lexicon-service';
 import { MilkyApiService } from './services/milky-api-service';
 import { PermissionService } from './services/permission-service';
 import { TemplateService } from './services/template-service';
+import { UserInputService } from './services/user-input-service';
 
 import { join, resolve } from 'node:path';
 
@@ -18,6 +19,7 @@ export interface FraqPluginLexiconOptions {
   databasePath?: string;
   owners?: number[];
   maxOutputLength?: number;
+  userInputTimeoutMs?: number;
 }
 
 export const FraqPluginLexicon = definePlugin({
@@ -32,9 +34,11 @@ export const FraqPluginLexicon = definePlugin({
     const actionRegistry = new ApiActionRegistry((name, parameters, context) =>
       milkyApiService.execute(name, parameters, context),
     );
+    const userInputService = new UserInputService(options.userInputTimeoutMs);
 
     const templateService = new TemplateService(lexiconService, actionRegistry, ctx.client, {
       maxOutputLength: options.maxOutputLength,
+      userInputService,
     });
     const controller = new LexiconController(lexiconService, templateService, permissionService);
     const eventController = new MilkyEventController(lexiconService, templateService, ctx.client, ctx.logger);
@@ -53,6 +57,8 @@ export const FraqPluginLexicon = definePlugin({
       const commandText = resolveCommandText(text, activations);
       if (commandText === '词库' || commandText?.startsWith('词库 ')) {
         await controller.handleManagement(session, commandText.slice(2), messageContext);
+      } else if (userInputService.submit(messageContext, text)) {
+        return;
       } else {
         await controller.handleMessage(session, messageContext);
       }
