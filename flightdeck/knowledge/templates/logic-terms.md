@@ -13,3 +13,6 @@ READ WHEN: before modifying logic template parsing, conditional branch markers, 
 - `[逻辑.in]` is rejected outside a condition block.
 - Conditions and selected branches run in both questions and answers and support nested condition blocks and ordinary nested terms.
 - Unselected branches are removed before term execution; failed conditions use isolated variable scopes so they do not leak assignments.
+- `parseConditionalBlock` guarantees every non-else branch starts with one outer logic term, and `LogicService.resolveCondition` either returns a boolean or throws. After a successful condition render, callers should compare the result with `true` directly instead of repeating a `true/false` membership check.
+- Question-side condition rendering may still return `undefined` when a variable, event field, message segment, or nested logic value cannot be resolved. Keep this branch because it represents an invalid/non-matching question condition rather than a boolean result.
+- Only copy isolated condition variables back to the outer scope when the condition is true; false and undefined conditions must not leak assignments.
