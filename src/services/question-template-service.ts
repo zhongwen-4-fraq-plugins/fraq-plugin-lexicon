@@ -1,5 +1,6 @@
 import { isMilkyEventName } from '../data/milky-event-definitions';
 import type { MatchMode, TemplateContext } from '../models/lexicon';
+import { findConditionalBlock, parseConditionalBlock } from '../parsers/conditional-template-parser';
 import {
   escapeTemplateText,
   findInnermostTerm,
@@ -9,6 +10,12 @@ import {
 import { IncomingSegmentValueService } from './incoming-segment-value-service';
 import { LogicService } from './logic-service';
 import { MilkyEventValueService } from './milky-event-value-service';
+
+type LogicMode = 'text' | 'condition';
+
+interface QuestionState {
+  hasMatchedEvent: boolean;
+}
 
 export class QuestionTemplateService {
   private readonly eventValueService = new MilkyEventValueService();
@@ -32,18 +39,41 @@ export class QuestionTemplateService {
     matchMode: MatchMode,
     context: TemplateContext,
   ): ReadonlyMap<string, string> | undefined {
-    let output = question;
     const variables = new Map<string, string>();
-    let hasMatchedEvent = false;
+    const state: QuestionState = { hasMatchedEvent: false };
+    const renderedQuestion = this.renderTemplate(question, context, variables, state, 'text');
+    if (renderedQuestion === undefined) {
+      return undefined;
+    }
+    if (renderedQuestion === '') {
+      return state.hasMatchedEvent ? variables : undefined;
+    }
+    return matchesText(renderedQuestion, matchMode, context.originalText) ? variables : undefined;
+  }
+
+  private renderTemplate(
+    template: string,
+    context: TemplateContext,
+    variables: Map<string, string>,
+    state: QuestionState,
+    logicMode: LogicMode,
+  ): string | undefined {
+    let output = template;
 
     while (true) {
+      const conditional = findConditionalBlock(output);
+      if (conditional) {
+        const replacement = this.selectConditionalBranch(conditional.source, context, variables, state);
+        if (replacement === undefined) {
+          return undefined;
+        }
+        output = `${output.slice(0, conditional.start)}${replacement}${output.slice(conditional.end + 1)}`;
+        continue;
+      }
+
       const location = findInnermostTerm(output);
       if (!location) {
-        const renderedQuestion = unescapeTemplateText(output);
-        if (renderedQuestion === '') {
-          return hasMatchedEvent ? variables : undefined;
-        }
-        return matchesText(renderedQuestion, matchMode, context.originalText) ? variables : undefined;
+        return unescapeTemplateText(output);
       }
 
       const term = parseTemplateTerm(location.content);
@@ -61,10 +91,15 @@ export class QuestionTemplateService {
       } else if (term.type === 'event') {
         if (term.path.length === 1 && isMilkyEventName(term.path[0])) {
           if (context.eventType !== term.path[0]) {
-            return undefined;
+            if (logicMode === 'condition') {
+              replacement = 'false';
+            } else {
+              return undefined;
+            }
+          } else {
+            state.hasMatchedEvent = true;
+            replacement = logicMode === 'condition' ? 'true' : '';
           }
-          hasMatchedEvent = true;
-          replacement = '';
         } else {
           try {
             replacement = this.eventValueService.resolve(term.path, context);
@@ -80,7 +115,10 @@ export class QuestionTemplateService {
         }
       } else if (term.type === 'logic') {
         try {
-          replacement = this.logicService.resolve(term.operation, term.values);
+          replacement =
+            logicMode === 'condition'
+              ? String(this.logicService.resolveCondition(term.operation, term.values))
+              : this.logicService.resolveText(term.operation, term.values);
         } catch {
           return undefined;
         }
@@ -91,6 +129,34 @@ export class QuestionTemplateService {
       output = `${output.slice(0, location.start)}${replacement}${output.slice(location.end + 1)}`;
     }
   }
+
+  private selectConditionalBranch(
+    source: string,
+    context: TemplateContext,
+    variables: Map<string, string>,
+    state: QuestionState,
+  ): string | undefined {
+    for (const branch of parseConditionalBlock(source)) {
+      if (!branch.condition) {
+        return branch.content;
+      }
+      const conditionVariables = new Map(variables);
+      const conditionState = { ...state };
+      const result = this.renderTemplate(branch.condition, context, conditionVariables, conditionState, 'condition');
+      if (result === undefined) {
+        continue;
+      }
+      if (result !== 'true' && result !== 'false') {
+        return undefined;
+      }
+      if (result === 'true') {
+        replaceVariables(variables, conditionVariables);
+        state.hasMatchedEvent = conditionState.hasMatchedEvent;
+        return branch.content;
+      }
+    }
+    return '';
+  }
 }
 
 function hasQuestionTemplate(question: string): boolean {
@@ -99,4 +165,11 @@ function hasQuestionTemplate(question: string): boolean {
 
 function matchesText(question: string, matchMode: MatchMode, originalText: string): boolean {
   return matchMode === 'exact' ? originalText === question : originalText.includes(question);
+}
+
+function replaceVariables(target: Map<string, string>, source: ReadonlyMap<string, string>): void {
+  target.clear();
+  for (const [name, value] of source) {
+    target.set(name, value);
+  }
 }

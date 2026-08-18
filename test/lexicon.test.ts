@@ -8,6 +8,7 @@ import { createEventContext } from '../src/data/milky-event-context';
 import { MILKY_EVENT_NAMES } from '../src/data/milky-event-definitions';
 import type { MessageContext } from '../src/models/lexicon';
 import { resolveCommandText } from '../src/parsers/command-prefix-parser';
+import { findConditionalBlock, parseConditionalBlock } from '../src/parsers/conditional-template-parser';
 import { parseManagementCommand } from '../src/parsers/management-command-parser';
 import { findInnermostTerm, parseTemplateTerm } from '../src/parsers/template-parser';
 import { LexiconService } from '../src/services/lexicon-service';
@@ -257,6 +258,20 @@ test('模板词条支持嵌套定位、参数和转义', () => {
   assert.equal(findInnermostTerm('普通文本\\[不是词条\\]'), undefined);
 });
 
+test('逻辑条件块支持否则如果、否则和嵌套配对', () => {
+  const source =
+    '[逻辑.如果][逻辑.or.true.false]主分支[逻辑.否则如果][逻辑.in.B.A.B]次分支[逻辑.否则]兜底[逻辑.如果.结束]';
+
+  assert.deepEqual(parseConditionalBlock(source), [
+    { condition: '[逻辑.or.true.false]', content: '主分支' },
+    { condition: '[逻辑.in.B.A.B]', content: '次分支' },
+    { content: '兜底' },
+  ]);
+  assert.equal(findConditionalBlock(`前${source}后`)?.source, source);
+  assert.throws(() => findConditionalBlock('[逻辑.否则]'), /缺少对应/);
+  assert.throws(() => findConditionalBlock('[逻辑.如果][逻辑.or.true.false]内容'), /缺少.*结束/);
+});
+
 test('事件列表覆盖全部 Milky 事件', () => {
   assert.equal(MILKY_EVENT_NAMES.length, 21);
   assert.ok(MILKY_EVENT_NAMES.includes('bot_offline'));
@@ -396,40 +411,65 @@ test('变量词条支持创建、读取和无限嵌套解析', async (context) =
   assert.equal(output, '最终内容');
 });
 
-test('逻辑词条支持布尔运算、文本操作和成员判断', () => {
+test('逻辑词条显式区分文本操作和条件运算', () => {
   const chooseFirst = new LogicService(() => 0);
   const chooseLast = new LogicService(() => 0.999999);
 
-  assert.equal(chooseFirst.resolve('or', ['false', 'true']), 'true');
-  assert.equal(chooseFirst.resolve('and', ['true', '1', '是']), 'true');
-  assert.equal(chooseFirst.resolve('and', ['true', '否']), 'false');
-  assert.equal(chooseFirst.resolve('or', ['文本1', '文本2']), '文本1');
-  assert.equal(chooseLast.resolve('or', ['文本1', '文本2']), '文本2');
-  assert.equal(chooseFirst.resolve('and', ['文本1', '文本2']), '文本1文本2');
-  assert.equal(chooseFirst.resolve('in', ['A', 'B', 'A']), 'true');
-  assert.equal(chooseFirst.resolve('in', ['A', 'B', 'C']), 'false');
-  assert.throws(() => chooseFirst.resolve('or', ['唯一参数']), /至少需要两个/);
+  assert.equal(chooseFirst.resolveText('or', ['true', 'false']), 'true');
+  assert.equal(chooseLast.resolveText('or', ['true', 'false']), 'false');
+  assert.equal(chooseFirst.resolveText('and', ['文本1', '文本2']), '文本1文本2');
+  assert.throws(() => chooseFirst.resolveText('in', ['A', 'A']), /只能用作/);
+
+  assert.equal(chooseFirst.resolveCondition('or', ['false', 'true']), true);
+  assert.equal(chooseFirst.resolveCondition('and', ['true', '1', '是']), true);
+  assert.equal(chooseFirst.resolveCondition('and', ['true', '否']), false);
+  assert.equal(chooseFirst.resolveCondition('in', ['A', 'B', 'A']), true);
+  assert.equal(chooseFirst.resolveCondition('in', ['A', 'B', 'C']), false);
+  assert.throws(() => chooseFirst.resolveCondition('or', ['文本1', 'true']), /不是布尔值/);
+  assert.throws(() => chooseFirst.resolveText('or', ['唯一参数']), /至少需要两个/);
 });
 
-test('逻辑词条支持问题、回答、变量和无限嵌套', async (context) => {
+test('逻辑条件支持问题、回答、可选分支和无限嵌套', async (context) => {
   const harness = createHarness(context);
   const lexicon = harness.service.createLexicon('逻辑模板', 'group', groupContext);
   harness.repository.addEntry(
     lexicon.id,
     'exact',
-    '[逻辑.and.戳.我]',
-    '[变量.创建.A=完成][逻辑.and.[逻辑.or.false.true].[变量.读取.A]]',
+    '[逻辑.如果][逻辑.and.true.true]戳我[逻辑.否则]其他[逻辑.如果.结束]',
+    '[逻辑.如果][逻辑.and.[逻辑.or.false.true].true]通过[逻辑.否则]失败[逻辑.如果.结束]',
     1,
   );
 
   const match = harness.service.matchMessage(groupContext);
   assert.ok(match);
-  assert.equal(await harness.template.render(match.answer, groupContext), 'true完成');
+  assert.equal(await harness.template.render(match.answer, groupContext), '通过');
   assert.ok(['文本1', '文本2'].includes(await harness.template.render('[逻辑.or.文本1.文本2]', groupContext)));
   assert.equal(
-    await harness.template.render('[逻辑.in.[变量.创建.A=目标][变量.读取.A].其他.目标]', groupContext),
-    'true',
+    await harness.template.render(
+      '[逻辑.如果][逻辑.and.true.false]主分支[逻辑.否则如果][逻辑.in.B.A.B]次分支[逻辑.否则]兜底[逻辑.如果.结束]',
+      groupContext,
+    ),
+    '次分支',
   );
+  assert.equal(
+    await harness.template.render(
+      '[逻辑.如果][逻辑.or.true.false]外[逻辑.如果][逻辑.in.A.A]内[逻辑.如果.结束][逻辑.否则]错误[逻辑.如果.结束]',
+      groupContext,
+    ),
+    '外内',
+  );
+  assert.equal(
+    await harness.template.render(
+      '[变量.创建.A=原][逻辑.如果][逻辑.in.[变量.创建.A=新][变量.读取.A].其他]错误[逻辑.否则][变量.读取.A][逻辑.如果.结束]',
+      groupContext,
+    ),
+    '原',
+  );
+  assert.equal(
+    await harness.template.render('[逻辑.如果][逻辑.and.true.false]不会输出[逻辑.如果.结束]', groupContext),
+    '',
+  );
+  await assert.rejects(() => harness.template.render('[逻辑.in.A.A]', groupContext), /只能用作/);
 });
 
 test('变量和事件词条在问题与回答中都可使用', async (context) => {
