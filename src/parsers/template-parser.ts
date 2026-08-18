@@ -2,6 +2,7 @@ import { LexiconError } from '../errors';
 
 export type TemplateTerm =
   | { type: 'api'; action: string; parameters: Record<string, string> }
+  | { type: 'logic'; operation: 'or' | 'and' | 'in'; values: string[] }
   | { type: 'event'; path: string[] }
   | { type: 'messageValue'; segmentType: string; path: string[] }
   | { type: 'messageBuild'; segmentType: string; content: string }
@@ -79,6 +80,14 @@ export function parseTemplateTerm(content: string): TemplateTerm {
       parameters[key] = value;
     }
     return { type: 'api', action, parameters };
+  }
+
+  if (namespace === '逻辑') {
+    const operation = unescapedParts.shift();
+    if ((operation !== 'or' && operation !== 'and' && operation !== 'in') || unescapedParts.length < 2) {
+      throw new LexiconError('逻辑词条格式应为 [逻辑.<or|and|in>.<参数1>.<参数2>...]。');
+    }
+    return { type: 'logic', operation, values: unescapedParts };
   }
 
   if (namespace === 'event') {

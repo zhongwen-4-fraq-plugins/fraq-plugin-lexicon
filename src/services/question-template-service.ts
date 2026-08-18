@@ -7,11 +7,13 @@ import {
   unescapeTemplateText,
 } from '../parsers/template-parser';
 import { IncomingSegmentValueService } from './incoming-segment-value-service';
+import { LogicService } from './logic-service';
 import { MilkyEventValueService } from './milky-event-value-service';
 
 export class QuestionTemplateService {
   private readonly eventValueService = new MilkyEventValueService();
   private readonly segmentValueService = new IncomingSegmentValueService();
+  private readonly logicService = new LogicService();
 
   match(question: string, matchMode: MatchMode, context: TemplateContext): ReadonlyMap<string, string> | undefined {
     if (!hasQuestionTemplate(question)) {
@@ -76,6 +78,12 @@ export class QuestionTemplateService {
         } catch {
           return undefined;
         }
+      } else if (term.type === 'logic') {
+        try {
+          replacement = this.logicService.resolve(term.operation, term.values);
+        } catch {
+          return undefined;
+        }
       } else {
         replacement = escapeTemplateText(`[${location.content}]`);
       }
@@ -86,7 +94,7 @@ export class QuestionTemplateService {
 }
 
 function hasQuestionTemplate(question: string): boolean {
-  return /(^|[^\\])\[(?:event\.|消息\.取值\.|变量\.(?:创建|读取)\.)/.test(question);
+  return /(^|[^\\])\[(?:event\.|消息\.取值\.|变量\.(?:创建|读取)\.|逻辑\.)/.test(question);
 }
 
 function matchesText(question: string, matchMode: MatchMode, originalText: string): boolean {

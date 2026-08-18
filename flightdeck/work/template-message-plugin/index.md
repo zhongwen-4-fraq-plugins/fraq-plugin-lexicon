@@ -5,7 +5,7 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.2.4 已发布并安装；当前开发版本为 v0.2.5，已增加自动 GitHub Release 工作流。
+- v0.2.4 已发布并安装；当前开发版本为 v0.2.6，已增加自动 Release 和双模式逻辑词条。
 
 ## Next
 
@@ -13,6 +13,7 @@
 - 在真实群聊中验证 `词库 查询 <词条ID>` 和 `词库 查询 <词库名> <词条ID>`。
 - 在真实群聊中验证 `词库 修改 <词条ID> [问 <新问题>] 答 <新回答>`。
 - 下次版本标签发布时验证自动 Release 标题、提交分类和 Flightdeck 文档过滤。
+- 在真实群聊中验证 `[逻辑.or]`、`[逻辑.and]` 和 `[逻辑.in]` 的布尔、文本与嵌套模式。
 
 ## Read now
 
@@ -23,6 +24,7 @@
 - `flightdeck/knowledge/milky/incoming-segment-template.md`
 - `flightdeck/knowledge/fraq/plugin-api.md`
 - `flightdeck/knowledge/github/release-workflow.md`
+- `flightdeck/knowledge/templates/logic-terms.md`
 - `flightdeck/work/template-message-plugin/design.md`
 
 ## Read if
@@ -255,3 +257,12 @@
 - 纯 `flightdeck/` 文档提交不进入发布说明；未分类提交进入“其他”，多个 `🔖` 提交只保留最新一个。
 - Release 标题去掉标签前导 `v`，重复运行时更新已有 Release，避免创建重复条目。
 - 使用真实 `v0.2.4` 历史生成的说明只包含两个新增功能；25 个测试、静态检查、构建、打包预览和 YAML 解析均通过。
+
+## v0.2.6 logic template terms
+
+- `[逻辑.or.<参数...>]` 在全部参数为布尔值时执行或运算，否则随机返回一个文本参数。
+- `[逻辑.and.<参数...>]` 在全部参数为布尔值时执行与运算，否则按顺序拼接全部文本参数。
+- `[逻辑.in.<值>.<候选...>]` 使用精确字符串比较判断首个值是否属于候选集合。
+- 布尔值支持 `true/false`、`1/0`、`是/否` 和 `真/假`，输出统一为 `true` 或 `false`。
+- 逻辑词条已接入问题和回答解析，可嵌套变量、事件、消息段和其他逻辑词条。
+- `pnpm test`、`pnpm check`、`pnpm build` 和 `npm pack --dry-run --json` 均通过，共 27 个测试。

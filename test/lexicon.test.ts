@@ -11,6 +11,7 @@ import { resolveCommandText } from '../src/parsers/command-prefix-parser';
 import { parseManagementCommand } from '../src/parsers/management-command-parser';
 import { findInnermostTerm, parseTemplateTerm } from '../src/parsers/template-parser';
 import { LexiconService } from '../src/services/lexicon-service';
+import { LogicService } from '../src/services/logic-service';
 import { MilkyApiService } from '../src/services/milky-api-service';
 import { TemplateService } from '../src/services/template-service';
 
@@ -239,6 +240,17 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     segmentType: 'text',
     content: '内容',
   });
+  assert.deepEqual(parseTemplateTerm('逻辑.or.文本1.文本2'), {
+    type: 'logic',
+    operation: 'or',
+    values: ['文本1', '文本2'],
+  });
+  assert.deepEqual(parseTemplateTerm('逻辑.in.A.B.A'), {
+    type: 'logic',
+    operation: 'in',
+    values: ['A', 'B', 'A'],
+  });
+  assert.throws(() => parseTemplateTerm('逻辑.or.唯一参数'), /逻辑词条格式/);
   assert.throws(() => parseTemplateTerm('消息.取值.mention'), /消息取值词条格式/);
   assert.throws(() => parseTemplateTerm('消息.构建.text.内容.多余'), /消息构建词条格式/);
   assert.throws(() => parseTemplateTerm('is.mention.user_id'), /不支持的词条命名空间/);
@@ -382,6 +394,42 @@ test('变量词条支持创建、读取和无限嵌套解析', async (context) =
   );
 
   assert.equal(output, '最终内容');
+});
+
+test('逻辑词条支持布尔运算、文本操作和成员判断', () => {
+  const chooseFirst = new LogicService(() => 0);
+  const chooseLast = new LogicService(() => 0.999999);
+
+  assert.equal(chooseFirst.resolve('or', ['false', 'true']), 'true');
+  assert.equal(chooseFirst.resolve('and', ['true', '1', '是']), 'true');
+  assert.equal(chooseFirst.resolve('and', ['true', '否']), 'false');
+  assert.equal(chooseFirst.resolve('or', ['文本1', '文本2']), '文本1');
+  assert.equal(chooseLast.resolve('or', ['文本1', '文本2']), '文本2');
+  assert.equal(chooseFirst.resolve('and', ['文本1', '文本2']), '文本1文本2');
+  assert.equal(chooseFirst.resolve('in', ['A', 'B', 'A']), 'true');
+  assert.equal(chooseFirst.resolve('in', ['A', 'B', 'C']), 'false');
+  assert.throws(() => chooseFirst.resolve('or', ['唯一参数']), /至少需要两个/);
+});
+
+test('逻辑词条支持问题、回答、变量和无限嵌套', async (context) => {
+  const harness = createHarness(context);
+  const lexicon = harness.service.createLexicon('逻辑模板', 'group', groupContext);
+  harness.repository.addEntry(
+    lexicon.id,
+    'exact',
+    '[逻辑.and.戳.我]',
+    '[变量.创建.A=完成][逻辑.and.[逻辑.or.false.true].[变量.读取.A]]',
+    1,
+  );
+
+  const match = harness.service.matchMessage(groupContext);
+  assert.ok(match);
+  assert.equal(await harness.template.render(match.answer, groupContext), 'true完成');
+  assert.ok(['文本1', '文本2'].includes(await harness.template.render('[逻辑.or.文本1.文本2]', groupContext)));
+  assert.equal(
+    await harness.template.render('[逻辑.in.[变量.创建.A=目标][变量.读取.A].其他.目标]', groupContext),
+    'true',
+  );
 });
 
 test('变量和事件词条在问题与回答中都可使用', async (context) => {
