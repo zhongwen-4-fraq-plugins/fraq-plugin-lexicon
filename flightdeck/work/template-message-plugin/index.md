@@ -5,13 +5,14 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.2.4 已发布并安装，包含词条 ID 查询和问答修改命令。
+- v0.2.4 已发布并安装；当前开发版本为 v0.2.5，已增加自动 GitHub Release 工作流。
 
 ## Next
 
 - 在真实群聊中验证 `[api.get_group_member_info.user_id=[消息.取值.mention.user_id]]` 和 `[api.send_group_message.message=[消息.构建.text.内容]]`。
 - 在真实群聊中验证 `词库 查询 <词条ID>` 和 `词库 查询 <词库名> <词条ID>`。
 - 在真实群聊中验证 `词库 修改 <词条ID> [问 <新问题>] 答 <新回答>`。
+- 下次版本标签发布时验证自动 Release 标题、提交分类和 Flightdeck 文档过滤。
 
 ## Read now
 
@@ -21,6 +22,7 @@
 - `flightdeck/knowledge/milky/api-parameter-mapping.md`
 - `flightdeck/knowledge/milky/incoming-segment-template.md`
 - `flightdeck/knowledge/fraq/plugin-api.md`
+- `flightdeck/knowledge/github/release-workflow.md`
 - `flightdeck/work/template-message-plugin/design.md`
 
 ## Read if
@@ -244,3 +246,12 @@
 - 目标项目 root/app 的 package manifest、pnpm lockfile、npm lockfile、`versions.yml`、活动 node_modules 和 Fraq 包缓存均已同步为 `0.2.4`。
 - 目标项目安装包已确认包含当前/指定词库查询命令，以及保留问题或同时修改问答的命令。
 - 目标 Fraq 已重新启动，成功加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649` 并重新连接 Milky WebSocket。
+
+## v0.2.5 automatic GitHub Release
+
+- `.github/workflows/release.yml` 在 `发布 npm 包` 工作流成功完成后触发，并只处理 `v*` 标签推送。
+- `.github/scripts/generate-release-notes.mjs` 使用上一个可达版本标签到当前标签的提交历史生成发布说明。
+- `✨`、`🐛`、`🎨`、`📝` 分别生成新增、修复、优化和文档区段，空区段自动隐藏。
+- 纯 `flightdeck/` 文档提交不进入发布说明；未分类提交进入“其他”，多个 `🔖` 提交只保留最新一个。
+- Release 标题去掉标签前导 `v`，重复运行时更新已有 Release，避免创建重复条目。
+- 使用真实 `v0.2.4` 历史生成的说明只包含两个新增功能；25 个测试、静态检查、构建、打包预览和 YAML 解析均通过。

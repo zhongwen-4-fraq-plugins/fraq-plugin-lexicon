@@ -1,7 +1,7 @@
 {
   "name": "fraq-plugin-lexicon",
   "type": "module",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "支持多词库、精确与模糊匹配以及嵌套词条解析的 Fraq 插件",
   "files": [
     "dist"
@@ -19,7 +19,7 @@
   "scripts": {
     "build": "tsdown",
     "check": "biome check . && tsc --noEmit",
-    "test": "tsx --test test/*.test.ts",
+    "test": "tsx --test test/*.test.ts test/*.test.mjs",
     "prepack": "pnpm build"
   },
   "keywords": [
