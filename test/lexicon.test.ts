@@ -252,8 +252,15 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     operation: 'in',
     values: ['A', 'B', 'A'],
   });
-  assert.deepEqual(parseTemplateTerm('逻辑.请求用户输入'), { type: 'requestInput' });
-  assert.throws(() => parseTemplateTerm('逻辑.请求用户输入.多余参数'), /请求用户输入词条格式/);
+  assert.deepEqual(parseTemplateTerm('逻辑.请求用户输入.请输入名字'), {
+    type: 'requestInput',
+    prompt: '请输入名字',
+  });
+  assert.deepEqual(parseTemplateTerm('逻辑.请求用户输入.提示.消息'), {
+    type: 'requestInput',
+    prompt: '提示.消息',
+  });
+  assert.throws(() => parseTemplateTerm('逻辑.请求用户输入'), /请求用户输入词条格式/);
   assert.throws(() => parseTemplateTerm('逻辑.or.唯一参数'), /逻辑词条格式/);
   assert.throws(() => parseTemplateTerm('消息.取值.mention'), /消息取值词条格式/);
   assert.throws(() => parseTemplateTerm('消息.构建.text.内容.多余'), /消息构建词条格式/);
@@ -499,7 +506,7 @@ test('请求用户输入会限定会话、保留变量并继续嵌套解析', as
   });
   const prompts: string[] = [];
   const rendering = template.render(
-    '请输入名字：[变量.创建.A=[逻辑.请求用户输入]]你好，[变量.读取.A]！',
+    '[变量.创建.P=请输入名字]你好，[变量.创建.A=[逻辑.请求用户输入.[变量.读取.P]]][变量.读取.A]！',
     groupContext,
     new Map(),
     async (prompt) => {
@@ -508,7 +515,7 @@ test('请求用户输入会限定会话、保留变量并继续嵌套解析', as
   );
 
   await waitFor(() => prompts.length === 1);
-  assert.deepEqual(prompts, ['请输入名字：']);
+  assert.deepEqual(prompts, ['请输入名字']);
   assert.equal(userInputService.submit({ ...groupContext, senderId: 99999 }, '错误用户'), false);
   assert.equal(userInputService.submit({ ...groupContext, peerId: 99999, groupId: 99999 }, '错误群聊'), false);
   assert.equal(userInputService.submit(groupContext, '[api.send_group_nudge]'), true);
@@ -523,7 +530,7 @@ test('请求用户输入支持多个请求、选中分支和超时取消', async
   });
   const prompts: string[] = [];
   const rendering = template.render(
-    '[逻辑.如果][逻辑.and.true.true]第一次：[逻辑.请求用户输入]第二次：[逻辑.请求用户输入][逻辑.否则]不执行[逻辑.请求用户输入][逻辑.如果.结束]',
+    '[逻辑.如果][逻辑.and.true.true]第一次：[逻辑.请求用户输入.请输入第一次]第二次：[逻辑.请求用户输入.请输入第二次][逻辑.否则]不执行[逻辑.请求用户输入.不应发送][逻辑.如果.结束]',
     groupContext,
     new Map(),
     async (prompt) => {
@@ -532,22 +539,22 @@ test('请求用户输入支持多个请求、选中分支和超时取消', async
   );
 
   await waitFor(() => prompts.length === 1);
-  assert.deepEqual(prompts, ['第一次：']);
+  assert.deepEqual(prompts, ['请输入第一次']);
   assert.equal(userInputService.submit(groupContext, '甲'), true);
   await waitFor(() => prompts.length === 2);
-  assert.deepEqual(prompts, ['第一次：', '甲第二次：']);
+  assert.deepEqual(prompts, ['请输入第一次', '请输入第二次']);
   assert.equal(userInputService.submit(groupContext, '乙'), true);
-  assert.equal(await rendering, '乙');
+  assert.equal(await rendering, '第一次：甲第二次：乙');
 
   const timeoutTemplate = new TemplateService(harness.service, new ApiActionRegistry(), {} as MilkyClient, {
     userInputService: new UserInputService(10),
   });
   await assert.rejects(
-    () => timeoutTemplate.render('[逻辑.请求用户输入]', groupContext, new Map(), async () => {}),
+    () => timeoutTemplate.render('[逻辑.请求用户输入.请输入]', groupContext, new Map(), async () => {}),
     /等待用户输入超时/,
   );
   await assert.rejects(
-    () => template.render('[逻辑.如果][逻辑.in.[逻辑.请求用户输入].是]通过[逻辑.如果.结束]', groupContext),
+    () => template.render('[逻辑.如果][逻辑.in.[逻辑.请求用户输入.请输入是否].是]通过[逻辑.如果.结束]', groupContext),
     /不能作为逻辑条件参数/,
   );
 });

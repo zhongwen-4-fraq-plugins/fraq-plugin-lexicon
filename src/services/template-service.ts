@@ -10,7 +10,6 @@ import {
   parseTemplateTerm,
   unescapeTemplateText,
 } from '../parsers/template-parser';
-import { isEscaped } from '../parsers/template-syntax';
 import { IncomingSegmentValueService } from './incoming-segment-value-service';
 import type { LexiconService } from './lexicon-service';
 import { LogicService } from './logic-service';
@@ -26,7 +25,7 @@ export interface TemplateServiceOptions {
 
 type LogicMode = 'text' | 'condition';
 type RequestUserInput = (prompt: string) => Promise<void>;
-type ExecutableTemplateTerm = Exclude<ReturnType<typeof parseTemplateTerm>, { type: 'requestInput' }>;
+type ExecutableTemplateTerm = Exclude<ReturnType<typeof parseTemplateTerm>, { type: 'requestInput'; prompt: string }>;
 
 export class TemplateService {
   private readonly maxOutputLength: number;
@@ -95,25 +94,21 @@ export class TemplateService {
       const term = parseTemplateTerm(location.content);
       if (term.type === 'requestInput') {
         if (logicMode === 'condition') {
-          throw new LexiconError('[逻辑.请求用户输入] 不能作为逻辑条件参数。');
+          throw new LexiconError('[逻辑.请求用户输入.<提示消息>] 不能作为逻辑条件参数。');
         }
         if (!requestUserInput) {
-          throw new LexiconError('[逻辑.请求用户输入] 只能在支持回复的词条执行中使用。');
+          throw new LexiconError('[逻辑.请求用户输入.<提示消息>] 只能在支持回复的词条执行中使用。');
         }
 
-        const promptEnd = findPromptEnd(output, location.start);
-        const prompt = unescapeTemplateText(output.slice(0, promptEnd));
         const request = this.userInputService.request(context);
         try {
-          if (prompt) {
-            await requestUserInput(prompt);
-          }
+          await requestUserInput(term.prompt);
         } catch (error) {
           request.cancel(error);
           throw error;
         }
         const input = await request.promise;
-        output = `${output.slice(promptEnd, location.start)}${escapeTemplateText(input)}${output.slice(location.end + 1)}`;
+        output = `${output.slice(0, location.start)}${escapeTemplateText(input)}${output.slice(location.end + 1)}`;
         continue;
       }
       const replacement = await this.executeTerm(term, context, variables, logicMode);
@@ -200,19 +195,4 @@ export class TemplateService {
     }
     return match.answer;
   }
-}
-
-function findPromptEnd(template: string, requestStart: number): number {
-  const openings: number[] = [];
-  for (let index = 0; index < requestStart; index += 1) {
-    if (isEscaped(template, index)) {
-      continue;
-    }
-    if (template[index] === '[') {
-      openings.push(index);
-    } else if (template[index] === ']') {
-      openings.pop();
-    }
-  }
-  return openings[0] ?? requestStart;
 }

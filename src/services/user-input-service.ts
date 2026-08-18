@@ -64,7 +64,7 @@ export class UserInputService {
   private requireSessionKey(context: TemplateContext): string {
     const key = userInputSessionKey(context);
     if (!key) {
-      throw new LexiconError('[逻辑.请求用户输入] 只能用于可确定用户和会话的事件。');
+      throw new LexiconError('[逻辑.请求用户输入.<提示消息>] 只能用于可确定用户和会话的事件。');
     }
     return key;
   }

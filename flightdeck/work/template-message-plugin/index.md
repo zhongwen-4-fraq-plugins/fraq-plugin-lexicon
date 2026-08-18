@@ -328,3 +328,11 @@
 - 目标项目根目录与 `app` 的 manifest、pnpm/npm 锁文件、`versions.yml` 和已安装包均已同步为 `fraq-plugin-lexicon@0.2.9`。
 - 目标 Fraq 已完整重新启动并加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649`，Milky WebSocket 已连接，WebUI 返回 HTTP 200。
 - 本轮未发现遗留的 `tsx --test`、`node --test` 或词库测试进程。
+
+## v0.3.0 explicit user input prompt
+
+- 用户输入请求语法改为 `[逻辑.请求用户输入.<提示消息>]`，无提示消息的旧语法不再支持。
+- 命中请求词条时只发送显式提示消息，不再分段发送请求词条之前的回答内容。
+- 用户回复后输入替换请求词条，保留的回答前缀、输入和后续模板解析完成后一次性发送最终结果。
+- 提示消息仍可嵌套变量、事件、消息段、API、词库和逻辑词条；等待隔离、命令优先、文本转义和超时规则保持不变。
+- `pnpm check`、32 项测试、`pnpm build` 和 `npm pack --dry-run --json` 均已通过，打包版本为 `fraq-plugin-lexicon@0.3.0`。

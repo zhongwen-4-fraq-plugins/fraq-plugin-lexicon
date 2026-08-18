@@ -1,5 +1,5 @@
 # Logic condition blocks
-SUMMARY: Logic mode is explicit: `or` and `and` provide text or boolean operations by context, while `[逻辑.请求用户输入]` suspends an answer until the same user replies in the same conversation.
+SUMMARY: Logic mode is explicit: `or` and `and` provide text or boolean operations by context, while `[逻辑.请求用户输入.<提示消息>]` sends an explicit prompt and suspends an answer until the same user replies.
 READ WHEN: before modifying logic template parsing, conditional branches, boolean aliases, user-input waiting, or question-side condition evaluation
 
 ---
@@ -16,7 +16,8 @@ READ WHEN: before modifying logic template parsing, conditional branches, boolea
 - `parseConditionalBlock` guarantees every non-else branch starts with one outer logic term, and `LogicService.resolveCondition` either returns a boolean or throws. After a successful condition render, callers should compare the result with `true` directly instead of repeating a `true/false` membership check.
 - Question-side condition rendering may still return `undefined` when a variable, event field, message segment, or nested logic value cannot be resolved. Keep this branch because it represents an invalid/non-matching question condition rather than a boolean result.
 - Only copy isolated condition variables back to the outer scope when the condition is true; false and undefined conditions must not leak assignments.
-- `[逻辑.请求用户输入]` is answer-only. It sends the fully rendered visible prefix, waits for the next message from the same self ID, scene, peer, and sender, then resumes parsing with the input escaped as literal text.
+- `[逻辑.请求用户输入.<提示消息>]` is answer-only. It sends only the explicit prompt, waits for the next message from the same self ID, scene, peer, and sender, then resumes parsing with the input escaped as literal text.
+- Text before the request remains in the suspended template and is sent only with the final completed answer; the former prefix-segmentation behavior and parameterless syntax are unsupported.
 - Pending input is consumed before ordinary message and event lexicons, but management commands keep priority and do not satisfy the request.
 - Requests may be nested inside variables, APIs, lexicon answers, and selected conditional branches, and multiple requests run sequentially. Requests are rejected inside question templates and boolean condition parameters.
 - The default wait is five minutes and is configurable through `userInputTimeoutMs`; timeout rejects the suspended template and clears its pending session.

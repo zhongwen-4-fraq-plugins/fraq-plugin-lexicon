@@ -4,7 +4,7 @@ import { isEscaped } from './template-syntax';
 export type TemplateTerm =
   | { type: 'api'; action: string; parameters: Record<string, string> }
   | { type: 'logic'; operation: 'or' | 'and' | 'in'; values: string[] }
-  | { type: 'requestInput' }
+  | { type: 'requestInput'; prompt: string }
   | { type: 'event'; path: string[] }
   | { type: 'messageValue'; segmentType: string; path: string[] }
   | { type: 'messageBuild'; segmentType: string; content: string }
@@ -87,13 +87,16 @@ export function parseTemplateTerm(content: string): TemplateTerm {
   if (namespace === '逻辑') {
     const operation = unescapedParts.shift();
     if (operation === '请求用户输入') {
-      if (unescapedParts.length !== 0) {
-        throw new LexiconError('请求用户输入词条格式应为 [逻辑.请求用户输入]。');
+      const prompt = unescapedParts.join('.');
+      if (!prompt.trim()) {
+        throw new LexiconError('请求用户输入词条格式应为 [逻辑.请求用户输入.<提示消息>]。');
       }
-      return { type: 'requestInput' };
+      return { type: 'requestInput', prompt };
     }
     if ((operation !== 'or' && operation !== 'and' && operation !== 'in') || unescapedParts.length < 2) {
-      throw new LexiconError('逻辑词条格式应为 [逻辑.<or|and|in>.<参数1>.<参数2>...] 或 [逻辑.请求用户输入]。');
+      throw new LexiconError(
+        '逻辑词条格式应为 [逻辑.<or|and|in>.<参数1>.<参数2>...] 或 [逻辑.请求用户输入.<提示消息>]。',
+      );
     }
     return { type: 'logic', operation, values: unescapedParts };
   }
