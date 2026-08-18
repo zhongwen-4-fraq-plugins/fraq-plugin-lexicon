@@ -10,6 +10,7 @@ import {
 import { IncomingSegmentValueService } from './incoming-segment-value-service';
 import { LogicService } from './logic-service';
 import { MilkyEventValueService } from './milky-event-value-service';
+import { replaceVariables } from './template-variable-scope';
 
 type LogicMode = 'text' | 'condition';
 
@@ -162,11 +163,4 @@ function hasQuestionTemplate(question: string): boolean {
 
 function matchesText(question: string, matchMode: MatchMode, originalText: string): boolean {
   return matchMode === 'exact' ? originalText === question : originalText.includes(question);
-}
-
-function replaceVariables(target: Map<string, string>, source: ReadonlyMap<string, string>): void {
-  target.clear();
-  for (const [name, value] of source) {
-    target.set(name, value);
-  }
 }

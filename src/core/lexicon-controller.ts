@@ -16,7 +16,6 @@ export class LexiconController {
 
   async handleManagement(session: Session, commandText: string, context: MessageContext): Promise<void> {
     try {
-      this.lexiconService.ensureDefaultLexicon(context);
       const command = parseManagementCommand(commandText);
       switch (command.type) {
         case 'help':
@@ -55,44 +54,40 @@ export class LexiconController {
           return;
         }
         case 'add': {
-          const lexicon = this.lexiconService.resolveManageableLexicon(command.lexiconName, context);
-          this.permissionService.assertCanManageLexicon(lexicon, context);
-          const result = this.lexiconService.addEntry(
-            command.lexiconName,
+          const lexicon = this.resolveManageableLexicon(command.lexiconName, context);
+          const entry = this.lexiconService.addEntry(
+            lexicon,
             command.matchMode,
             command.question,
             command.answer,
-            context,
+            context.senderId,
           );
-          await session.reply(`已添加词条 ${result.entry.id} 到词库“${result.lexicon.name}”。`);
+          await session.reply(`已添加词条 ${entry.id} 到词库“${lexicon.name}”。`);
           return;
         }
         case 'query': {
-          const lexicon = this.lexiconService.resolveManageableLexicon(command.lexiconName, context);
-          this.permissionService.assertCanManageLexicon(lexicon, context);
+          const lexicon = this.resolveManageableLexicon(command.lexiconName, context);
           const entry = this.lexiconService.getLexiconEntry(lexicon, command.entryId);
           await session.reply(formatEntry(lexicon, entry));
           return;
         }
         case 'update': {
-          const lexicon = this.lexiconService.resolveManageableLexicon(command.lexiconName, context);
-          this.permissionService.assertCanManageLexicon(lexicon, context);
+          const lexicon = this.resolveManageableLexicon(command.lexiconName, context);
           const entry = this.lexiconService.updateEntry(lexicon, command.entryId, command.question, command.answer);
           await session.reply(`已修改词库“${lexicon.name}”中的词条 ${entry.id}。\n${formatEntry(lexicon, entry)}`);
           return;
         }
         case 'deleteById': {
-          const lexicon = this.lexiconService.resolveManageableLexicon(command.lexiconName, context);
-          this.permissionService.assertCanManageLexicon(lexicon, context);
-          this.lexiconService.deleteEntryById(command.lexiconName, command.entryId, context);
+          const lexicon = this.resolveManageableLexicon(command.lexiconName, context);
+          this.lexiconService.deleteEntryById(lexicon, command.entryId);
           await session.reply(`已从词库“${lexicon.name}”删除词条 ${command.entryId}。`);
           return;
         }
         case 'deleteByQuestion': {
-          const lexicon = this.lexiconService.resolveManageableLexicon(command.lexiconName, context);
-          this.permissionService.assertCanManageLexicon(lexicon, context);
-          const result = this.lexiconService.deleteEntriesByQuestion(command.lexiconName, command.question, context);
-          await session.reply(`已从词库“${result.lexicon.name}”删除 ${result.count} 个词条。`);
+          const lexicon = this.resolveManageableLexicon(command.lexiconName, context);
+          const count = this.lexiconService.deleteEntriesByQuestion(lexicon, command.question);
+          await session.reply(`已从词库“${lexicon.name}”删除 ${count} 个词条。`);
+          return;
         }
       }
     } catch (error) {
@@ -105,7 +100,6 @@ export class LexiconController {
       return;
     }
 
-    this.lexiconService.ensureDefaultLexicon(context);
     const match = this.lexiconService.matchMessage(context);
     if (!match) {
       return;
@@ -142,6 +136,12 @@ export class LexiconController {
         : ['- 无']),
     );
     return lines.join('\n');
+  }
+
+  private resolveManageableLexicon(name: string | undefined, context: MessageContext): Lexicon {
+    const lexicon = this.lexiconService.resolveManageableLexicon(name, context);
+    this.permissionService.assertCanManageLexicon(lexicon, context);
+    return lexicon;
   }
 }
 

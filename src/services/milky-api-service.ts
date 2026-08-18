@@ -5,7 +5,7 @@ import { createApiEventDefaults } from '../data/api-event-defaults';
 import { isMilkyApiEndpoint, MILKY_API_DEFINITIONS } from '../data/milky-api-definitions';
 import { MILKY_API_NUMBER_RANGES } from '../data/milky-api-number-ranges';
 import { MILKY_API_PARAMETER_VALUES } from '../data/milky-api-parameter-values';
-import { LexiconError } from '../errors';
+import { errorMessage, LexiconError } from '../errors';
 import type { ApiParameterDefinition, ApiParameterKind } from '../models/milky-api';
 import { normalizeApiParameters } from '../parsers/api-parameter-parser';
 import { escapeTemplateText } from '../parsers/template-parser';
@@ -51,8 +51,7 @@ export class MilkyApiService {
       const result = await callApi(context, endpointName, apiParameters);
       return serializeApiResult(result);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new LexiconError(`Milky API“${endpointName}”执行失败：${message}`);
+      throw new LexiconError(`Milky API“${endpointName}”执行失败：${errorMessage(error)}`);
     }
   }
 }
@@ -145,8 +144,7 @@ function parseMessage(value: string, name: string): unknown[] {
     const parsed = JSON.parse(trimmedValue) as unknown;
     return Array.isArray(parsed) ? parsed : [parsed];
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new LexiconError(`参数“${name}”不是有效的消息 JSON：${message}`);
+    throw new LexiconError(`参数“${name}”不是有效的消息 JSON：${errorMessage(error)}`);
   }
 }
 

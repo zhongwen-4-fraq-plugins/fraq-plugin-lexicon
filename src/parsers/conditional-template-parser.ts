@@ -1,4 +1,5 @@
 import { LexiconError } from '../errors';
+import { isEscaped } from './template-syntax';
 
 const IF_OPEN = '[逻辑.如果]';
 const ELSE_IF = '[逻辑.否则如果]';
@@ -140,12 +141,4 @@ function findTermEnd(input: string, start: number): number {
     }
   }
   throw new LexiconError('逻辑条件词条缺少右方括号。');
-}
-
-function isEscaped(input: string, index: number): boolean {
-  let slashCount = 0;
-  for (let cursor = index - 1; cursor >= 0 && input[cursor] === '\\'; cursor -= 1) {
-    slashCount += 1;
-  }
-  return slashCount % 2 === 1;
 }

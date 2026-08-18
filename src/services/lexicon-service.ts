@@ -27,16 +27,20 @@ export class LexiconService {
   }
 
   ensureDefaultLexicon(context: MessageContext): Lexicon {
+    const key = selectionKey(context);
+    const activeLexiconId = this.activeLexiconIds.get(key);
+    if (activeLexiconId !== undefined) {
+      const activeLexicon = this.repository.getLexiconById(activeLexiconId);
+      if (activeLexicon && isLexiconInContext(activeLexicon, context)) {
+        return activeLexicon;
+      }
+    }
+
     const defaultLexicon =
       context.groupId === undefined
         ? this.ensureGlobalDefault(context.senderId)
         : (this.repository.findLexicon(DEFAULT_LEXICON_NAME, 'group', context.groupId) ??
           this.repository.createLexicon(DEFAULT_LEXICON_NAME, 'group', context.groupId, context.senderId));
-    const key = selectionKey(context);
-    const activeLexicon = this.repository.getLexiconById(this.activeLexiconIds.get(key) ?? -1);
-    if (activeLexicon && isLexiconInContext(activeLexicon, context)) {
-      return activeLexicon;
-    }
     this.activeLexiconIds.set(key, defaultLexicon.id);
     return defaultLexicon;
   }
@@ -79,23 +83,15 @@ export class LexiconService {
     return lexicon;
   }
 
-  addEntry(
-    lexiconName: string | undefined,
-    matchMode: MatchMode,
-    question: string,
-    answer: string,
-    context: MessageContext,
-  ): { lexicon: Lexicon; entry: LexiconEntry } {
+  addEntry(lexicon: Lexicon, matchMode: MatchMode, question: string, answer: string, createdBy: number): LexiconEntry {
     if (!question) {
       throw new LexiconError('问题内容不能为空。');
     }
     if (!answer) {
       throw new LexiconError('回答内容不能为空。');
     }
-    const lexicon = this.resolveManageableLexicon(lexiconName, context);
     try {
-      const entry = this.repository.addEntry(lexicon.id, matchMode, question, answer, context.senderId);
-      return { lexicon, entry };
+      return this.repository.addEntry(lexicon.id, matchMode, question, answer, createdBy);
     } catch (error) {
       if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
         throw new LexiconError('该词库中已经存在相同匹配方式和问题的词条。');
@@ -122,11 +118,8 @@ export class LexiconService {
       throw new LexiconError('问题内容不能为空。');
     }
     try {
-      const updatedEntry = this.repository.updateEntry(lexicon.id, entryId, nextQuestion, answer);
-      if (!updatedEntry) {
-        throw new LexiconError(`词库“${lexicon.name}”中没有 ID 为 ${entryId} 的词条。`);
-      }
-      return updatedEntry;
+      this.repository.updateEntry(lexicon.id, entryId, nextQuestion, answer);
+      return { ...currentEntry, question: nextQuestion, answer };
     } catch (error) {
       if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
         throw new LexiconError('该词库中已经存在相同匹配方式和问题的词条。');
@@ -135,25 +128,18 @@ export class LexiconService {
     }
   }
 
-  deleteEntryById(lexiconName: string | undefined, entryId: number, context: MessageContext): Lexicon {
-    const lexicon = this.resolveManageableLexicon(lexiconName, context);
+  deleteEntryById(lexicon: Lexicon, entryId: number): void {
     if (!this.repository.deleteEntryById(lexicon.id, entryId)) {
       throw new LexiconError(`词库“${lexicon.name}”中没有 ID 为 ${entryId} 的词条。`);
     }
-    return lexicon;
   }
 
-  deleteEntriesByQuestion(
-    lexiconName: string | undefined,
-    question: string,
-    context: MessageContext,
-  ): { lexicon: Lexicon; count: number } {
-    const lexicon = this.resolveManageableLexicon(lexiconName, context);
+  deleteEntriesByQuestion(lexicon: Lexicon, question: string): number {
     const count = this.repository.deleteEntriesByQuestion(lexicon.id, question);
     if (count === 0) {
       throw new LexiconError(`词库“${lexicon.name}”中没有问题为“${question}”的词条。`);
     }
-    return { lexicon, count };
+    return count;
   }
 
   enableGlobalLexicon(name: string, context: MessageContext, enabled: boolean): boolean {
@@ -224,12 +210,12 @@ export class LexiconService {
     }
     if (selector.scopeType !== 'group') {
       const globalLexicon = this.repository.findLexicon(selector.name, 'global', 0);
-      const canUseGlobal =
+      if (
         globalLexicon &&
         (!requireEnabledGlobal ||
           context.groupId === undefined ||
-          this.repository.isGlobalLexiconEnabled(context.groupId, globalLexicon.id));
-      if (globalLexicon && canUseGlobal) {
+          this.repository.isGlobalLexiconEnabled(context.groupId, globalLexicon.id))
+      ) {
         lexicons.push(globalLexicon);
       }
     }

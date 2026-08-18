@@ -10,6 +10,7 @@ import type { LexiconService } from './lexicon-service';
 import { LogicService } from './logic-service';
 import { MessageSegmentBuildService } from './message-segment-build-service';
 import { MilkyEventValueService } from './milky-event-value-service';
+import { replaceVariables } from './template-variable-scope';
 
 export interface TemplateServiceOptions {
   maxOutputLength?: number;
@@ -149,12 +150,5 @@ export class TemplateService {
       variables.set(name, value);
     }
     return match.answer;
-  }
-}
-
-function replaceVariables(target: Map<string, string>, source: ReadonlyMap<string, string>): void {
-  target.clear();
-  for (const [name, value] of source) {
-    target.set(name, value);
   }
 }

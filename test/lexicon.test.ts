@@ -311,25 +311,24 @@ test('默认词库会自动创建并支持切换管理目标', (context) => {
 
   const groupDefault = harness.service.ensureDefaultLexicon(groupContext);
   assert.equal(groupDefault.name, '默认');
-  assert.equal(
-    harness.service.addEntry(undefined, 'exact', '默认问题', '默认回答', groupContext).lexicon.id,
-    groupDefault.id,
-  );
+  const defaultEntry = harness.service.addEntry(groupDefault, 'exact', '默认问题', '默认回答', groupContext.senderId);
+  assert.equal(defaultEntry.lexiconId, groupDefault.id);
 
   const other = harness.service.createLexicon('其他', 'group', groupContext);
   harness.service.switchLexicon(other.name, groupContext);
-  const switchedEntry = harness.service.addEntry(undefined, 'exact', '其他问题', '其他回答', groupContext);
+  const activeLexicon = harness.service.resolveManageableLexicon(undefined, groupContext);
+  const switchedEntry = harness.service.addEntry(activeLexicon, 'exact', '其他问题', '其他回答', groupContext.senderId);
 
-  assert.equal(switchedEntry.lexicon.id, other.id);
-  assert.equal(harness.service.resolveManageableLexicon(undefined, groupContext).id, other.id);
+  assert.equal(switchedEntry.lexiconId, other.id);
+  assert.equal(activeLexicon.id, other.id);
 });
 
 test('词条查询默认使用当前词库并校验指定词库', (context) => {
   const harness = createHarness(context);
   const defaultLexicon = harness.service.ensureDefaultLexicon(groupContext);
-  const defaultEntry = harness.service.addEntry(undefined, 'exact', '默认问题', '默认回答', groupContext).entry;
+  const defaultEntry = harness.service.addEntry(defaultLexicon, 'exact', '默认问题', '默认回答', groupContext.senderId);
   const other = harness.service.createLexicon('其他', 'group', groupContext);
-  const otherEntry = harness.service.addEntry(other.name, 'fuzzy', '其他问题', '其他回答', groupContext).entry;
+  const otherEntry = harness.service.addEntry(other, 'fuzzy', '其他问题', '其他回答', groupContext.senderId);
 
   assert.equal(harness.service.getLexiconEntry(defaultLexicon, defaultEntry.id).answer, '默认回答');
   assert.equal(harness.service.getLexiconEntry(other, otherEntry.id).matchMode, 'fuzzy');
@@ -343,15 +342,16 @@ test('词条查询默认使用当前词库并校验指定词库', (context) => {
 test('词条修改支持保留问题或同时更新问答', (context) => {
   const harness = createHarness(context);
   const defaultLexicon = harness.service.ensureDefaultLexicon(groupContext);
-  const first = harness.service.addEntry(undefined, 'exact', '原问题', '原回答', groupContext).entry;
-  const second = harness.service.addEntry(undefined, 'exact', '保留问题', '第二回答', groupContext).entry;
+  const first = harness.service.addEntry(defaultLexicon, 'exact', '原问题', '原回答', groupContext.senderId);
+  const second = harness.service.addEntry(defaultLexicon, 'exact', '保留问题', '第二回答', groupContext.senderId);
   const other = harness.service.createLexicon('其他', 'group', groupContext);
-  const otherEntry = harness.service.addEntry(other.name, 'fuzzy', '其他问题', '其他回答', groupContext).entry;
+  const otherEntry = harness.service.addEntry(other, 'fuzzy', '其他问题', '其他回答', groupContext.senderId);
 
   const answerOnly = harness.service.updateEntry(defaultLexicon, first.id, undefined, '新回答');
   assert.equal(answerOnly.question, '原问题');
   assert.equal(answerOnly.answer, '新回答');
   assert.equal(answerOnly.matchMode, 'exact');
+  assert.equal(harness.repository.getEntryById(first.id)?.answer, '新回答');
 
   const questionAndAnswer = harness.service.updateEntry(other, otherEntry.id, '新问题', '新指定回答');
   assert.equal(questionAndAnswer.question, '新问题');
@@ -360,6 +360,22 @@ test('词条修改支持保留问题或同时更新问答', (context) => {
 
   assert.throws(() => harness.service.updateEntry(defaultLexicon, otherEntry.id, undefined, '错误回答'), /没有 ID/);
   assert.throws(() => harness.service.updateEntry(defaultLexicon, second.id, '原问题', '冲突回答'), /已经存在/);
+});
+
+test('词条删除复用已解析词库并保留错误提示', (context) => {
+  const harness = createHarness(context);
+  const lexicon = harness.service.ensureDefaultLexicon(groupContext);
+  const exact = harness.service.addEntry(lexicon, 'exact', '待删除', '精确回答', groupContext.senderId);
+  const fuzzy = harness.service.addEntry(lexicon, 'fuzzy', '待删除', '模糊回答', groupContext.senderId);
+
+  assert.equal(harness.service.deleteEntriesByQuestion(lexicon, '待删除'), 2);
+  assert.equal(harness.repository.getEntryById(exact.id), undefined);
+  assert.equal(harness.repository.getEntryById(fuzzy.id), undefined);
+
+  const byId = harness.service.addEntry(lexicon, 'exact', '按 ID 删除', '回答', groupContext.senderId);
+  harness.service.deleteEntryById(lexicon, byId.id);
+  assert.equal(harness.repository.getEntryById(byId.id), undefined);
+  assert.throws(() => harness.service.deleteEntryById(lexicon, byId.id), /没有 ID/);
 });
 
 test('词库词条可以无固定深度地迭代解析', async (context) => {

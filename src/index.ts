@@ -47,6 +47,7 @@ export const FraqPluginLexicon = definePlugin({
 
       const text = extractMessageText(data).trim();
       const messageContext = createMessageContext(event, text);
+      lexiconService.ensureDefaultLexicon(messageContext);
       const session = ctx.createSession(self_id, data);
       const activations = ctx.routeActivationResolver({ type: 'command', path: [], name: '词库' }, session);
       const commandText = resolveCommandText(text, activations);

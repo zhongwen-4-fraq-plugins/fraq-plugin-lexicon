@@ -1,4 +1,5 @@
 import { LexiconError } from '../errors';
+import { isEscaped } from './template-syntax';
 
 export type TemplateTerm =
   | { type: 'api'; action: string; parameters: Record<string, string> }
@@ -190,7 +191,7 @@ function splitEscaped(input: string, delimiter: string): string[] {
 }
 
 function unescapePart(input: string): string {
-  return input.replace(/\\([\\[\].=])/g, '$1');
+  return unescapeTemplateText(input);
 }
 
 function validateVariableName(name: string): string {
@@ -199,12 +200,4 @@ function validateVariableName(name: string): string {
     throw new LexiconError('变量名不能为空，且不能包含空白、方括号、反斜杠或等号。');
   }
   return normalizedName;
-}
-
-function isEscaped(input: string, index: number): boolean {
-  let slashCount = 0;
-  for (let cursor = index - 1; cursor >= 0 && input[cursor] === '\\'; cursor -= 1) {
-    slashCount += 1;
-  }
-  return slashCount % 2 === 1;
 }

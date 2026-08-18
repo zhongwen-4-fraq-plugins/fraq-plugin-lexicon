@@ -45,14 +45,22 @@ export class LexiconRepository {
   }
 
   createLexicon(name: string, scopeType: LexiconScopeType, scopeId: number, createdBy: number): Lexicon {
+    const createdAt = Date.now();
     const result = this.database
       .prepare(`
         INSERT INTO lexicons (name, scope_type, scope_id, created_by, created_at)
         VALUES (?, ?, ?, ?, ?)
       `)
-      .run(name, scopeType, scopeId, createdBy, Date.now());
+      .run(name, scopeType, scopeId, createdBy, createdAt);
 
-    return this.getLexiconById(Number(result.lastInsertRowid)) as Lexicon;
+    return {
+      id: Number(result.lastInsertRowid),
+      name,
+      scopeType,
+      scopeId,
+      createdBy,
+      createdAt,
+    };
   }
 
   getLexiconById(id: number): Lexicon | undefined {
@@ -67,8 +75,8 @@ export class LexiconRepository {
     return row ? mapLexicon(row) : undefined;
   }
 
-  deleteLexicon(id: number): boolean {
-    return this.database.prepare('DELETE FROM lexicons WHERE id = ?').run(id).changes > 0;
+  deleteLexicon(id: number): void {
+    this.database.prepare('DELETE FROM lexicons WHERE id = ?').run(id);
   }
 
   listGroupLexicons(groupId: number): Lexicon[] {
@@ -126,14 +134,23 @@ export class LexiconRepository {
   }
 
   addEntry(lexiconId: number, matchMode: MatchMode, question: string, answer: string, createdBy: number): LexiconEntry {
+    const createdAt = Date.now();
     const result = this.database
       .prepare(`
         INSERT INTO entries (lexicon_id, match_mode, question, answer, created_by, created_at)
         VALUES (?, ?, ?, ?, ?, ?)
       `)
-      .run(lexiconId, matchMode, question, answer, createdBy, Date.now());
+      .run(lexiconId, matchMode, question, answer, createdBy, createdAt);
 
-    return this.getEntryById(Number(result.lastInsertRowid)) as LexiconEntry;
+    return {
+      id: Number(result.lastInsertRowid),
+      lexiconId,
+      matchMode,
+      question,
+      answer,
+      createdBy,
+      createdAt,
+    };
   }
 
   getEntryById(id: number): LexiconEntry | undefined {
@@ -141,11 +158,10 @@ export class LexiconRepository {
     return row ? mapEntry(row) : undefined;
   }
 
-  updateEntry(lexiconId: number, entryId: number, question: string, answer: string): LexiconEntry | undefined {
-    const result = this.database
+  updateEntry(lexiconId: number, entryId: number, question: string, answer: string): void {
+    this.database
       .prepare('UPDATE entries SET question = ?, answer = ? WHERE lexicon_id = ? AND id = ?')
       .run(question, answer, lexiconId, entryId);
-    return result.changes > 0 ? this.getEntryById(entryId) : undefined;
   }
 
   deleteEntryById(lexiconId: number, entryId: number): boolean {

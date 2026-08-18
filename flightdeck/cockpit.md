@@ -1,10 +1,10 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 完善 `fraq-plugin-lexicon` v0.2.8 串行 npm 发布与 GitHub Release 工作流。
+Focus: 完善 `fraq-plugin-lexicon` v0.2.8 发布工作流并清理可证明的重复查询、校验与实现。
 
 ## In flight
 
-- `template-message-plugin` — v0.2.8 已将 GitHub Release 合并为 npm 发布成功后的后置任务
+- `template-message-plugin` — v0.2.8 已合并发布工作流，并完成控制器、服务、数据层和解析器的重复工作审查
 
 ## Next
 

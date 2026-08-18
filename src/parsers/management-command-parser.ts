@@ -47,7 +47,6 @@ export function parseManagementCommand(input: string): ManagementCommand {
   }
 
   const queryWithNameMatch = /^查询\s+(\S+)\s+(\d+)$/.exec(command);
-  const queryDefaultMatch = /^查询\s+(\d+)$/.exec(command);
   if (queryWithNameMatch) {
     return {
       type: 'query',
@@ -55,6 +54,7 @@ export function parseManagementCommand(input: string): ManagementCommand {
       entryId: Number(queryWithNameMatch[2]),
     };
   }
+  const queryDefaultMatch = /^查询\s+(\d+)$/.exec(command);
   if (queryDefaultMatch) {
     return {
       type: 'query',
@@ -63,7 +63,6 @@ export function parseManagementCommand(input: string): ManagementCommand {
   }
 
   const updateWithNameMatch = /^修改\s+(\S+)\s+(\d+)(?:\s+问\s+([\s\S]+?))?\s+答\s*([\s\S]+)$/.exec(command);
-  const updateDefaultMatch = /^修改\s+(\d+)(?:\s+问\s+([\s\S]+?))?\s+答\s*([\s\S]+)$/.exec(command);
   if (updateWithNameMatch) {
     return {
       type: 'update',
@@ -73,6 +72,7 @@ export function parseManagementCommand(input: string): ManagementCommand {
       answer: updateWithNameMatch[4],
     };
   }
+  const updateDefaultMatch = /^修改\s+(\d+)(?:\s+问\s+([\s\S]+?))?\s+答\s*([\s\S]+)$/.exec(command);
   if (updateDefaultMatch) {
     return {
       type: 'update',
@@ -83,7 +83,6 @@ export function parseManagementCommand(input: string): ManagementCommand {
   }
 
   const addWithNameMatch = /^添加\s+(\S+)\s+(精确|模糊)\s+问\s+([\s\S]+?)\s+答\s*([\s\S]+)$/.exec(command);
-  const addDefaultMatch = /^添加\s+(精确|模糊)\s+问\s+([\s\S]+?)\s+答\s*([\s\S]+)$/.exec(command);
   if (addWithNameMatch) {
     return {
       type: 'add',
@@ -93,6 +92,7 @@ export function parseManagementCommand(input: string): ManagementCommand {
       answer: addWithNameMatch[4],
     };
   }
+  const addDefaultMatch = /^添加\s+(精确|模糊)\s+问\s+([\s\S]+?)\s+答\s*([\s\S]+)$/.exec(command);
   if (addDefaultMatch) {
     return {
       type: 'add',
@@ -103,7 +103,6 @@ export function parseManagementCommand(input: string): ManagementCommand {
   }
 
   const deleteByIdWithNameMatch = /^删除\s+(\S+)\s+id\s+(\d+)$/.exec(command);
-  const deleteByIdDefaultMatch = /^删除\s+id\s+(\d+)$/.exec(command);
   if (deleteByIdWithNameMatch) {
     return {
       type: 'deleteById',
@@ -111,6 +110,7 @@ export function parseManagementCommand(input: string): ManagementCommand {
       entryId: Number(deleteByIdWithNameMatch[2]),
     };
   }
+  const deleteByIdDefaultMatch = /^删除\s+id\s+(\d+)$/.exec(command);
   if (deleteByIdDefaultMatch) {
     return {
       type: 'deleteById',
@@ -119,7 +119,6 @@ export function parseManagementCommand(input: string): ManagementCommand {
   }
 
   const deleteByQuestionWithNameMatch = /^删除\s+(\S+)\s+问\s+([\s\S]+)$/.exec(command);
-  const deleteByQuestionDefaultMatch = /^删除\s+问\s+([\s\S]+)$/.exec(command);
   if (deleteByQuestionWithNameMatch) {
     return {
       type: 'deleteByQuestion',
@@ -127,6 +126,7 @@ export function parseManagementCommand(input: string): ManagementCommand {
       question: deleteByQuestionWithNameMatch[2].trim(),
     };
   }
+  const deleteByQuestionDefaultMatch = /^删除\s+问\s+([\s\S]+)$/.exec(command);
   if (deleteByQuestionDefaultMatch) {
     return {
       type: 'deleteByQuestion',

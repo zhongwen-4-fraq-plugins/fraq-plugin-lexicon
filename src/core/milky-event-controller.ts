@@ -16,7 +16,9 @@ export class MilkyEventController {
 
   async handle(event: MilkyEvent): Promise<void> {
     const context = createEventContext(event);
-    this.lexiconService.ensureEventDefaultLexicon(context);
+    if (event.event_type !== 'message_receive') {
+      this.lexiconService.ensureEventDefaultLexicon(context);
+    }
     const match = this.lexiconService.matchMessage(context);
     if (!match) {
       return;
