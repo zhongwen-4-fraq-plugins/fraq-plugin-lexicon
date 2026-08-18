@@ -5,14 +5,13 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.2.4 已发布并安装；当前开发版本为 v0.2.7，已增加自动 Release、文本逻辑词条和显式逻辑条件分支。
+- v0.2.7 已发布并安装，包含自动 Release、文本逻辑词条和显式逻辑条件分支。
 
 ## Next
 
 - 在真实群聊中验证 `[api.get_group_member_info.user_id=[消息.取值.mention.user_id]]` 和 `[api.send_group_message.message=[消息.构建.text.内容]]`。
 - 在真实群聊中验证 `词库 查询 <词条ID>` 和 `词库 查询 <词库名> <词条ID>`。
 - 在真实群聊中验证 `词库 修改 <词条ID> [问 <新问题>] 答 <新回答>`。
-- 下次版本标签发布时验证自动 Release 标题、提交分类和 Flightdeck 文档过滤。
 - 在真实群聊中验证 `[逻辑.如果]` 条件块、块外文本逻辑词条和无限嵌套解析。
 
 ## Read now
@@ -275,3 +274,12 @@
 - 条件块外 `or` 随机选择文本，`and` 顺序拼接文本，`in` 禁止使用并提示必须放入条件分支。
 - 条件块已接入问题与回答解析，支持无限嵌套；未选分支不会执行 API 或变量操作，失败条件的变量作用域不会泄漏。
 - `pnpm test`、`pnpm check`、`pnpm build` 和 `npm pack --dry-run --json` 均通过，共 28 个测试。
+
+## v0.2.7 release verification
+
+- 注解标签 `v0.2.7` 指向功能提交 `4ce9b6f`，并已推送到远程仓库。
+- npm Trusted Publisher 工作流 `32085345487` 与 GitHub Release 工作流 `32085374723` 均于 2026-08-18 成功完成。
+- npm `latest` 与 GitHub Release 均为 `0.2.7`；Release 标题为 `0.2.7`，发布说明正确列出三个新增功能。
+- 目标项目根目录与 `app` 的 manifest、pnpm/npm 锁文件、`versions.yml` 和已安装包均已同步为 `fraq-plugin-lexicon@0.2.7`。
+- 目标 Fraq 已重新启动并加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649`，Milky WebSocket 已连接。
+- 本轮未发现遗留的 `tsx --test`、`node --test` 或词库测试进程。

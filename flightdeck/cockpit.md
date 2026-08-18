@@ -1,17 +1,16 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 完善 `fraq-plugin-lexicon` v0.2.7 显式逻辑条件分支。
+Focus: `fraq-plugin-lexicon` v0.2.7 已发布并安装，继续验证显式逻辑条件分支。
 
 ## In flight
 
-- `template-message-plugin` — v0.2.7 已支持 `[逻辑.如果]`、`[逻辑.否则如果]`、`[逻辑.否则]` 和嵌套条件块
+- `template-message-plugin` — v0.2.7 已发布并安装，支持 `[逻辑.如果]`、`[逻辑.否则如果]`、`[逻辑.否则]` 和嵌套条件块
 
 ## Next
 
 - 在真实群聊中验证消息段取值和文本消息段构建模板。
 - 在真实群聊中验证 `词库 查询 <词条ID>` 和 `词库 查询 <词库名> <词条ID>`。
 - 在真实群聊中验证 `词库 修改 <词条ID> [问 <新问题>] 答 <新回答>`。
-- 下次版本标签发布时验证自动 Release 标题、提交分类和 Flightdeck 文档过滤。
 - 在真实群聊中验证显式逻辑条件分支、文本逻辑词条和嵌套解析。
 
 ## Open questions
