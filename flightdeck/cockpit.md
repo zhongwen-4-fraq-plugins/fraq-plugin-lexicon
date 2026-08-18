@@ -1,10 +1,10 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 为 `fraq-plugin-lexicon` v0.2.9 增加可嵌套、按会话隔离且可超时的用户输入请求词条。
+Focus: 验证 `fraq-plugin-lexicon` v0.2.9 的用户输入请求词条在真实群聊和私聊中的交互行为。
 
 ## In flight
 
-- `template-message-plugin` — v0.2.9 已实现 `[逻辑.请求用户输入]`，并通过静态检查、测试、构建和打包预览
+- `template-message-plugin` — v0.2.9 已发布、安装并完成运行验证，下一步进行真实会话验收
 
 ## Next
 

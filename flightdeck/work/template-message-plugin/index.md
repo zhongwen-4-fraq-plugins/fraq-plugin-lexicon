@@ -319,3 +319,12 @@
 - 用户输入会转义为普通文本，避免输入内容中的 API、变量或其他模板被意外执行。
 - 请求词条可嵌套在变量、API、词库回答和已选条件分支中，并支持多个请求依次等待；问题模板和布尔条件参数不允许请求输入。
 - `pnpm check`、32 项测试、`pnpm build` 和 `npm pack --dry-run --json` 均已通过，打包版本为 `fraq-plugin-lexicon@0.2.9`。
+
+## v0.2.9 release verification
+
+- 注解标签 `v0.2.9` 指向功能提交 `7367bf2`，并已推送到远程仓库。
+- 合并后的 `发布 npm 包` 工作流 `32197734844` 成功完成；`测试、构建并发布` 任务完成后，`生成发布说明并创建 Release` 任务才开始执行。
+- npm `latest` 与 GitHub Release 均为 `0.2.9`，Release 标题为 `0.2.9`。
+- 目标项目根目录与 `app` 的 manifest、pnpm/npm 锁文件、`versions.yml` 和已安装包均已同步为 `fraq-plugin-lexicon@0.2.9`。
+- 目标 Fraq 已完整重新启动并加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649`，Milky WebSocket 已连接，WebUI 返回 HTTP 200。
+- 本轮未发现遗留的 `tsx --test`、`node --test` 或词库测试进程。
