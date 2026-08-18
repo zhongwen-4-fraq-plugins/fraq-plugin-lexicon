@@ -1,10 +1,10 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 完善 `fraq-plugin-lexicon` v0.2.8 发布工作流并清理可证明的重复查询、校验与实现。
+Focus: 验证 `fraq-plugin-lexicon` v0.2.8 在真实群聊中的消息模板、管理命令与嵌套逻辑行为。
 
 ## In flight
 
-- `template-message-plugin` — v0.2.8 已合并发布工作流，并完成控制器、服务、数据层和解析器的重复工作审查
+- `template-message-plugin` — v0.2.8 已发布、安装并完成运行验证，下一步进行真实群聊验收
 
 ## Next
 
