@@ -2,14 +2,17 @@ import type { MilkyClient } from '@fraqjs/fraq';
 
 import type { ApiActionRegistry } from '../actions/api-action-registry';
 import { LexiconError, UserInputTimeoutError } from '../errors';
+import { CountedLoopControlSignal } from '../models/counted-loop';
 import type { TemplateContext } from '../models/lexicon';
 import { findConditionalBlock, parseConditionalBlock } from '../parsers/conditional-template-parser';
+import { findCountedLoopBlock } from '../parsers/counted-loop-parser';
 import {
   escapeTemplateText,
   findInnermostTerm,
   parseTemplateTerm,
   unescapeTemplateText,
 } from '../parsers/template-parser';
+import { CountedLoopService } from './counted-loop-service';
 import { IncomingSegmentValueService } from './incoming-segment-value-service';
 import type { LexiconService } from './lexicon-service';
 import { LogicService } from './logic-service';
@@ -23,9 +26,12 @@ export interface TemplateServiceOptions {
   userInputService?: UserInputService;
 }
 
-type LogicMode = 'text' | 'condition';
+type LogicMode = 'text' | 'condition' | 'loopCount';
 type RequestUserInput = (prompt: string) => Promise<void>;
-type ExecutableTemplateTerm = Exclude<ReturnType<typeof parseTemplateTerm>, { type: 'requestInput'; prompt: string }>;
+type ExecutableTemplateTerm = Exclude<
+  ReturnType<typeof parseTemplateTerm>,
+  { type: 'requestInput'; prompt: string } | { type: 'loopControl'; control: 'break' | 'continue' }
+>;
 
 export class TemplateService {
   private readonly maxOutputLength: number;
@@ -33,6 +39,7 @@ export class TemplateService {
   private readonly segmentValueService = new IncomingSegmentValueService();
   private readonly segmentBuildService = new MessageSegmentBuildService();
   private readonly logicService = new LogicService();
+  private readonly countedLoopService: CountedLoopService;
   private readonly userInputService: UserInputService;
 
   constructor(
@@ -42,6 +49,7 @@ export class TemplateService {
     options: TemplateServiceOptions = {},
   ) {
     this.maxOutputLength = options.maxOutputLength ?? 65_536;
+    this.countedLoopService = new CountedLoopService(this.maxOutputLength);
     this.userInputService = options.userInputService ?? new UserInputService();
   }
 
@@ -52,7 +60,7 @@ export class TemplateService {
     requestUserInput?: RequestUserInput,
   ): Promise<string> {
     const variables = new Map(initialVariables);
-    return this.renderInternal(template, context, variables, 'text', requestUserInput);
+    return this.renderInternal(template, context, variables, 'text', requestUserInput, 0);
   }
 
   private async renderInternal(
@@ -60,7 +68,8 @@ export class TemplateService {
     context: TemplateContext,
     variables: Map<string, string>,
     logicMode: LogicMode,
-    requestUserInput?: RequestUserInput,
+    requestUserInput: RequestUserInput | undefined,
+    loopDepth: number,
   ): Promise<string> {
     let output = template;
     const seenStates = new Set<string>();
@@ -75,23 +84,49 @@ export class TemplateService {
       seenStates.add(output);
 
       const conditional = findConditionalBlock(output);
-      if (conditional) {
+      const countedLoop = findCountedLoopBlock(output);
+      const location = findInnermostTerm(output);
+      const firstBlockStart = Math.min(
+        conditional?.start ?? Number.POSITIVE_INFINITY,
+        countedLoop?.start ?? Number.POSITIVE_INFINITY,
+      );
+
+      if (conditional && conditional.start === firstBlockStart && (!location || conditional.start <= location.start)) {
         const replacement = await this.selectConditionalBranch(
           conditional.source,
           context,
           variables,
           requestUserInput,
+          loopDepth,
         );
         output = `${output.slice(0, conditional.start)}${replacement}${output.slice(conditional.end + 1)}`;
         continue;
       }
 
-      const location = findInnermostTerm(output);
+      if (countedLoop && countedLoop.start === firstBlockStart && (!location || countedLoop.start <= location.start)) {
+        const replacement = await this.renderCountedLoop(
+          countedLoop.countExpression,
+          countedLoop.body,
+          context,
+          variables,
+          requestUserInput,
+          loopDepth,
+        );
+        output = `${output.slice(0, countedLoop.start)}${replacement}${output.slice(countedLoop.end + 1)}`;
+        continue;
+      }
+
       if (!location) {
         return unescapeTemplateText(output);
       }
 
       const term = parseTemplateTerm(location.content);
+      if (term.type === 'loopControl') {
+        if (logicMode !== 'text' || loopDepth === 0) {
+          throw new LexiconError('[循环.退出] 和 [循环.跳过] 只能用在计次循环内容中。');
+        }
+        throw new CountedLoopControlSignal(term.control, unescapeTemplateText(output.slice(0, location.start)));
+      }
       if (term.type === 'requestInput') {
         if (logicMode === 'condition') {
           throw new LexiconError('[逻辑.请求用户输入.<提示消息>] 不能作为逻辑条件参数。');
@@ -129,7 +164,8 @@ export class TemplateService {
     source: string,
     context: TemplateContext,
     variables: Map<string, string>,
-    requestUserInput?: RequestUserInput,
+    requestUserInput: RequestUserInput | undefined,
+    loopDepth: number,
   ): Promise<string> {
     for (const branch of parseConditionalBlock(source)) {
       if (!branch.condition) {
@@ -142,6 +178,7 @@ export class TemplateService {
         conditionVariables,
         'condition',
         requestUserInput,
+        loopDepth,
       );
       if (result === 'true') {
         replaceVariables(variables, conditionVariables);
@@ -149,6 +186,29 @@ export class TemplateService {
       }
     }
     return '';
+  }
+
+  private async renderCountedLoop(
+    countExpression: string,
+    body: string,
+    context: TemplateContext,
+    variables: Map<string, string>,
+    requestUserInput: RequestUserInput | undefined,
+    loopDepth: number,
+  ): Promise<string> {
+    const renderedCount = await this.renderInternal(
+      countExpression,
+      context,
+      variables,
+      'loopCount',
+      requestUserInput,
+      loopDepth,
+    );
+    const count = this.countedLoopService.parseCount(renderedCount);
+    const output = await this.countedLoopService.execute(count, () =>
+      this.renderInternal(body, context, variables, 'text', requestUserInput, loopDepth + 1),
+    );
+    return escapeTemplateText(output);
   }
 
   private async executeTerm(

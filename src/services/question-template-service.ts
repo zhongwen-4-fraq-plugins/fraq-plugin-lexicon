@@ -1,18 +1,21 @@
 import { isMilkyEventName } from '../data/milky-event-definitions';
+import { CountedLoopControlSignal } from '../models/counted-loop';
 import type { MatchMode, TemplateContext } from '../models/lexicon';
 import { findConditionalBlock, parseConditionalBlock } from '../parsers/conditional-template-parser';
+import { findCountedLoopBlock } from '../parsers/counted-loop-parser';
 import {
   escapeTemplateText,
   findInnermostTerm,
   parseTemplateTerm,
   unescapeTemplateText,
 } from '../parsers/template-parser';
+import { CountedLoopService } from './counted-loop-service';
 import { IncomingSegmentValueService } from './incoming-segment-value-service';
 import { LogicService } from './logic-service';
 import { MilkyEventValueService } from './milky-event-value-service';
 import { replaceVariables } from './template-variable-scope';
 
-type LogicMode = 'text' | 'condition';
+type LogicMode = 'text' | 'condition' | 'loopCount';
 
 interface QuestionState {
   hasMatchedEvent: boolean;
@@ -22,6 +25,7 @@ export class QuestionTemplateService {
   private readonly eventValueService = new MilkyEventValueService();
   private readonly segmentValueService = new IncomingSegmentValueService();
   private readonly logicService = new LogicService();
+  private readonly countedLoopService = new CountedLoopService();
 
   match(question: string, matchMode: MatchMode, context: TemplateContext): ReadonlyMap<string, string> | undefined {
     if (!hasQuestionTemplate(question)) {
@@ -42,7 +46,7 @@ export class QuestionTemplateService {
   ): ReadonlyMap<string, string> | undefined {
     const variables = new Map<string, string>();
     const state: QuestionState = { hasMatchedEvent: false };
-    const renderedQuestion = this.renderTemplate(question, context, variables, state, 'text');
+    const renderedQuestion = this.renderTemplate(question, context, variables, state, 'text', 0);
     if (renderedQuestion === undefined) {
       return undefined;
     }
@@ -58,13 +62,21 @@ export class QuestionTemplateService {
     variables: Map<string, string>,
     state: QuestionState,
     logicMode: LogicMode,
+    loopDepth: number,
   ): string | undefined {
     let output = template;
 
     while (true) {
       const conditional = findConditionalBlock(output);
-      if (conditional) {
-        const replacement = this.selectConditionalBranch(conditional.source, context, variables, state);
+      const countedLoop = findCountedLoopBlock(output);
+      const location = findInnermostTerm(output);
+      const firstBlockStart = Math.min(
+        conditional?.start ?? Number.POSITIVE_INFINITY,
+        countedLoop?.start ?? Number.POSITIVE_INFINITY,
+      );
+
+      if (conditional && conditional.start === firstBlockStart && (!location || conditional.start <= location.start)) {
+        const replacement = this.selectConditionalBranch(conditional.source, context, variables, state, loopDepth);
         if (replacement === undefined) {
           return undefined;
         }
@@ -72,12 +84,33 @@ export class QuestionTemplateService {
         continue;
       }
 
-      const location = findInnermostTerm(output);
+      if (countedLoop && countedLoop.start === firstBlockStart && (!location || countedLoop.start <= location.start)) {
+        const replacement = this.renderCountedLoop(
+          countedLoop.countExpression,
+          countedLoop.body,
+          context,
+          variables,
+          state,
+          loopDepth,
+        );
+        if (replacement === undefined) {
+          return undefined;
+        }
+        output = `${output.slice(0, countedLoop.start)}${replacement}${output.slice(countedLoop.end + 1)}`;
+        continue;
+      }
+
       if (!location) {
         return unescapeTemplateText(output);
       }
 
       const term = parseTemplateTerm(location.content);
+      if (term.type === 'loopControl') {
+        if (logicMode !== 'text' || loopDepth === 0) {
+          return undefined;
+        }
+        throw new CountedLoopControlSignal(term.control, unescapeTemplateText(output.slice(0, location.start)));
+      }
       let replacement: string;
 
       if (term.type === 'setVariable') {
@@ -133,11 +166,31 @@ export class QuestionTemplateService {
     }
   }
 
+  private renderCountedLoop(
+    countExpression: string,
+    body: string,
+    context: TemplateContext,
+    variables: Map<string, string>,
+    state: QuestionState,
+    loopDepth: number,
+  ): string | undefined {
+    const renderedCount = this.renderTemplate(countExpression, context, variables, state, 'loopCount', loopDepth);
+    if (renderedCount === undefined) {
+      return undefined;
+    }
+    const count = this.countedLoopService.parseCount(renderedCount);
+    const output = this.countedLoopService.executeSync(count, () =>
+      this.renderTemplate(body, context, variables, state, 'text', loopDepth + 1),
+    );
+    return output === undefined ? undefined : escapeTemplateText(output);
+  }
+
   private selectConditionalBranch(
     source: string,
     context: TemplateContext,
     variables: Map<string, string>,
     state: QuestionState,
+    loopDepth: number,
   ): string | undefined {
     for (const branch of parseConditionalBlock(source)) {
       if (!branch.condition) {
@@ -145,7 +198,14 @@ export class QuestionTemplateService {
       }
       const conditionVariables = new Map(variables);
       const conditionState = { ...state };
-      const result = this.renderTemplate(branch.condition, context, conditionVariables, conditionState, 'condition');
+      const result = this.renderTemplate(
+        branch.condition,
+        context,
+        conditionVariables,
+        conditionState,
+        'condition',
+        loopDepth,
+      );
       if (result === undefined) {
         continue;
       }

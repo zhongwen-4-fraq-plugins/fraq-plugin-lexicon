@@ -5,6 +5,7 @@ import { isEscaped } from './template-syntax';
 export type TemplateTerm =
   | { type: 'api'; action: string; parameters: Record<string, string> }
   | { type: 'logic'; operation: 'or' | 'and' | 'in'; values: string[] }
+  | { type: 'loopControl'; control: 'break' | 'continue' }
   | { type: 'requestInput'; prompt: string; timeoutSeconds?: number; timeoutMessage: string }
   | { type: 'event'; path: string[] }
   | { type: 'messageValue'; segmentType: string; path: string[] }
@@ -96,6 +97,19 @@ export function parseTemplateTerm(content: string): TemplateTerm {
       );
     }
     return { type: 'logic', operation, values: unescapedParts };
+  }
+
+  if (namespace === '循环') {
+    if (unescapedParts.length !== 1) {
+      throw new LexiconError('循环控制词条格式应为 [循环.退出] 或 [循环.跳过]。');
+    }
+    if (unescapedParts[0] === '退出') {
+      return { type: 'loopControl', control: 'break' };
+    }
+    if (unescapedParts[0] === '跳过') {
+      return { type: 'loopControl', control: 'continue' };
+    }
+    throw new LexiconError(`不支持的循环控制操作：${unescapedParts[0] || '空'}。`);
   }
 
   if (namespace === 'event') {

@@ -1,5 +1,5 @@
 # Logic condition blocks
-SUMMARY: Logic mode is explicit; user-input terms support per-request timeout seconds and timeout text, defaulting to 30 seconds and “会话超时”, and timeout ends the answer without an extra execution-error reply.
+SUMMARY: Logic mode is explicit; counted loops support variable counts, nesting, nearest-loop break/continue, and a 10000-iteration limit; user-input terms keep per-request timeout behavior.
 READ WHEN: before modifying logic template parsing, conditional branches, boolean aliases, user-input waiting, or question-side condition evaluation
 
 ---
@@ -23,3 +23,11 @@ READ WHEN: before modifying logic template parsing, conditional branches, boolea
 - Requests may be nested inside variables, APIs, lexicon answers, and selected conditional branches, and multiple requests run sequentially. Requests are rejected inside question templates and boolean condition parameters.
 - The default wait is 30 seconds and remains configurable through `userInputTimeoutMs`; a valid positive `超时时间` value overrides it for one request.
 - The default timeout text is “会话超时”. On timeout, send the configured timeout text, clear the pending session, stop the suspended answer, and suppress the generic “词条执行失败” reply.
+
+- Counted-loop syntax is `[逻辑.计次循环.<count>]...[逻辑.计次循环尾]`; render the count expression once before entering the loop.
+- Counts may come from nested variable or other template terms and must resolve to an integer from 0 through 10000.
+- `[循环.退出]` breaks and `[循环.跳过]` continues the nearest enclosing loop; output produced before the control marker is preserved.
+- Loop blocks work in questions and answers, support arbitrary nesting, and share the current variable scope across iterations.
+- Select the earliest outer block between conditionals and counted loops before executing ordinary terms; otherwise an inner conditional may execute once outside its loop instead of once per iteration.
+- Escape each completed loop result before reinserting it into the outer template so literal brackets are not executed again.
+- Loop controls are invalid outside a loop, inside boolean condition parameters, or inside a loop-count expression.

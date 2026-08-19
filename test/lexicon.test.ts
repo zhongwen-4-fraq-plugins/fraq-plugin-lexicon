@@ -11,6 +11,7 @@ import type { MessageContext } from '../src/models/lexicon';
 import { DEFAULT_USER_INPUT_TIMEOUT_MESSAGE, DEFAULT_USER_INPUT_TIMEOUT_MS } from '../src/models/user-input';
 import { resolveCommandText } from '../src/parsers/command-prefix-parser';
 import { findConditionalBlock, parseConditionalBlock } from '../src/parsers/conditional-template-parser';
+import { findCountedLoopBlock } from '../src/parsers/counted-loop-parser';
 import { parseManagementCommand } from '../src/parsers/management-command-parser';
 import { findInnermostTerm, parseTemplateTerm } from '../src/parsers/template-parser';
 import { LexiconService } from '../src/services/lexicon-service';
@@ -467,6 +468,19 @@ test('变量词条支持创建、读取和无限嵌套解析', async (context) =
   assert.equal(output, '最终内容');
 });
 
+test('计次循环块支持嵌套定位和控制词条解析', () => {
+  const source = '前[逻辑.计次循环.[变量.读取.N]]A[逻辑.计次循环.2]B[逻辑.计次循环尾][逻辑.计次循环尾]后';
+  const block = findCountedLoopBlock(source);
+
+  assert.ok(block);
+  assert.equal(block.countExpression, '[变量.读取.N]');
+  assert.equal(block.body, 'A[逻辑.计次循环.2]B[逻辑.计次循环尾]');
+  assert.deepEqual(parseTemplateTerm('循环.退出'), { type: 'loopControl', control: 'break' });
+  assert.deepEqual(parseTemplateTerm('循环.跳过'), { type: 'loopControl', control: 'continue' });
+  assert.throws(() => findCountedLoopBlock('[逻辑.计次循环.2]A'), /缺少/);
+  assert.throws(() => findCountedLoopBlock('[逻辑.计次循环尾]'), /未配对/);
+});
+
 test('逻辑词条显式区分文本操作和条件运算', () => {
   const chooseFirst = new LogicService(() => 0);
   const chooseLast = new LogicService(() => 0.999999);
@@ -526,6 +540,68 @@ test('逻辑条件支持问题、回答、可选分支和无限嵌套', async (c
     '',
   );
   await assert.rejects(() => harness.template.render('[逻辑.in.A.A]', groupContext), /只能用作/);
+});
+
+test('计次循环支持固定次数、变量次数和无限嵌套', async (context) => {
+  const harness = createHarness(context);
+
+  assert.equal(await harness.template.render('[逻辑.计次循环.3]A[逻辑.计次循环尾]', groupContext), 'AAA');
+  assert.equal(await harness.template.render('[逻辑.计次循环.0]A[逻辑.计次循环尾]', groupContext), '');
+  assert.equal(
+    await harness.template.render('[变量.创建.N=2][逻辑.计次循环.[变量.读取.N]]B[逻辑.计次循环尾]', groupContext),
+    'BB',
+  );
+  assert.equal(
+    await harness.template.render(
+      '[逻辑.计次循环.2]A[逻辑.计次循环.2]B[逻辑.计次循环尾][逻辑.计次循环尾]',
+      groupContext,
+    ),
+    'ABBABB',
+  );
+});
+
+test('循环退出和跳过作用于最近一层循环', async (context) => {
+  const harness = createHarness(context);
+
+  assert.equal(await harness.template.render('[逻辑.计次循环.3]A[循环.跳过]B[逻辑.计次循环尾]', groupContext), 'AAA');
+  assert.equal(await harness.template.render('[逻辑.计次循环.3]A[循环.退出]B[逻辑.计次循环尾]', groupContext), 'A');
+  assert.equal(
+    await harness.template.render(
+      '[逻辑.计次循环.2]X[逻辑.计次循环.3]Y[循环.退出]Z[逻辑.计次循环尾]W[逻辑.计次循环尾]',
+      groupContext,
+    ),
+    'XYWXYW',
+  );
+  assert.equal(
+    await harness.template.render(
+      '[逻辑.计次循环.2][逻辑.如果][逻辑.and.false.true][循环.跳过][逻辑.否则]A[逻辑.如果.结束]B[逻辑.计次循环尾]',
+      groupContext,
+    ),
+    'ABAB',
+  );
+});
+
+test('计次循环校验次数、作用域和问题模板', async (context) => {
+  const harness = createHarness(context);
+
+  await assert.rejects(() => harness.template.render('[循环.退出]', groupContext), /只能用在计次循环/);
+  await assert.rejects(
+    () => harness.template.render('[逻辑.计次循环.-1]A[逻辑.计次循环尾]', groupContext),
+    /0 到 10000/,
+  );
+  await assert.rejects(
+    () => harness.template.render('[逻辑.计次循环.1.5]A[逻辑.计次循环尾]', groupContext),
+    /0 到 10000/,
+  );
+  await assert.rejects(
+    () => harness.template.render('[变量.创建.N][逻辑.计次循环.[变量.读取.N]]A[逻辑.计次循环尾]', groupContext),
+    /0 到 10000/,
+  );
+
+  const loopContext = { ...groupContext, originalText: '戳戳我' };
+  const lexicon = harness.service.createLexicon('循环问题', 'group', loopContext);
+  harness.repository.addEntry(lexicon.id, 'exact', '[逻辑.计次循环.2]戳[逻辑.计次循环尾]我', '命中', 1);
+  assert.ok(harness.service.matchMessage(loopContext));
 });
 
 test('请求用户输入会限定会话、保留变量并继续嵌套解析', async (context) => {

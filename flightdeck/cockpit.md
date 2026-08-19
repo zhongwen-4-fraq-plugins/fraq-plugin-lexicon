@@ -4,10 +4,11 @@ Focus: 完成 `fraq-plugin-lexicon` v0.3.1，并确保 Release 更新日志只�
 
 ## In flight
 
-- `template-message-plugin` — v0.3.1 已实现用户输入超时、API 语法校验、Issue Form、文档拆分和仅提取 `src/` commit 的 Release 日志，尚未发布
+- `template-message-plugin` — v0.3.1 已实现用户输入超时、API 语法校验、计次循环、Issue Form、文档拆分和仅提取 `src/` commit 的 Release 日志，尚未发布
 
 ## Next
 
+- 在真实群聊中验证计次循环、变量次数、`[循环.退出]` 和 `[循环.跳过]`。
 - 发布并在真实群聊中验证 `[逻辑.请求用户输入.<提示文本>.<超时时间=秒>.<超时提示=文本>]`。
 - 在真实群聊中验证消息段取值和文本消息段构建模板。
 - 在真实群聊中验证 `词库 查询 <词条ID>` 和 `词库 查询 <词库名> <词条ID>`。
