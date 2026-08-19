@@ -399,3 +399,13 @@
 - 次数必须是 `0..10000` 之间的整数，防止空循环或超大次数占用执行资源。
 - 块级解析改为按最早外层位置在条件和循环之间选择，确保循环内条件每次迭代重新执行。
 - `pnpm test` 共 40 项、`pnpm check`、`pnpm build` 和 `npm pack --dry-run --json` 均通过，打包版本为 `fraq-plugin-lexicon@0.3.1`。
+
+## v0.3.1 release verification
+
+- 注解标签 `v0.3.1` 指向功能提交 `e34719f`，并已推送到远程仓库。
+- `发布 npm 包` 工作流 `32313573811` 成功完成；npm 发布、历史发布检查和 GitHub Release 三个任务均成功。
+- npm `latest` 与 GitHub Release 均为 `0.3.1`，Release 标题为 `0.3.1`，更新日志仅包含修改 `src/` 的提交。
+- 目标项目根目录与 `app` 的 manifest、pnpm/npm 锁文件、`versions.yml`、缓存元数据和活动安装包均已同步为 `fraq-plugin-lexicon@0.3.1`。
+- 目标项目 `app/node_modules/.ignored` 中遗留的 `fraq-plugin-lexicon@0.3.0` 副本已精确清理。
+- 目标 Fraq 已完整重新启动并加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649`，Milky WebSocket 已连接，WebUI 跟随登录跳转后返回 HTTP 200。
+- 本轮未发现遗留的 `tsx --test`、`node --test` 或词库测试进程。
