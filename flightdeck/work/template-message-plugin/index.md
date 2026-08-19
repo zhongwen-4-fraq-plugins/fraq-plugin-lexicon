@@ -353,3 +353,11 @@
 - 目标项目根目录与 `app` 的 manifest、pnpm/npm 锁文件、`versions.yml` 和活动安装包均已同步为 `fraq-plugin-lexicon@0.3.0`。
 - 目标 Fraq 已通过完整 `pnpm start` 重新启动并加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649`，Milky WebSocket 已连接，WebUI 跟随登录跳转后返回 HTTP 200。
 - 本轮未发现遗留的 `tsx --test`、`node --test` 或词库测试进程。
+
+## v0.3.1 user input timeout options
+
+- 请求用户输入词条支持 `[逻辑.请求用户输入.<提示文本>.<超时时间=秒>.<超时提示=文本>]`，两个具名参数均可独立省略。
+- 未指定词条级参数时默认等待 30 秒并发送“会话超时”；`userInputTimeoutMs` 仍可修改全局默认等待时间。
+- 词条级超时时间覆盖全局默认值；超时提示发送后终止当前回答，控制器不会再追加“词条执行失败”。
+- 参数只从词条末尾识别，提示文本中的普通点号保持兼容；重复参数、非正数超时和空超时提示会返回明确格式错误。
+- 开发版本已更新为 `0.3.1`；`pnpm test` 共 35 项、`pnpm check`、`pnpm build` 和 `npm pack --dry-run --json` 均通过。

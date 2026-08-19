@@ -1,8 +1,6 @@
-import { LexiconError } from '../errors';
+import { LexiconError, UserInputTimeoutError } from '../errors';
 import type { TemplateContext } from '../models/lexicon';
-import { type UserInputRequest, userInputSessionKey } from '../models/user-input';
-
-const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
+import { DEFAULT_USER_INPUT_TIMEOUT_MS, type UserInputRequest, userInputSessionKey } from '../models/user-input';
 
 interface PendingUserInput {
   resolve(value: string): void;
@@ -13,13 +11,12 @@ interface PendingUserInput {
 export class UserInputService {
   private readonly pending = new Map<string, PendingUserInput>();
 
-  constructor(private readonly timeoutMs = DEFAULT_TIMEOUT_MS) {
-    if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) {
-      throw new LexiconError('用户输入等待时间必须是正整数。');
-    }
+  constructor(private readonly timeoutMs = DEFAULT_USER_INPUT_TIMEOUT_MS) {
+    validateTimeout(timeoutMs);
   }
 
-  request(context: TemplateContext): UserInputRequest {
+  request(context: TemplateContext, timeoutMs = this.timeoutMs): UserInputRequest {
+    validateTimeout(timeoutMs);
     const key = this.requireSessionKey(context);
     if (this.pending.has(key)) {
       throw new LexiconError('当前用户已有等待中的输入请求。');
@@ -32,8 +29,8 @@ export class UserInputService {
           return;
         }
         this.pending.delete(key);
-        reject(new LexiconError('等待用户输入超时。'));
-      }, this.timeoutMs);
+        reject(new UserInputTimeoutError());
+      }, timeoutMs);
       timer.unref();
       pending = { resolve, reject, timer };
       this.pending.set(key, pending);
@@ -76,5 +73,11 @@ export class UserInputService {
     this.pending.delete(key);
     clearTimeout(pending.timer);
     pending.reject(error);
+  }
+}
+
+function validateTimeout(timeoutMs: number): void {
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0 || timeoutMs > 2_147_483_647) {
+    throw new LexiconError('用户输入等待时间必须是有效的正整数毫秒数。');
   }
 }

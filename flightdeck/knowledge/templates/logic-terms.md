@@ -1,5 +1,5 @@
 # Logic condition blocks
-SUMMARY: Logic mode is explicit: `or` and `and` provide text or boolean operations by context, while `[逻辑.请求用户输入.<提示消息>]` sends an explicit prompt and suspends an answer until the same user replies.
+SUMMARY: Logic mode is explicit; user-input terms support per-request timeout seconds and timeout text, defaulting to 30 seconds and “会话超时”, and timeout ends the answer without an extra execution-error reply.
 READ WHEN: before modifying logic template parsing, conditional branches, boolean aliases, user-input waiting, or question-side condition evaluation
 
 ---
@@ -16,8 +16,10 @@ READ WHEN: before modifying logic template parsing, conditional branches, boolea
 - `parseConditionalBlock` guarantees every non-else branch starts with one outer logic term, and `LogicService.resolveCondition` either returns a boolean or throws. After a successful condition render, callers should compare the result with `true` directly instead of repeating a `true/false` membership check.
 - Question-side condition rendering may still return `undefined` when a variable, event field, message segment, or nested logic value cannot be resolved. Keep this branch because it represents an invalid/non-matching question condition rather than a boolean result.
 - Only copy isolated condition variables back to the outer scope when the condition is true; false and undefined conditions must not leak assignments.
-- `[逻辑.请求用户输入.<提示消息>]` is answer-only. It sends only the explicit prompt, waits for the next message from the same self ID, scene, peer, and sender, then resumes parsing with the input escaped as literal text.
+- `[逻辑.请求用户输入.<提示消息>.<超时时间=秒>.<超时提示=文本>]` is answer-only. The two trailing named parameters are optional and may be supplied independently; unrecognized dot-separated suffixes remain part of the prompt.
+- It sends only the explicit prompt, waits for the next message from the same self ID, scene, peer, and sender, then resumes parsing with the input escaped as literal text.
 - Text before the request remains in the suspended template and is sent only with the final completed answer; the former prefix-segmentation behavior and parameterless syntax are unsupported.
 - Pending input is consumed before ordinary message and event lexicons, but management commands keep priority and do not satisfy the request.
 - Requests may be nested inside variables, APIs, lexicon answers, and selected conditional branches, and multiple requests run sequentially. Requests are rejected inside question templates and boolean condition parameters.
-- The default wait is five minutes and is configurable through `userInputTimeoutMs`; timeout rejects the suspended template and clears its pending session.
+- The default wait is 30 seconds and remains configurable through `userInputTimeoutMs`; a valid positive `超时时间` value overrides it for one request.
+- The default timeout text is “会话超时”. On timeout, send the configured timeout text, clear the pending session, stop the suspended answer, and suppress the generic “词条执行失败” reply.

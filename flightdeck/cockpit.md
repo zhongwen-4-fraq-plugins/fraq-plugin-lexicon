@@ -1,13 +1,14 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: `fraq-plugin-lexicon` v0.3.0 已发布并安装，下一步在真实群聊中验证模板与词库管理功能。
+Focus: 完成 `fraq-plugin-lexicon` v0.3.1 的用户输入词条级超时与超时提示配置。
 
 ## In flight
 
-- `template-message-plugin` — v0.3.0 已完成发布、Release、目标 Fraq 安装和启动验证
+- `template-message-plugin` — v0.3.1 已实现用户输入超时参数并通过完整验证，尚未发布
 
 ## Next
 
+- 发布并在真实群聊中验证 `[逻辑.请求用户输入.<提示文本>.<超时时间=秒>.<超时提示=文本>]`。
 - 在真实群聊中验证消息段取值和文本消息段构建模板。
 - 在真实群聊中验证 `词库 查询 <词条ID>` 和 `词库 查询 <词库名> <词条ID>`。
 - 在真实群聊中验证 `词库 修改 <词条ID> [问 <新问题>] 答 <新回答>`。

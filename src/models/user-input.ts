@@ -1,5 +1,8 @@
 import type { TemplateContext } from './lexicon';
 
+export const DEFAULT_USER_INPUT_TIMEOUT_MS = 30_000;
+export const DEFAULT_USER_INPUT_TIMEOUT_MESSAGE = '会话超时';
+
 export interface UserInputRequest {
   promise: Promise<string>;
   cancel(error: unknown): void;

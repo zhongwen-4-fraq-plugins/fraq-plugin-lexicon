@@ -1,10 +1,11 @@
 import { LexiconError } from '../errors';
+import { DEFAULT_USER_INPUT_TIMEOUT_MESSAGE } from '../models/user-input';
 import { isEscaped } from './template-syntax';
 
 export type TemplateTerm =
   | { type: 'api'; action: string; parameters: Record<string, string> }
   | { type: 'logic'; operation: 'or' | 'and' | 'in'; values: string[] }
-  | { type: 'requestInput'; prompt: string }
+  | { type: 'requestInput'; prompt: string; timeoutSeconds?: number; timeoutMessage: string }
   | { type: 'event'; path: string[] }
   | { type: 'messageValue'; segmentType: string; path: string[] }
   | { type: 'messageBuild'; segmentType: string; content: string }
@@ -87,15 +88,11 @@ export function parseTemplateTerm(content: string): TemplateTerm {
   if (namespace === '逻辑') {
     const operation = unescapedParts.shift();
     if (operation === '请求用户输入') {
-      const prompt = unescapedParts.join('.');
-      if (!prompt.trim()) {
-        throw new LexiconError('请求用户输入词条格式应为 [逻辑.请求用户输入.<提示消息>]。');
-      }
-      return { type: 'requestInput', prompt };
+      return parseRequestInputTerm(unescapedParts);
     }
     if ((operation !== 'or' && operation !== 'and' && operation !== 'in') || unescapedParts.length < 2) {
       throw new LexiconError(
-        '逻辑词条格式应为 [逻辑.<or|and|in>.<参数1>.<参数2>...] 或 [逻辑.请求用户输入.<提示消息>]。',
+        '逻辑词条格式应为 [逻辑.<or|and|in>.<参数1>.<参数2>...] 或 [逻辑.请求用户输入.<提示消息>.<超时时间=秒>.<超时提示=文本>]。',
       );
     }
     return { type: 'logic', operation, values: unescapedParts };
@@ -113,6 +110,55 @@ export function parseTemplateTerm(content: string): TemplateTerm {
   }
 
   throw new LexiconError(`不支持的词条命名空间：${namespace || '空'}。`);
+}
+
+function parseRequestInputTerm(parts: string[]): TemplateTerm {
+  const promptParts = [...parts];
+  let timeoutSeconds: number | undefined;
+  let timeoutMessage = DEFAULT_USER_INPUT_TIMEOUT_MESSAGE;
+  let hasTimeoutMessage = false;
+
+  while (promptParts.length > 0) {
+    const part = promptParts[promptParts.length - 1];
+    if (part.startsWith('超时时间=')) {
+      if (timeoutSeconds !== undefined) {
+        throw new LexiconError('请求用户输入词条不能重复设置超时时间。');
+      }
+      const value = part.slice('超时时间='.length).trim();
+      const seconds = Number(value);
+      const timeoutMs = Math.round(seconds * 1000);
+      if (
+        !Number.isFinite(seconds) ||
+        !Number.isSafeInteger(timeoutMs) ||
+        timeoutMs <= 0 ||
+        timeoutMs > 2_147_483_647
+      ) {
+        throw new LexiconError('请求用户输入的超时时间必须是有效的正数秒数。');
+      }
+      timeoutSeconds = seconds;
+      promptParts.pop();
+      continue;
+    }
+    if (part.startsWith('超时提示=')) {
+      if (hasTimeoutMessage) {
+        throw new LexiconError('请求用户输入词条不能重复设置超时提示。');
+      }
+      timeoutMessage = part.slice('超时提示='.length);
+      if (!timeoutMessage.trim()) {
+        throw new LexiconError('请求用户输入的超时提示不能为空。');
+      }
+      hasTimeoutMessage = true;
+      promptParts.pop();
+      continue;
+    }
+    break;
+  }
+
+  const prompt = promptParts.join('.');
+  if (!prompt.trim()) {
+    throw new LexiconError('请求用户输入词条格式应为 [逻辑.请求用户输入.<提示消息>.<超时时间=秒>.<超时提示=文本>]。');
+  }
+  return { type: 'requestInput', prompt, timeoutSeconds, timeoutMessage };
 }
 
 function parseMessageTerm(parts: string[]): TemplateTerm {

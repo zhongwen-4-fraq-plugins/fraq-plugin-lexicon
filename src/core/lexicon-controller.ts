@@ -1,6 +1,6 @@
 import type { Session } from '@fraqjs/fraq';
 
-import { errorMessage } from '../errors';
+import { errorMessage, UserInputTimeoutError } from '../errors';
 import type { Lexicon, LexiconEntry, MessageContext } from '../models/lexicon';
 import { parseManagementCommand } from '../parsers/management-command-parser';
 import type { LexiconService } from '../services/lexicon-service';
@@ -118,6 +118,9 @@ export class LexiconController {
         await session.reply(reply);
       }
     } catch (error) {
+      if (error instanceof UserInputTimeoutError) {
+        return;
+      }
       await session.reply(`词条执行失败：${errorMessage(error)}`);
     }
   }

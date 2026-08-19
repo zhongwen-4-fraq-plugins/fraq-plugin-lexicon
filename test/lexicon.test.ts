@@ -1,12 +1,14 @@
-import { type EventMap, Logger, type MilkyClient } from '@fraqjs/fraq';
+import { type EventMap, Logger, type MilkyClient, type Session } from '@fraqjs/fraq';
 
 import { ApiActionRegistry } from '../src/actions/api-action-registry';
+import { LexiconController } from '../src/core/lexicon-controller';
 import { MilkyEventController } from '../src/core/milky-event-controller';
 import { LexiconRepository } from '../src/data/lexicon-repository';
 import { MILKY_API_ENDPOINTS } from '../src/data/milky-api-definitions';
 import { createEventContext } from '../src/data/milky-event-context';
 import { MILKY_EVENT_NAMES } from '../src/data/milky-event-definitions';
 import type { MessageContext } from '../src/models/lexicon';
+import { DEFAULT_USER_INPUT_TIMEOUT_MESSAGE, DEFAULT_USER_INPUT_TIMEOUT_MS } from '../src/models/user-input';
 import { resolveCommandText } from '../src/parsers/command-prefix-parser';
 import { findConditionalBlock, parseConditionalBlock } from '../src/parsers/conditional-template-parser';
 import { parseManagementCommand } from '../src/parsers/management-command-parser';
@@ -14,6 +16,7 @@ import { findInnermostTerm, parseTemplateTerm } from '../src/parsers/template-pa
 import { LexiconService } from '../src/services/lexicon-service';
 import { LogicService } from '../src/services/logic-service';
 import { MilkyApiService } from '../src/services/milky-api-service';
+import { PermissionService } from '../src/services/permission-service';
 import { TemplateService } from '../src/services/template-service';
 import { UserInputService } from '../src/services/user-input-service';
 
@@ -255,12 +258,39 @@ test('模板词条支持嵌套定位、参数和转义', () => {
   assert.deepEqual(parseTemplateTerm('逻辑.请求用户输入.请输入名字'), {
     type: 'requestInput',
     prompt: '请输入名字',
+    timeoutSeconds: undefined,
+    timeoutMessage: '会话超时',
   });
   assert.deepEqual(parseTemplateTerm('逻辑.请求用户输入.提示.消息'), {
     type: 'requestInput',
     prompt: '提示.消息',
+    timeoutSeconds: undefined,
+    timeoutMessage: '会话超时',
   });
+  assert.deepEqual(parseTemplateTerm('逻辑.请求用户输入.提示文本.超时时间=30.超时提示=会话超时'), {
+    type: 'requestInput',
+    prompt: '提示文本',
+    timeoutSeconds: 30,
+    timeoutMessage: '会话超时',
+  });
+  assert.deepEqual(parseTemplateTerm('逻辑.请求用户输入.提示.消息.超时提示=请重新开始'), {
+    type: 'requestInput',
+    prompt: '提示.消息',
+    timeoutSeconds: undefined,
+    timeoutMessage: '请重新开始',
+  });
+  assert.deepEqual(parseTemplateTerm('逻辑.请求用户输入.提示文本.超时时间=60'), {
+    type: 'requestInput',
+    prompt: '提示文本',
+    timeoutSeconds: 60,
+    timeoutMessage: '会话超时',
+  });
+  assert.equal(DEFAULT_USER_INPUT_TIMEOUT_MS, 30_000);
+  assert.equal(DEFAULT_USER_INPUT_TIMEOUT_MESSAGE, '会话超时');
   assert.throws(() => parseTemplateTerm('逻辑.请求用户输入'), /请求用户输入词条格式/);
+  assert.throws(() => parseTemplateTerm('逻辑.请求用户输入.请输入.超时时间=0'), /有效的正数秒数/);
+  assert.throws(() => parseTemplateTerm('逻辑.请求用户输入.请输入.超时提示='), /超时提示不能为空/);
+  assert.throws(() => parseTemplateTerm('逻辑.请求用户输入.请输入.超时时间=30.超时时间=60'), /不能重复设置超时时间/);
   assert.throws(() => parseTemplateTerm('逻辑.or.唯一参数'), /逻辑词条格式/);
   assert.throws(() => parseTemplateTerm('消息.取值.mention'), /消息取值词条格式/);
   assert.throws(() => parseTemplateTerm('消息.构建.text.内容.多余'), /消息构建词条格式/);
@@ -549,14 +579,47 @@ test('请求用户输入支持多个请求、选中分支和超时取消', async
   const timeoutTemplate = new TemplateService(harness.service, new ApiActionRegistry(), {} as MilkyClient, {
     userInputService: new UserInputService(10),
   });
+  const timeoutMessages: string[] = [];
   await assert.rejects(
-    () => timeoutTemplate.render('[逻辑.请求用户输入.请输入]', groupContext, new Map(), async () => {}),
+    () =>
+      timeoutTemplate.render('[逻辑.请求用户输入.请输入]', groupContext, new Map(), async (message) => {
+        timeoutMessages.push(message);
+      }),
     /等待用户输入超时/,
   );
+  assert.deepEqual(timeoutMessages, ['请输入', '会话超时']);
   await assert.rejects(
     () => template.render('[逻辑.如果][逻辑.in.[逻辑.请求用户输入.请输入是否].是]通过[逻辑.如果.结束]', groupContext),
     /不能作为逻辑条件参数/,
   );
+});
+
+test('请求用户输入支持词条级超时并且控制器不会重复发送失败提示', async (context) => {
+  const harness = createHarness(context);
+  const lexicon = harness.service.createLexicon('输入超时', 'group', groupContext);
+  harness.repository.addEntry(
+    lexicon.id,
+    'exact',
+    '戳我',
+    '[逻辑.请求用户输入.请输入内容.超时时间=1.超时提示=会话超时，请重新开始]',
+    1,
+  );
+  const template = new TemplateService(harness.service, new ApiActionRegistry(), {} as MilkyClient, {
+    userInputService: new UserInputService(10_000),
+  });
+  const controller = new LexiconController(harness.service, template, new PermissionService([]));
+  const replies: string[] = [];
+  const session = {
+    async reply(message: unknown) {
+      replies.push(String(message));
+    },
+  } as unknown as Session;
+
+  const startedAt = Date.now();
+  await controller.handleMessage(session, groupContext);
+
+  assert.deepEqual(replies, ['请输入内容', '会话超时，请重新开始']);
+  assert.ok(Date.now() - startedAt < 3_000);
 });
 
 test('变量和事件词条在问题与回答中都可使用', async (context) => {

@@ -1,7 +1,7 @@
 import type { MilkyClient } from '@fraqjs/fraq';
 
 import type { ApiActionRegistry } from '../actions/api-action-registry';
-import { LexiconError } from '../errors';
+import { LexiconError, UserInputTimeoutError } from '../errors';
 import type { TemplateContext } from '../models/lexicon';
 import { findConditionalBlock, parseConditionalBlock } from '../parsers/conditional-template-parser';
 import {
@@ -100,14 +100,23 @@ export class TemplateService {
           throw new LexiconError('[逻辑.请求用户输入.<提示消息>] 只能在支持回复的词条执行中使用。');
         }
 
-        const request = this.userInputService.request(context);
+        const timeoutMs = term.timeoutSeconds === undefined ? undefined : Math.round(term.timeoutSeconds * 1000);
+        const request = this.userInputService.request(context, timeoutMs);
         try {
           await requestUserInput(term.prompt);
         } catch (error) {
           request.cancel(error);
           throw error;
         }
-        const input = await request.promise;
+        let input: string;
+        try {
+          input = await request.promise;
+        } catch (error) {
+          if (error instanceof UserInputTimeoutError) {
+            await requestUserInput(term.timeoutMessage);
+          }
+          throw error;
+        }
         output = `${output.slice(0, location.start)}${escapeTemplateText(input)}${output.slice(location.end + 1)}`;
         continue;
       }
