@@ -5,7 +5,7 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.2.7 已发布并安装；当前开发版本为 v0.2.8，正在合并 npm 发布与 GitHub Release 工作流。
+- v0.3.0 已发布并安装到目标 Fraq，当前进入真实群聊验证阶段。
 
 ## Next
 
@@ -344,3 +344,12 @@
 - 遇到失败、取消或没有工作流的标签时继续向前查找最近成功发布标签，Release 说明从该成功标签统计到当前标签，因此自动包含所有失败标签期间的提交。
 - 如果没有任何历史标签成功发布，则当前 Release 包含当前标签可达的全部提交。
 - `pnpm check`、34 项测试、`pnpm build` 和 `npm pack --dry-run --json` 均已通过；工作流结构测试确认执行顺序和提交范围参数正确。
+
+## v0.3.0 release verification
+
+- 注解标签 `v0.3.0` 指向功能提交 `fcb0eb3`，并已推送到远程仓库。
+- `发布 npm 包` 工作流 `32251596406` 于 2026-08-19 成功完成；npm 发布、历史发布检查和 GitHub Release 三个任务均成功。
+- npm `latest` 与 GitHub Release 均为 `0.3.0`，Release 标题为 `0.3.0`，更新日志包含新增和修复分类。
+- 目标项目根目录与 `app` 的 manifest、pnpm/npm 锁文件、`versions.yml` 和活动安装包均已同步为 `fraq-plugin-lexicon@0.3.0`。
+- 目标 Fraq 已通过完整 `pnpm start` 重新启动并加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649`，Milky WebSocket 已连接，WebUI 跟随登录跳转后返回 HTTP 200。
+- 本轮未发现遗留的 `tsx --test`、`node --test` 或词库测试进程。

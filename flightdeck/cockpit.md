@@ -1,10 +1,10 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 完成 `fraq-plugin-lexicon` v0.3.0 的显式用户输入提示，并确保失败发布标签的更新日志进入下一个成功 Release。
+Focus: `fraq-plugin-lexicon` v0.3.0 已发布并安装，下一步在真实群聊中验证模板与词库管理功能。
 
 ## In flight
 
-- `template-message-plugin` — v0.3.0 已完成发布历史检查和失败标签日志合并，并通过完整验证
+- `template-message-plugin` — v0.3.0 已完成发布、Release、目标 Fraq 安装和启动验证
 
 ## Next
 
