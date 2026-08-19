@@ -375,3 +375,10 @@
 - README、Issue 模板、工作流、版本文件和 Flightdeck 等未触及 `src/` 的提交不会进入任何更新日志分类。
 - Git Emoji 分类和“仅保留最新书签提交”规则仍然保留，但同样受 `src/` 提交门槛约束。
 - 发布说明定向测试共 7 项通过，静态检查通过。
+
+## Documentation layout
+
+- README 现在只保留插件整体介绍、安装、配置和详细文档入口。
+- 词库管理、匹配规则和词条模板用法已迁移到 `docs/lexicon-usage.md`。
+- 开发、Trusted Publisher 和 PR 审核说明已迁移到 `docs/development.md`，`package.json` 已将 `docs` 加入 npm 包。
+- `pnpm check` 通过；`npm pack --dry-run --json` 确认 README 和两份 `docs/` 文档均进入 `fraq-plugin-lexicon@0.3.1` 包。

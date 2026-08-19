@@ -4,7 +4,7 @@ Focus: 完成 `fraq-plugin-lexicon` v0.3.1，并确保 Release 更新日志只�
 
 ## In flight
 
-- `template-message-plugin` — v0.3.1 已实现用户输入超时、Issue Form 和仅提取 `src/` commit 的 Release 日志，尚未发布
+- `template-message-plugin` — v0.3.1 已实现用户输入超时、Issue Form、文档拆分和仅提取 `src/` commit 的 Release 日志，尚未发布
 
 ## Next
 
