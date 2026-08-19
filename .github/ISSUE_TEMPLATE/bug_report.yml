@@ -28,9 +28,8 @@ body:
       label: 复现步骤
       description: 请按顺序描述触发 BUG 所需的操作和配置。
       placeholder: |
-        1. 使用了什么版本？
-        2. 执行了什么操作？
-        3. 出现了什么结果？
+        1. 执行了什么操作？
+        2. 出现了什么结果？
     validations:
       required: true
   - type: textarea
