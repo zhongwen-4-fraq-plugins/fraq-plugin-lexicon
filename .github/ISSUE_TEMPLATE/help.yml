@@ -1,0 +1,21 @@
+name: 请求帮助
+description: 获取词库插件使用或配置方面的帮助
+title: '[Help] '
+labels:
+  - question
+body:
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已阅读[issue列表](https://github.com/zhongwen-4-fraq-plugins/fraq-plugin-lexicon/issues)，但仍未找到对应的解决方法
+          required: true
+  - type: textarea
+    id: help-request
+    attributes:
+      label: 你需要什么帮助？
+      description: 请详细说明遇到的问题、当前配置和期望得到的帮助。
+      placeholder: 请描述你需要的帮助
+    validations:
+      required: true

@@ -16,7 +16,8 @@ READ WHEN: before creating or modifying GitHub issue templates
 
 - BUG 表单要求确认版本和已查阅 Issue 列表，并要求填写错误日志、复现步骤。
 - 功能请求表单要求确认已更新插件，并要求填写功能描述。
-- 两种表单都保留可选的附加内容字段。
+- 帮助表单要求确认已查阅 Issue 列表，并要求详细描述需要的帮助。
+- BUG 和功能请求表单保留可选的附加内容字段。
 
 ## 官方资料
 
