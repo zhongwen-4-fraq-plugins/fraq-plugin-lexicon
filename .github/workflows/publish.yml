@@ -58,9 +58,37 @@ jobs:
       - name: 发布到 npm
         run: npm publish
 
+  release_base:
+    name: 检查历史发布状态
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      base_tag: ${{ steps.history.outputs.base_tag }}
+
+    steps:
+      - name: 检出发布历史
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: 查找最近成功发布的标签
+        id: history
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          BASE_TAG="$(node .github/scripts/find-release-base.mjs "$RELEASE_TAG")"
+          echo "base_tag=$BASE_TAG" >> "$GITHUB_OUTPUT"
+
   release:
     name: 生成发布说明并创建 Release
-    needs: publish
+    needs: release_base
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -76,9 +104,10 @@ jobs:
       - name: 生成发布说明
         env:
           RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_BASE_TAG: ${{ needs.release_base.outputs.base_tag }}
         shell: bash
         run: |
-          node .github/scripts/generate-release-notes.mjs "$RELEASE_TAG" > release-notes.md
+          node .github/scripts/generate-release-notes.mjs "$RELEASE_TAG" "$RELEASE_BASE_TAG" > release-notes.md
           cat release-notes.md
 
       - name: 创建或更新 Release

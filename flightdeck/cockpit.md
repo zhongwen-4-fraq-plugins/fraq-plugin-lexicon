@@ -1,10 +1,10 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 将 `fraq-plugin-lexicon` v0.3.0 的用户输入请求词条改为显式提示，并移除回答前缀分段发送。
+Focus: 完成 `fraq-plugin-lexicon` v0.3.0 的显式用户输入提示，并确保失败发布标签的更新日志进入下一个成功 Release。
 
 ## In flight
 
-- `template-message-plugin` — v0.3.0 已完成显式提示语法和一次性最终回复，并通过完整验证
+- `template-message-plugin` — v0.3.0 已完成发布历史检查和失败标签日志合并，并通过完整验证
 
 ## Next
 

@@ -59,6 +59,10 @@ export function isFlightdeckOnly(files) {
   return files.length > 0 && files.every((file) => file === 'flightdeck' || file.startsWith('flightdeck/'));
 }
 
+export function buildCommitRange(currentTag, baseTag) {
+  return baseTag ? `${baseTag}..${currentTag}` : currentTag;
+}
+
 function formatSection(heading, items) {
   return [heading, '', ...items.map((item) => `- ${item.text}`)].join('\n');
 }
@@ -87,10 +91,13 @@ function commitFiles(hash) {
   return output ? output.split(/\r?\n/u) : [];
 }
 
-function collectCommits(currentTag) {
+function collectCommits(currentTag, baseTag) {
   runGit(['rev-parse', '--verify', `refs/tags/${currentTag}`]);
-  const previous = previousTag(currentTag);
-  const range = previous ? `${previous}..${currentTag}` : currentTag;
+  const resolvedBaseTag = baseTag === undefined ? previousTag(currentTag) : baseTag;
+  if (resolvedBaseTag) {
+    runGit(['rev-parse', '--verify', `refs/tags/${resolvedBaseTag}`]);
+  }
+  const range = buildCommitRange(currentTag, resolvedBaseTag);
   const output = runGit(['log', '--format=%H%x1f%s%x1e', range]);
   if (!output) {
     return [];
@@ -108,9 +115,10 @@ function collectCommits(currentTag) {
 function main() {
   const currentTag = process.argv[2];
   if (!currentTag) {
-    throw new Error('用法：node generate-release-notes.mjs <tag>');
+    throw new Error('用法：node generate-release-notes.mjs <tag> [base-tag]');
   }
-  process.stdout.write(buildReleaseNotes(collectCommits(currentTag)));
+  const baseTag = process.argv.length >= 4 ? process.argv[3] : undefined;
+  process.stdout.write(buildReleaseNotes(collectCommits(currentTag, baseTag)));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

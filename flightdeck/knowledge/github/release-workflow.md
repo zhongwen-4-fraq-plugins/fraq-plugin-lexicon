@@ -1,12 +1,14 @@
 # GitHub Release automation checklist
-SUMMARY: Create GitHub Releases in a release job that needs the npm publish job, derive notes from commits between version tags, hide empty Git Emoji sections, skip Flightdeck-only docs, and keep only the newest bookmark commit.
+SUMMARY: Publish npm first, find the latest tag whose publish workflow completed successfully, then create a GitHub Release containing every commit since that successful publication, including changes from failed tagged runs.
 READ WHEN: before creating or modifying GitHub Release workflows or automatic release-note generation
 
 ---
 
-- Keep npm publishing and GitHub Release creation in `.github/workflows/publish.yml`; the `release` job must declare `needs: publish` and only run when the publish job succeeds.
+- Keep npm publishing, history checking, and GitHub Release creation in `.github/workflows/publish.yml`; chain them as `publish` → `release_base` → `release` through `needs` without redundant success conditions.
 - Trigger the workflow from a version tag push and check out that tag before writing a Release.
-- Use the previous reachable version tag as the exclusive lower bound and the current tag as the inclusive upper bound.
+- Give the history-check job `actions: read` and `contents: read`, and match historical runs by tag plus peeled commit SHA so recreated tags or unrelated runs cannot become the baseline.
+- Walk previous reachable version tags newest-first until finding a workflow run whose overall conclusion is `success`; tags with missing, cancelled, or failed runs remain inside the next successful Release range.
+- Use the latest successfully published tag as the exclusive lower bound and the current tag as the inclusive upper bound. If no historical tag succeeded, include every commit reachable from the current tag.
 - Group `✨`/`:sparkles:`, `🐛`/`:bug:`, `🎨`/`:art:`, and `📝`/`:pencil:` commits into separate sections; omit empty sections.
 - Skip documentation commits when every changed file is under `flightdeck/`.
 - Put uncategorized commits under “其他”; when multiple `🔖`/`:bookmark:` commits exist, include only the newest one.
