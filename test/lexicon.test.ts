@@ -816,37 +816,25 @@ test('事件字段自动补充 API 参数且显式参数优先', async () => {
   ]);
 });
 
-test('API 参数 qq 可作为 user_id 简写', async () => {
-  const calls: Array<{ endpoint: string; params: Record<string, unknown> }> = [];
-  const client = new Proxy(
-    {},
-    {
-      get(_target, property) {
-        return async (params: Record<string, unknown>) => {
-          calls.push({ endpoint: String(property), params });
-          return {};
-        };
-      },
-    },
-  ) as MilkyClient;
+test('API 参数名必须使用协议名称并提示正确参数', async () => {
   const apiService = new MilkyApiService();
+  const client = {} as MilkyClient;
 
-  await apiService.execute('get_group_member_info', { qq: '90009' }, { client, message: groupContext });
-
-  assert.deepEqual(calls, [
-    {
-      endpoint: 'get_group_member_info',
-      params: { group_id: 10001, user_id: 90009, no_cache: false },
-    },
-  ]);
   await assert.rejects(
-    () =>
-      apiService.execute('get_group_member_info', { qq: '90009', user_id: '80008' }, { client, message: groupContext }),
-    /不能同时使用/,
+    () => apiService.execute('get_user_name', {}, { client, message: groupContext }),
+    /没有这个 Milky API：“get_user_name”/,
   );
   await assert.rejects(
-    () => apiService.execute('get_group_info', { qq: '90009' }, { client, message: groupContext }),
-    /不支持参数“qq”/,
+    () => apiService.execute('get_user_profile', { qq: '90009' }, { client, message: groupContext }),
+    /参数名错误：“qq”应当是“user_id”/,
+  );
+  await assert.rejects(
+    () => apiService.execute('get_group_info', { groupid: '10001' }, { client, message: groupContext }),
+    /参数名错误：“groupid”应当是“group_id”/,
+  );
+  await assert.rejects(
+    () => apiService.execute('get_login_info', { value: '1' }, { client, message: groupContext }),
+    /参数名错误：该 API 不接受参数/,
   );
 });
 

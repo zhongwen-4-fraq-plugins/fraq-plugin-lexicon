@@ -382,3 +382,11 @@
 - 词库管理、匹配规则和词条模板用法已迁移到 `docs/lexicon-usage.md`。
 - 开发、Trusted Publisher 和 PR 审核说明已迁移到 `docs/development.md`，`package.json` 已将 `docs` 加入 npm 包。
 - `pnpm check` 通过；`npm pack --dry-run --json` 确认 README 和两份 `docs/` 文档均进入 `fraq-plugin-lexicon@0.3.1` 包。
+
+## v0.3.1 API syntax validation
+
+- Milky API 端点会在调用客户端之前校验；未知端点直接返回“没有这个 Milky API”。
+- 显式参数名必须严格使用 Milky 协议名称；`qq` 别名已移除，会纠正为 `user_id`。
+- 参数名校验会提示常见别名、忽略下划线后的匹配名或单参数 API 的唯一参数；无建议时列出可用参数。
+- 必填参数仍在合并事件默认值后校验，保留“参数默认从事件取”的既有行为。
+- `pnpm test` 36 项、`pnpm check` 和 `pnpm build` 均通过。

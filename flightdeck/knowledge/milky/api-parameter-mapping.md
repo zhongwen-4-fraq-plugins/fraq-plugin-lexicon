@@ -1,5 +1,5 @@
 # ⚠ Milky API 参数映射陷阱
-SUMMARY: Fraq API 的可选性来自 request_ZodInput；事件默认值必须先放协议默认值再覆盖真实事件字段，并显式转换名称不同但语义相同的字段。
+SUMMARY: Fraq API 可选性来自 request_ZodInput；API 参数名必须严格使用协议定义，事件默认值先放协议默认再覆盖真实事件字段。
 READ WHEN: when a Milky API template reports unsupported, missing, or incorrect parameters
 
 ---
@@ -20,6 +20,6 @@ READ WHEN: when a Milky API template reports unsupported, missing, or incorrect 
 
 ## 用户参数
 
-- `qq` 只在目标 API 存在 `user_id` 时作为简写，不能和 `user_id` 同时出现。
+- API 参数名必须严格使用协议定义；`qq` 不再作为 `user_id` 别名，而是返回“应当是 user_id”的纠错提示。
 - 参数进入客户端前校验未知参数、必填参数、整数、布尔值和有限枚举，避免把可解释错误推迟到 Milky 服务端。
 - 官方 JSON Schema 中所有 `group_id` 都使用 `10001..4294967295`，所有 `message_seq` 都使用 `0..9007199254740991`；范围校验必须作用于显式参数和事件默认参数。

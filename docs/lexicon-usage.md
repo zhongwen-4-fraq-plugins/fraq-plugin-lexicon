@@ -173,13 +173,13 @@
 [api.<英文 API 端点>.<参数名>=<参数值>]
 [api.send_group_nudge]
 [api.send_group_nudge.user_id=123456789]
-[api.get_group_member_info.qq=123456789]
+[api.get_group_member_info.user_id=123456789]
 ```
 
 插件支持当前 Milky/Fraq 提供的全部 65 个英文 API 端点。用户显式填写的参数优先；未填写时会先读取事件 `data` 中的同名字段，再按端点需要补充：
 
 - `user_id`：第一个被艾特的 QQ、被回复消息的发送者、事件中的 `user_id`、`sender_id`、`operator_id`、`initiator_id`，最后是当前发送者。
-- `qq`：当目标 API 支持 `user_id` 时可作为其简写；不能与 `user_id` 同时填写。
+- 参数名必须使用 Milky 协议定义的英文名称，不再接受 `qq` 等别名。参数名错误时会提示建议名称或可用参数列表。
 - `group_id`：当前群号；群消息撤回等事件会根据 `message_scene=group` 将 `peer_id` 转为群号；有效范围为 `10001..4294967295`。
 - `message_scene`、`peer_id`：当前消息场景和会话 ID。
 - `message_seq`、`start_message_seq`：被回复消息的序列号，否则使用当前消息序列号；`message_seq` 有效范围为 `0..9007199254740991`。
@@ -192,6 +192,12 @@
 - `no_cache=false`、`is_filtered=false`、`is_self=false`、`is_self_send=false`、`limit=20`、`count=1`。
 
 事件自身提供的参数不会被上述默认值覆盖。调用前会检查必填参数、`group_id` 与 `message_seq` 范围，以及 `message_scene`、`notification_type`、`reaction_type` 等枚举参数，并直接返回可读错误；显式参数和事件自动参数使用相同校验。
+
+常见语法错误会在调用 API 之前直接返回：
+
+- `[api.get_user_name]`：提示没有 `get_user_name` 这个 Milky API。
+- `[api.get_user_profile.qq=xxx]`：提示参数名 `qq` 应当是 `user_id`。
+- `[api.get_cookies]`：提示缺少必填参数 `domain`。
 
 消息参数可以直接填写文本，也可以填写消息段 JSON：
 
@@ -230,4 +236,3 @@ API 返回空对象时不输出文本；其他返回值会序列化为 JSON，�
 同一次词条命中中，问题创建的变量可以在回答中读取；通过 `[词库.<词库名>]` 命中的嵌套词条也会把问题变量传递给后续回答。每条新消息或新事件都会创建独立变量作用域。变量内容可以继续包含词条，读取变量后会继续参与嵌套解析；回答中读取未创建变量会返回错误，问题中读取未创建变量则视为不匹配。
 
 需要输出字面量方括号、点号或等号时，可以使用反斜杠转义，例如 `\[普通文本\]`。
-

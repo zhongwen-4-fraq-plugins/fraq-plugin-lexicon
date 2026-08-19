@@ -2,34 +2,24 @@ import type { ApiEndpointName } from '@fraqjs/fraq';
 
 import type { ApiActionContext } from '../actions/api-action-registry';
 import { createApiEventDefaults } from '../data/api-event-defaults';
-import { isMilkyApiEndpoint, MILKY_API_DEFINITIONS } from '../data/milky-api-definitions';
 import { MILKY_API_NUMBER_RANGES } from '../data/milky-api-number-ranges';
 import { MILKY_API_PARAMETER_VALUES } from '../data/milky-api-parameter-values';
 import { errorMessage, LexiconError } from '../errors';
 import type { ApiParameterDefinition, ApiParameterKind } from '../models/milky-api';
-import { normalizeApiParameters } from '../parsers/api-parameter-parser';
+import { validateApiSyntax } from '../parsers/api-syntax-validator';
 import { escapeTemplateText } from '../parsers/template-parser';
 
 export class MilkyApiService {
   async execute(endpointName: string, parameters: Record<string, string>, context: ApiActionContext): Promise<string> {
-    if (!isMilkyApiEndpoint(endpointName)) {
-      throw new LexiconError(`不支持的 Milky API：${endpointName}。`);
-    }
-
-    const definition = MILKY_API_DEFINITIONS[endpointName];
-    const normalizedParameters = normalizeApiParameters(parameters, definition);
-    const unknownParameter = Object.keys(normalizedParameters).find((name) => !(name in definition));
-    if (unknownParameter) {
-      throw new LexiconError(`Milky API“${endpointName}”不支持参数“${unknownParameter}”。`);
-    }
+    const { endpoint, definition } = validateApiSyntax(endpointName, parameters);
 
     const eventDefaults = createApiEventDefaults(context.message);
     const apiParameters: Record<string, unknown> = {};
     const missingParameters: string[] = [];
     for (const [name, parameterDefinition] of Object.entries(definition)) {
-      const explicitValue = normalizedParameters[name];
+      const explicitValue = parameters[name];
       if (explicitValue !== undefined) {
-        apiParameters[name] = parseParameterValue(explicitValue, parameterDefinition, endpointName, name);
+        apiParameters[name] = parseParameterValue(explicitValue, parameterDefinition, endpoint, name);
         continue;
       }
       if (Object.hasOwn(eventDefaults, name)) {
@@ -45,10 +35,10 @@ export class MilkyApiService {
       throw new LexiconError(`Milky API“${endpointName}”缺少必填参数：${missingParameters.join('、')}。`);
     }
 
-    validateNumberRanges(endpointName, apiParameters);
+    validateNumberRanges(endpoint, apiParameters);
 
     try {
-      const result = await callApi(context, endpointName, apiParameters);
+      const result = await callApi(context, endpoint, apiParameters);
       return serializeApiResult(result);
     } catch (error) {
       throw new LexiconError(`Milky API“${endpointName}”执行失败：${errorMessage(error)}`);
