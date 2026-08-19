@@ -19,6 +19,10 @@ export function buildReleaseNotes(commits) {
   let latestBookmark;
 
   for (const [order, commit] of commits.entries()) {
+    if (!hasSourceChanges(commit.files)) {
+      continue;
+    }
+
     const bookmarkPrefix = findPrefix(commit.subject, BOOKMARK_PREFIXES);
     if (bookmarkPrefix) {
       latestBookmark ??= { order, text: stripPrefix(commit.subject, bookmarkPrefix) };
@@ -28,9 +32,6 @@ export function buildReleaseNotes(commits) {
     const section = SECTIONS.find((candidate) => findPrefix(commit.subject, candidate.prefixes));
     if (!section) {
       other.push({ order, text: commit.subject.trim() });
-      continue;
-    }
-    if (section.key === 'docs' && isFlightdeckOnly(commit.files)) {
       continue;
     }
     const prefix = findPrefix(commit.subject, section.prefixes);
@@ -55,8 +56,8 @@ export function buildReleaseNotes(commits) {
   return `${output.join('\n\n') || '本版本没有需要展示的提交记录。'}\n`;
 }
 
-export function isFlightdeckOnly(files) {
-  return files.length > 0 && files.every((file) => file === 'flightdeck' || file.startsWith('flightdeck/'));
+export function hasSourceChanges(files) {
+  return files.some((file) => file === 'src' || file.startsWith('src/'));
 }
 
 export function buildCommitRange(currentTag, baseTag) {

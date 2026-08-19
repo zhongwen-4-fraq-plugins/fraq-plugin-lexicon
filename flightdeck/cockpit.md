@@ -1,10 +1,10 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 完成 `fraq-plugin-lexicon` v0.3.1 的用户输入超时配置，并完善帮助与 BUG Issue Form。
+Focus: 完成 `fraq-plugin-lexicon` v0.3.1，并确保 Release 更新日志只提取修改 `src/` 的 commit。
 
 ## In flight
 
-- `template-message-plugin` — v0.3.1 已实现用户输入超时参数并完善 Issue Form，尚未发布
+- `template-message-plugin` — v0.3.1 已实现用户输入超时、Issue Form 和仅提取 `src/` commit 的 Release 日志，尚未发布
 
 ## Next
 

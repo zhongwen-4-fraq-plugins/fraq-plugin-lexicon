@@ -1,28 +1,32 @@
 import { findReleaseBase } from '../.github/scripts/find-release-base.mjs';
-import { buildCommitRange, buildReleaseNotes, isFlightdeckOnly } from '../.github/scripts/generate-release-notes.mjs';
+import { buildCommitRange, buildReleaseNotes, hasSourceChanges } from '../.github/scripts/generate-release-notes.mjs';
 
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
-test('发布说明按 Git Emoji 分类并过滤 Flightdeck 文档', () => {
+test('发布说明按 Git Emoji 分类并且只提取修改 src 的提交', () => {
   const notes = buildReleaseNotes([
     { subject: '✨ 新增查询命令', files: ['src/core/controller.ts'] },
     { subject: '🐛 修复参数映射', files: ['src/services/api.ts'] },
     { subject: '🎨 优化回复格式', files: ['src/core/controller.ts'] },
     { subject: '📝 更新使用文档', files: ['README.md'] },
+    { subject: '📝 补充源码注释', files: ['src/index.ts', 'README.md'] },
     { subject: '📝 记录发布验证', files: ['flightdeck/cockpit.md'] },
-    { subject: '🔖 调整版本至 0.2.5', files: ['package.json'] },
-    { subject: '🔖 调整版本至 0.2.4', files: ['package.json'] },
+    { subject: '📝 添加帮助模板', files: ['.github/ISSUE_TEMPLATE/help.yml'] },
+    { subject: '🔖 调整版本至 0.2.5', files: ['src/version.ts', 'package.json'] },
+    { subject: '🔖 调整版本至 0.2.4', files: ['src/version.ts', 'package.json'] },
     { subject: '🔥 移除旧实现', files: ['src/legacy.ts'] },
   ]);
 
   assert.match(notes, /## :sparkles:新增\n\n- 新增查询命令/u);
   assert.match(notes, /## :bug: 修复\n\n- 修复参数映射/u);
   assert.match(notes, /## :art: 优化\n\n- 优化回复格式/u);
-  assert.match(notes, /## :pencil: 文档\n\n- 更新使用文档/u);
+  assert.match(notes, /## :pencil: 文档\n\n- 补充源码注释/u);
   assert.match(notes, /## 其他：[\s\S]*- 调整版本至 0\.2\.5[\s\S]*- 🔥 移除旧实现/u);
+  assert.doesNotMatch(notes, /更新使用文档/u);
   assert.doesNotMatch(notes, /记录发布验证/u);
+  assert.doesNotMatch(notes, /添加帮助模板/u);
   assert.doesNotMatch(notes, /调整版本至 0\.2\.4/u);
 });
 
@@ -33,9 +37,20 @@ test('空分类不会出现在发布说明中', () => {
   assert.match(notes, /## :bug: 修复/u);
 });
 
-test('Flightdeck 提交仅在全部文件属于该目录时过滤', () => {
-  assert.equal(isFlightdeckOnly(['flightdeck/cockpit.md', 'flightdeck/work/topic/index.md']), true);
-  assert.equal(isFlightdeckOnly(['flightdeck/cockpit.md', 'README.md']), false);
+test('仅将修改 src 目录的提交视为更新日志来源', () => {
+  assert.equal(hasSourceChanges(['src/index.ts']), true);
+  assert.equal(hasSourceChanges(['README.md', 'src/services/template-service.ts']), true);
+  assert.equal(hasSourceChanges(['README.md', 'flightdeck/cockpit.md']), false);
+  assert.equal(hasSourceChanges(['scripts/src-helper.mjs']), false);
+});
+
+test('没有 src 提交时生成空更新日志提示', () => {
+  const notes = buildReleaseNotes([
+    { subject: '📝 更新文档', files: ['README.md'] },
+    { subject: '🔖 调整版本', files: ['package.json'] },
+  ]);
+
+  assert.equal(notes.trim(), '本版本没有需要展示的提交记录。');
 });
 
 test('失败发布标签会合并到下一个成功版本的提交范围', async () => {
