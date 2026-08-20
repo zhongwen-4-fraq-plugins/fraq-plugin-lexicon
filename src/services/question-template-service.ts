@@ -11,6 +11,7 @@ import {
 } from '../parsers/template-parser';
 import { CountedLoopService } from './counted-loop-service';
 import { IncomingSegmentValueService } from './incoming-segment-value-service';
+import { JsonVariableValueService } from './json-variable-value-service';
 import { LogicService } from './logic-service';
 import { MilkyEventValueService } from './milky-event-value-service';
 import { replaceVariables } from './template-variable-scope';
@@ -24,6 +25,7 @@ interface QuestionState {
 export class QuestionTemplateService {
   private readonly eventValueService = new MilkyEventValueService();
   private readonly segmentValueService = new IncomingSegmentValueService();
+  private readonly jsonValueService = new JsonVariableValueService();
   private readonly logicService = new LogicService();
   private readonly countedLoopService = new CountedLoopService();
 
@@ -147,6 +149,12 @@ export class QuestionTemplateService {
         } catch {
           return undefined;
         }
+      } else if (term.type === 'jsonValue') {
+        try {
+          replacement = this.jsonValueService.resolve(term.variableName, term.path, variables);
+        } catch {
+          return undefined;
+        }
       } else if (term.type === 'logic') {
         try {
           replacement =
@@ -220,7 +228,7 @@ export class QuestionTemplateService {
 }
 
 function hasQuestionTemplate(question: string): boolean {
-  return /(^|[^\\])\[(?:event\.|消息\.取值\.|变量\.(?:创建|读取)\.|逻辑\.)/.test(question);
+  return /(^|[^\\])\[(?:event\.|消息\.取值\.|json\.取值\.|变量\.(?:创建|读取)\.|逻辑\.)/.test(question);
 }
 
 function matchesText(question: string, matchMode: MatchMode, originalText: string): boolean {

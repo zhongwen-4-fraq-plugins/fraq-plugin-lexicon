@@ -14,6 +14,7 @@ import {
 } from '../parsers/template-parser';
 import { CountedLoopService } from './counted-loop-service';
 import { IncomingSegmentValueService } from './incoming-segment-value-service';
+import { JsonVariableValueService } from './json-variable-value-service';
 import type { LexiconService } from './lexicon-service';
 import { LogicService } from './logic-service';
 import { MessageSegmentBuildService } from './message-segment-build-service';
@@ -37,6 +38,7 @@ export class TemplateService {
   private readonly maxOutputLength: number;
   private readonly eventValueService = new MilkyEventValueService();
   private readonly segmentValueService = new IncomingSegmentValueService();
+  private readonly jsonValueService = new JsonVariableValueService();
   private readonly segmentBuildService = new MessageSegmentBuildService();
   private readonly logicService = new LogicService();
   private readonly countedLoopService: CountedLoopService;
@@ -240,6 +242,10 @@ export class TemplateService {
 
     if (term.type === 'messageBuild') {
       return this.segmentBuildService.build(term.segmentType, term.content);
+    }
+
+    if (term.type === 'jsonValue') {
+      return this.jsonValueService.resolve(term.variableName, term.path, variables);
     }
 
     if (term.type === 'setVariable') {

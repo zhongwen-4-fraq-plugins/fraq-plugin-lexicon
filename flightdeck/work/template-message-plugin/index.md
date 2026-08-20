@@ -409,3 +409,12 @@
 - 目标项目 `app/node_modules/.ignored` 中遗留的 `fraq-plugin-lexicon@0.3.0` 副本已精确清理。
 - 目标 Fraq 已完整重新启动并加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649`，Milky WebSocket 已连接，WebUI 跟随登录跳转后返回 HTTP 200。
 - 本轮未发现遗留的 `tsx --test`、`node --test` 或词库测试进程。
+
+## v0.3.2 JSON variable value term
+
+- 新增 `[json.取值.<变量名>.<字段路径>]`，从变量中的 JSON 读取对象字段或数组下标。
+- JSON 变量可以来自字面值、事件字段、消息段、API 返回值或其他嵌套词条；变量名和字段路径也支持嵌套词条动态生成。
+- JSON 取值同时支持问题与回答，问题中创建的 JSON 变量会继续传递到回答作用域。
+- 对象或数组结果序列化为 JSON 文本，字符串、数字和布尔值按模板值输出，并继续使用现有模板转义规则。
+- 变量未创建、内容不是有效 JSON 或字段不存在时返回明确错误；问题解析遇到这些错误时视为不匹配。
+- 开发版本更新为 `0.3.2`；`pnpm test` 共 42 项、`pnpm check`、`pnpm build` 和 `npm pack --dry-run --json` 均通过。

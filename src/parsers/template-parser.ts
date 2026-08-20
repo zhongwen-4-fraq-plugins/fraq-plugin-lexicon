@@ -10,6 +10,7 @@ export type TemplateTerm =
   | { type: 'event'; path: string[] }
   | { type: 'messageValue'; segmentType: string; path: string[] }
   | { type: 'messageBuild'; segmentType: string; content: string }
+  | { type: 'jsonValue'; variableName: string; path: string[] }
   | { type: 'lexicon'; name: string }
   | { type: 'setVariable'; name: string; value: string }
   | { type: 'getVariable'; name: string };
@@ -123,6 +124,10 @@ export function parseTemplateTerm(content: string): TemplateTerm {
     return parseMessageTerm(unescapedParts);
   }
 
+  if (namespace === 'json') {
+    return parseJsonTerm(unescapedParts);
+  }
+
   throw new LexiconError(`不支持的词条命名空间：${namespace || '空'}。`);
 }
 
@@ -195,6 +200,19 @@ function parseMessageTerm(parts: string[]): TemplateTerm {
   }
 
   throw new LexiconError(`不支持的消息操作：${operation || '空'}。`);
+}
+
+function parseJsonTerm(parts: string[]): TemplateTerm {
+  const operation = parts.shift();
+  if (operation !== '取值') {
+    throw new LexiconError(`不支持的 JSON 操作：${operation || '空'}。`);
+  }
+
+  const variableName = parts.shift();
+  if (!variableName || parts.length === 0 || parts.some((part) => !part)) {
+    throw new LexiconError('JSON 取值词条格式应为 [json.取值.<变量名>.<字段路径>]。');
+  }
+  return { type: 'jsonValue', variableName: validateVariableName(variableName), path: parts };
 }
 
 function parseVariableTerm(parts: string[]): TemplateTerm {

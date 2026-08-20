@@ -232,6 +232,11 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     type: 'getVariable',
     name: 'A',
   });
+  assert.deepEqual(parseTemplateTerm('json.取值.响应.data.items.0.name'), {
+    type: 'jsonValue',
+    variableName: '响应',
+    path: ['data', 'items', '0', 'name'],
+  });
   assert.deepEqual(parseTemplateTerm('event.data.group_id'), {
     type: 'event',
     path: ['data', 'group_id'],
@@ -295,6 +300,8 @@ test('模板词条支持嵌套定位、参数和转义', () => {
   assert.throws(() => parseTemplateTerm('逻辑.or.唯一参数'), /逻辑词条格式/);
   assert.throws(() => parseTemplateTerm('消息.取值.mention'), /消息取值词条格式/);
   assert.throws(() => parseTemplateTerm('消息.构建.text.内容.多余'), /消息构建词条格式/);
+  assert.throws(() => parseTemplateTerm('json.取值.A'), /JSON 取值词条格式/);
+  assert.throws(() => parseTemplateTerm('json.读取.A.key'), /不支持的 JSON 操作/);
   assert.throws(() => parseTemplateTerm('is.mention.user_id'), /不支持的词条命名空间/);
   assert.equal(findInnermostTerm('普通文本\\[不是词条\\]'), undefined);
 });
@@ -466,6 +473,52 @@ test('变量词条支持创建、读取和无限嵌套解析', async (context) =
   );
 
   assert.equal(output, '最终内容');
+});
+
+test('JSON 取值词条支持对象、数组、嵌套解析和明确错误', async (context) => {
+  const harness = createHarness(context);
+  const source = '[变量.创建.响应={"data":{"user":{"name":"小明"}}}]';
+
+  assert.equal(await harness.template.render(`${source}[json.取值.响应.data.user.name]`, groupContext), '小明');
+  assert.equal(
+    await harness.template.render(
+      `[变量.创建.变量名=响应][变量.创建.字段名=name]${source}[json.取值.[变量.读取.变量名].data.user.[变量.读取.字段名]]`,
+      groupContext,
+    ),
+    '小明',
+  );
+  assert.deepEqual(JSON.parse(await harness.template.render(`${source}[json.取值.响应.data.user]`, groupContext)), {
+    name: '小明',
+  });
+  assert.equal(
+    await harness.template.render('[变量.创建.事件=[event.data]][json.取值.事件.segments.0.data.text]', groupContext),
+    '戳我',
+  );
+  await assert.rejects(() => harness.template.render('[json.取值.未创建.key]', groupContext), /尚未创建/);
+  await assert.rejects(
+    () => harness.template.render('[变量.创建.A=不是 JSON][json.取值.A.key]', groupContext),
+    /不是有效的 JSON/,
+  );
+  await assert.rejects(
+    () => harness.template.render(`${source}[json.取值.响应.data.not_exists]`, groupContext),
+    /不存在/,
+  );
+});
+
+test('JSON 取值词条在问题与回答中共享问题变量', async (context) => {
+  const harness = createHarness(context);
+  const lexicon = harness.service.createLexicon('JSON问答', 'group', groupContext);
+  harness.repository.addEntry(
+    lexicon.id,
+    'exact',
+    '[变量.创建.响应={"question":"戳我","answer":"JSON 命中"}][json.取值.响应.question]',
+    '[json.取值.响应.answer]',
+    1,
+  );
+
+  const match = harness.service.matchMessage(groupContext);
+  assert.ok(match);
+  assert.equal(await harness.template.render(match.answer, groupContext, match.questionVariables), 'JSON 命中');
 });
 
 test('计次循环块支持嵌套定位和控制词条解析', () => {
