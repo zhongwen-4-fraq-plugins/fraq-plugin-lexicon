@@ -1,15 +1,15 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 完成 `fraq-plugin-lexicon` v0.3.2 的 JSON 变量取值词条。
+Focus: 在真实群聊中验证 `fraq-plugin-lexicon` v0.3.2 的模板词条能力。
 
 ## In flight
 
-- `template-message-plugin` — v0.3.2 已实现 `[json.取值.<变量名>.<字段路径>]`，待提交发布
+- `template-message-plugin` — v0.3.2 已发布并安装到目标 Fraq，待真实群聊验证
 
 ## Next
 
 - 在真实群聊中验证计次循环、变量次数、`[循环.退出]` 和 `[循环.跳过]`。
-- 发布并验证 JSON 变量取值、数组下标和 API 返回值解析。
+- 在真实群聊中验证 JSON 变量取值、数组下标和 API 返回值解析。
 - 在真实群聊中验证 `[逻辑.请求用户输入.<提示文本>.<超时时间=秒>.<超时提示=文本>]`。
 - 在真实群聊中验证消息段取值和文本消息段构建模板。
 - 在真实群聊中验证 `词库 查询 <词条ID>` 和 `词库 查询 <词库名> <词条ID>`。

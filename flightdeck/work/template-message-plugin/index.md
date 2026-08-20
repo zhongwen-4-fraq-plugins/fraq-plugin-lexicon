@@ -30,6 +30,7 @@
 
 - 编写使用文档时读取 `README.md`。
 - 添加验证时读取 `test/smoke.ts`。
+- 再次发布并安装到目标 Fraq 时读取 `flightdeck/knowledge/fraq/target-app-integration.md`。
 
 ## Progress
 
@@ -418,3 +419,13 @@
 - 对象或数组结果序列化为 JSON 文本，字符串、数字和布尔值按模板值输出，并继续使用现有模板转义规则。
 - 变量未创建、内容不是有效 JSON 或字段不存在时返回明确错误；问题解析遇到这些错误时视为不匹配。
 - 开发版本更新为 `0.3.2`；`pnpm test` 共 42 项、`pnpm check`、`pnpm build` 和 `npm pack --dry-run --json` 均通过。
+
+## v0.3.2 release verification
+
+- 注解标签 `v0.3.2` 指向功能提交 `69eac6d`，并已推送到远程仓库。
+- `发布 npm 包` 工作流 `32429170482` 成功完成；测试发布、历史发布检查和 GitHub Release 三个任务均成功。
+- npm `latest` 与 GitHub Release 均为 `0.3.2`，Release 更新日志仅包含修改 `src/` 的 JSON 变量取值提交。
+- 目标项目根目录与 `app` 的 manifest、pnpm/npm 锁文件、`versions.yml`、缓存元数据和活动安装包均已同步为 `fraq-plugin-lexicon@0.3.2`。
+- 目标项目 `app/node_modules/.ignored` 中遗留的 `fraq-plugin-lexicon@0.3.1` 副本已精确清理。
+- 目标 Fraq 已完整重新启动并加载 `fraq-plugin-lexicon@0.3.2`，监听 `127.0.0.1:4649`，Milky WebSocket 已连接，WebUI 跳转登录页后返回 HTTP 200。
+- 活动构建文件已确认包含 JSON 变量取值解析逻辑，本轮没有遗留词库测试进程。
