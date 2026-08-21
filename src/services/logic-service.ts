@@ -3,20 +3,17 @@ import { LexiconError } from '../errors';
 export type LogicOperation = 'or' | 'and' | 'in';
 
 export class LogicService {
-  constructor(private readonly random: () => number = Math.random) {}
-
   resolveText(operation: LogicOperation, values: string[]): string {
     if (values.length < 2) {
       throw new LexiconError('逻辑词条至少需要两个参数。');
     }
 
     if (operation === 'or') {
-      const availableValues = values.filter((value) => value !== '');
-      if (availableValues.length === 0) {
+      const firstAvailableValue = values.find((value) => value !== '');
+      if (firstAvailableValue === undefined) {
         throw new LexiconError('逻辑.or没有可用参数。');
       }
-      const index = Math.min(Math.floor(this.random() * availableValues.length), availableValues.length - 1);
-      return availableValues[Math.max(index, 0)];
+      return firstAvailableValue;
     }
 
     validateValues(values);

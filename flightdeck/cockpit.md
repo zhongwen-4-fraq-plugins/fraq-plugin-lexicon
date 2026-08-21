@@ -1,13 +1,14 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 在真实群聊中验证 `fraq-plugin-lexicon` v0.3.2 的模板词条能力，尤其是 `逻辑.or` 可选候选。
+Focus: 在真实群聊中验证 `fraq-plugin-lexicon` 的模板词条能力；本轮已将文本模式 `逻辑.or` 改为按顺序优先回退。
 
 ## In flight
 
-- `template-message-plugin` — v0.3.2 已发布并安装到目标 Fraq，待真实群聊验证
+- `template-message-plugin` — 文本模式 `逻辑.or` 已改为优先返回第一个可用候选，待发布并在目标 Fraq 真实验证
 
 ## Next
 
+- 发布本轮 `逻辑.or` 优先回退变更，并安装到目标 Fraq 验证。
 - 在真实群聊中验证计次循环、变量次数、`[循环.退出]` 和 `[循环.跳过]`。
 - 在真实群聊中验证 JSON 变量取值、数组下标和 API 返回值解析。
 - 在真实群聊中验证 `[逻辑.请求用户输入.<提示文本>.<超时时间=秒>.<超时提示=文本>]`。

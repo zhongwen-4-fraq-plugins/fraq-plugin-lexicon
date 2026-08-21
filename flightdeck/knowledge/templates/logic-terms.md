@@ -8,7 +8,7 @@ READ WHEN: before modifying logic template parsing, conditional branches, boolea
 - Conditional syntax starts with `[逻辑.判断]`, may contain `[逻辑.否则判断]` and `[逻辑.否则]`, and ends with `[逻辑.判断.结束]`.
 - Every `判断` or `否则判断` marker must be followed immediately by one `[逻辑.or]`, `[逻辑.and]`, or `[逻辑.in]` term.
 - Boolean literals are `true/false`, `1/0`, `是/否`, and `真/假`; English values are case-insensitive.
-- Outside conditions, `or` always randomly returns one argument and `and` always concatenates arguments; no type detection occurs.
+- Outside conditions, `or` always returns the first non-empty argument in order and `and` always concatenates arguments; no type detection occurs.
 - Inside conditions, `or` and `and` require boolean arguments, while `in` compares the first argument with later candidates using exact equality.
 - `[逻辑.in]` is rejected outside a condition block.
 - Conditions and selected branches run in both questions and answers and support nested condition blocks and ordinary nested terms.

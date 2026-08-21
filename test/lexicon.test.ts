@@ -535,23 +535,20 @@ test('计次循环块支持嵌套定位和控制词条解析', () => {
 });
 
 test('逻辑词条显式区分文本操作和条件运算', () => {
-  const chooseFirst = new LogicService(() => 0);
-  const chooseLast = new LogicService(() => 0.999999);
+  const logicService = new LogicService();
 
-  assert.equal(chooseFirst.resolveText('or', ['true', 'false']), 'true');
-  assert.equal(chooseLast.resolveText('or', ['true', 'false']), 'false');
-  assert.equal(chooseFirst.resolveText('or', ['', '变量1', '文本1']), '变量1');
-  assert.equal(chooseLast.resolveText('or', ['', '变量1', '文本1']), '文本1');
-  assert.equal(chooseFirst.resolveText('and', ['文本1', '文本2']), '文本1文本2');
-  assert.throws(() => chooseFirst.resolveText('in', ['A', 'A']), /只能用作/);
+  assert.equal(logicService.resolveText('or', ['变量1', '变量2']), '变量1');
+  assert.equal(logicService.resolveText('or', ['', '变量2', '文本1']), '变量2');
+  assert.equal(logicService.resolveText('and', ['文本1', '文本2']), '文本1文本2');
+  assert.throws(() => logicService.resolveText('in', ['A', 'A']), /只能用作/);
 
-  assert.equal(chooseFirst.resolveCondition('or', ['false', 'true']), true);
-  assert.equal(chooseFirst.resolveCondition('and', ['true', '1', '是']), true);
-  assert.equal(chooseFirst.resolveCondition('and', ['true', '否']), false);
-  assert.equal(chooseFirst.resolveCondition('in', ['A', 'B', 'A']), true);
-  assert.equal(chooseFirst.resolveCondition('in', ['A', 'B', 'C']), false);
-  assert.throws(() => chooseFirst.resolveCondition('or', ['文本1', 'true']), /不是布尔值/);
-  assert.throws(() => chooseFirst.resolveText('or', ['唯一参数']), /至少需要两个/);
+  assert.equal(logicService.resolveCondition('or', ['false', 'true']), true);
+  assert.equal(logicService.resolveCondition('and', ['true', '1', '是']), true);
+  assert.equal(logicService.resolveCondition('and', ['true', '否']), false);
+  assert.equal(logicService.resolveCondition('in', ['A', 'B', 'A']), true);
+  assert.equal(logicService.resolveCondition('in', ['A', 'B', 'C']), false);
+  assert.throws(() => logicService.resolveCondition('or', ['文本1', 'true']), /不是布尔值/);
+  assert.throws(() => logicService.resolveText('or', ['唯一参数']), /至少需要两个/);
 });
 
 test('逻辑条件支持问题、回答、可选分支和无限嵌套', async (context) => {
@@ -568,7 +565,7 @@ test('逻辑条件支持问题、回答、可选分支和无限嵌套', async (c
   const match = harness.service.matchMessage(groupContext);
   assert.ok(match);
   assert.equal(await harness.template.render(match.answer, groupContext), '通过');
-  assert.ok(['文本1', '文本2'].includes(await harness.template.render('[逻辑.or.文本1.文本2]', groupContext)));
+  assert.equal(await harness.template.render('[逻辑.or.文本1.文本2]', groupContext), '文本1');
   assert.equal(
     await harness.template.render(
       '[逻辑.判断][逻辑.and.true.false]主分支[逻辑.否则判断][逻辑.in.B.A.B]次分支[逻辑.否则]兜底[逻辑.判断.结束]',
