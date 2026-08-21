@@ -5,8 +5,8 @@ READ WHEN: before modifying logic template parsing, conditional branches, boolea
 ---
 
 - Text syntax is `[逻辑.or.<文本...>]` or `[逻辑.and.<文本...>]`; every operation requires at least two non-empty arguments.
-- Conditional syntax starts with `[逻辑.如果]`, may contain `[逻辑.否则如果]` and `[逻辑.否则]`, and ends with `[逻辑.如果.结束]`.
-- Every `如果` or `否则如果` marker must be followed immediately by one `[逻辑.or]`, `[逻辑.and]`, or `[逻辑.in]` term.
+- Conditional syntax starts with `[逻辑.判断]`, may contain `[逻辑.否则判断]` and `[逻辑.否则]`, and ends with `[逻辑.判断.结束]`.
+- Every `判断` or `否则判断` marker must be followed immediately by one `[逻辑.or]`, `[逻辑.and]`, or `[逻辑.in]` term.
 - Boolean literals are `true/false`, `1/0`, `是/否`, and `真/假`; English values are case-insensitive.
 - Outside conditions, `or` always randomly returns one argument and `and` always concatenates arguments; no type detection occurs.
 - Inside conditions, `or` and `and` require boolean arguments, while `in` compares the first argument with later candidates using exact equality.

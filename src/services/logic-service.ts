@@ -23,7 +23,7 @@ export class LogicService {
     if (operation === 'and') {
       return values.join('');
     }
-    throw new LexiconError('[逻辑.in] 只能用作 [逻辑.如果] 或 [逻辑.否则如果] 的条件。');
+    throw new LexiconError('[逻辑.in] 只能用作 [逻辑.判断] 或 [逻辑.否则判断] 的条件。');
   }
 
   resolveCondition(operation: LogicOperation, values: string[]): boolean {

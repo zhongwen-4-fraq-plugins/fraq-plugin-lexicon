@@ -1,10 +1,10 @@
 import { LexiconError } from '../errors';
 import { isEscaped } from './template-syntax';
 
-const IF_OPEN = '[逻辑.如果]';
-const ELSE_IF = '[逻辑.否则如果]';
+const IF_OPEN = '[逻辑.判断]';
+const ELSE_IF = '[逻辑.否则判断]';
 const ELSE = '[逻辑.否则]';
-const IF_END = '[逻辑.如果.结束]';
+const IF_END = '[逻辑.判断.结束]';
 
 export interface ConditionalBranch {
   condition?: string;
@@ -46,12 +46,12 @@ export function findConditionalBlock(input: string): ConditionalBlockLocation | 
       continue;
     }
     if (depth === 0 && (input.startsWith(ELSE_IF, index) || input.startsWith(ELSE, index))) {
-      throw new LexiconError('逻辑条件分支缺少对应的 [逻辑.如果]。');
+      throw new LexiconError('逻辑条件分支缺少对应的 [逻辑.判断]。');
     }
   }
 
   if (depth > 0) {
-    throw new LexiconError('逻辑条件缺少 [逻辑.如果.结束]。');
+    throw new LexiconError('逻辑条件缺少 [逻辑.判断.结束]。');
   }
   return undefined;
 }
@@ -115,7 +115,7 @@ export function parseConditionalBlock(source: string): ConditionalBranch[] {
 function parseConditionBranch(content: string): ConditionalBranch {
   const conditionStart = content.search(/\S/u);
   if (conditionStart < 0 || content[conditionStart] !== '[') {
-    throw new LexiconError('[逻辑.如果] 和 [逻辑.否则如果] 后必须紧跟逻辑条件词条。');
+    throw new LexiconError('[逻辑.判断] 和 [逻辑.否则判断] 后必须紧跟逻辑条件词条。');
   }
   const conditionEnd = findTermEnd(content, conditionStart);
   const condition = content.slice(conditionStart, conditionEnd + 1);

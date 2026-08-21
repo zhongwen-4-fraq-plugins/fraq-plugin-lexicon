@@ -306,9 +306,9 @@ test('模板词条支持嵌套定位、参数和转义', () => {
   assert.equal(findInnermostTerm('普通文本\\[不是词条\\]'), undefined);
 });
 
-test('逻辑条件块支持否则如果、否则和嵌套配对', () => {
+test('逻辑判断块支持否则判断、否则和嵌套配对', () => {
   const source =
-    '[逻辑.如果][逻辑.or.true.false]主分支[逻辑.否则如果][逻辑.in.B.A.B]次分支[逻辑.否则]兜底[逻辑.如果.结束]';
+    '[逻辑.判断][逻辑.or.true.false]主分支[逻辑.否则判断][逻辑.in.B.A.B]次分支[逻辑.否则]兜底[逻辑.判断.结束]';
 
   assert.deepEqual(parseConditionalBlock(source), [
     { condition: '[逻辑.or.true.false]', content: '主分支' },
@@ -317,7 +317,7 @@ test('逻辑条件块支持否则如果、否则和嵌套配对', () => {
   ]);
   assert.equal(findConditionalBlock(`前${source}后`)?.source, source);
   assert.throws(() => findConditionalBlock('[逻辑.否则]'), /缺少对应/);
-  assert.throws(() => findConditionalBlock('[逻辑.如果][逻辑.or.true.false]内容'), /缺少.*结束/);
+  assert.throws(() => findConditionalBlock('[逻辑.判断][逻辑.or.true.false]内容'), /缺少.*结束/);
 });
 
 test('事件列表覆盖全部 Milky 事件', () => {
@@ -560,8 +560,8 @@ test('逻辑条件支持问题、回答、可选分支和无限嵌套', async (c
   harness.repository.addEntry(
     lexicon.id,
     'exact',
-    '[逻辑.如果][逻辑.and.true.true]戳我[逻辑.否则]其他[逻辑.如果.结束]',
-    '[逻辑.如果][逻辑.and.[逻辑.or.false.true].true]通过[逻辑.否则]失败[逻辑.如果.结束]',
+    '[逻辑.判断][逻辑.and.true.true]戳我[逻辑.否则]其他[逻辑.判断.结束]',
+    '[逻辑.判断][逻辑.and.[逻辑.or.false.true].true]通过[逻辑.否则]失败[逻辑.判断.结束]',
     1,
   );
 
@@ -571,27 +571,27 @@ test('逻辑条件支持问题、回答、可选分支和无限嵌套', async (c
   assert.ok(['文本1', '文本2'].includes(await harness.template.render('[逻辑.or.文本1.文本2]', groupContext)));
   assert.equal(
     await harness.template.render(
-      '[逻辑.如果][逻辑.and.true.false]主分支[逻辑.否则如果][逻辑.in.B.A.B]次分支[逻辑.否则]兜底[逻辑.如果.结束]',
+      '[逻辑.判断][逻辑.and.true.false]主分支[逻辑.否则判断][逻辑.in.B.A.B]次分支[逻辑.否则]兜底[逻辑.判断.结束]',
       groupContext,
     ),
     '次分支',
   );
   assert.equal(
     await harness.template.render(
-      '[逻辑.如果][逻辑.or.true.false]外[逻辑.如果][逻辑.in.A.A]内[逻辑.如果.结束][逻辑.否则]错误[逻辑.如果.结束]',
+      '[逻辑.判断][逻辑.or.true.false]外[逻辑.判断][逻辑.in.A.A]内[逻辑.判断.结束][逻辑.否则]错误[逻辑.判断.结束]',
       groupContext,
     ),
     '外内',
   );
   assert.equal(
     await harness.template.render(
-      '[变量.创建.A=原][逻辑.如果][逻辑.in.[变量.创建.A=新][变量.读取.A].其他]错误[逻辑.否则][变量.读取.A][逻辑.如果.结束]',
+      '[变量.创建.A=原][逻辑.判断][逻辑.in.[变量.创建.A=新][变量.读取.A].其他]错误[逻辑.否则][变量.读取.A][逻辑.判断.结束]',
       groupContext,
     ),
     '原',
   );
   assert.equal(
-    await harness.template.render('[逻辑.如果][逻辑.and.true.false]不会输出[逻辑.如果.结束]', groupContext),
+    await harness.template.render('[逻辑.判断][逻辑.and.true.false]不会输出[逻辑.判断.结束]', groupContext),
     '',
   );
   await assert.rejects(() => harness.template.render('[逻辑.in.A.A]', groupContext), /只能用作/);
@@ -648,7 +648,7 @@ test('循环退出和跳过作用于最近一层循环', async (context) => {
   );
   assert.equal(
     await harness.template.render(
-      '[逻辑.计次循环.2][逻辑.如果][逻辑.and.false.true][循环.跳过][逻辑.否则]A[逻辑.如果.结束]B[逻辑.计次循环尾]',
+      '[逻辑.计次循环.2][逻辑.判断][逻辑.and.false.true][循环.跳过][逻辑.否则]A[逻辑.判断.结束]B[逻辑.计次循环尾]',
       groupContext,
     ),
     'ABAB',
@@ -710,7 +710,7 @@ test('请求用户输入支持多个请求、选中分支和超时取消', async
   });
   const prompts: string[] = [];
   const rendering = template.render(
-    '[逻辑.如果][逻辑.and.true.true]第一次：[逻辑.请求用户输入.请输入第一次]第二次：[逻辑.请求用户输入.请输入第二次][逻辑.否则]不执行[逻辑.请求用户输入.不应发送][逻辑.如果.结束]',
+    '[逻辑.判断][逻辑.and.true.true]第一次：[逻辑.请求用户输入.请输入第一次]第二次：[逻辑.请求用户输入.请输入第二次][逻辑.否则]不执行[逻辑.请求用户输入.不应发送][逻辑.判断.结束]',
     groupContext,
     new Map(),
     async (prompt) => {
@@ -739,7 +739,7 @@ test('请求用户输入支持多个请求、选中分支和超时取消', async
   );
   assert.deepEqual(timeoutMessages, ['请输入', '会话超时']);
   await assert.rejects(
-    () => template.render('[逻辑.如果][逻辑.in.[逻辑.请求用户输入.请输入是否].是]通过[逻辑.如果.结束]', groupContext),
+    () => template.render('[逻辑.判断][逻辑.in.[逻辑.请求用户输入.请输入是否].是]通过[逻辑.判断.结束]', groupContext),
     /不能作为逻辑条件参数/,
   );
 });
