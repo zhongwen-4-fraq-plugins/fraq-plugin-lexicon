@@ -5,11 +5,10 @@
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
-- v0.3.3 已完成版本准备；本轮文本模式 `逻辑.or` 优先回退变更已在本地验证，待发布并安装。
+- v0.3.3 已发布并安装到目标 Fraq；本轮文本模式 `逻辑.or` 优先回退变更已完成目标启动验证，待真实群聊验证。
 
 ## Next
 
-- 发布并安装本轮文本模式 `逻辑.or` 优先回退变更。
 - 在真实群聊中验证 `[api.get_group_member_info.user_id=[消息.取值.mention.user_id]]` 和 `[api.send_group_message.message=[消息.构建.text.内容]]`。
 - 在真实群聊中验证 `词库 查询 <词条ID>` 和 `词库 查询 <词库名> <词条ID>`。
 - 在真实群聊中验证 `词库 修改 <词条ID> [问 <新问题>] 答 <新回答>`。
@@ -437,3 +436,11 @@
 - 目标项目 `app/node_modules/.ignored` 中遗留的 `fraq-plugin-lexicon@0.3.1` 副本已精确清理。
 - 目标 Fraq 已完整重新启动并加载 `fraq-plugin-lexicon@0.3.2`，监听 `127.0.0.1:4649`，Milky WebSocket 已连接，WebUI 跳转登录页后返回 HTTP 200。
 - 活动构建文件已确认包含 JSON 变量取值解析逻辑，本轮没有遗留词库测试进程。
+## v0.3.3 ordered logic.or fallback release verification
+
+- 注解标签 `v0.3.3` 指向提交 `d3f9a54`，已推送到远程仓库。
+- `发布 npm 包` 工作流 `32533707424` 成功完成，npm 发布、历史发布检查和 GitHub Release 均成功。
+- npm `latest` 与 GitHub Release 均为 `0.3.3`。
+- 目标项目根目录与 `app` 的 package manifest、pnpm/npm 锁文件、`versions.yml`、缓存元数据和活动安装包均已同步为 `fraq-plugin-lexicon@0.3.3`。
+- 目标 Fraq 已重新启动并加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649`，Milky WebSocket 已连接，WebUI 跟随跳转后返回 HTTP 200。
+- 目标根路径返回 HTTP 404 属于当前路由配置，服务监听和 WebUI 路由均正常；未发现遗留测试进程。
