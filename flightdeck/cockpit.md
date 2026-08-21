@@ -4,7 +4,7 @@ Focus: 在真实群聊中验证 `fraq-plugin-lexicon` 的模板词条能力；�
 
 ## In flight
 
-- `template-message-plugin` — 文本模式 `逻辑.or` 已改为优先返回第一个可用候选，待发布并在目标 Fraq 真实验证
+- `template-message-plugin` — `v0.3.3` 已准备发布，待 npm、GitHub Release 和目标 Fraq 验证
 
 ## Next
 
