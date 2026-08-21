@@ -6,13 +6,14 @@ import { findCountedLoopBlock } from '../parsers/counted-loop-parser';
 import {
   escapeTemplateText,
   findInnermostTerm,
+  isInsideLogicOrTerm,
   parseTemplateTerm,
   unescapeTemplateText,
 } from '../parsers/template-parser';
 import { CountedLoopService } from './counted-loop-service';
 import { IncomingSegmentValueService } from './incoming-segment-value-service';
 import { JsonVariableValueService } from './json-variable-value-service';
-import { LogicService } from './logic-service';
+import { isOptionalLogicValueError, LogicService } from './logic-service';
 import { MilkyEventValueService } from './milky-event-value-service';
 import { replaceVariables } from './template-variable-scope';
 
@@ -121,14 +122,21 @@ export class QuestionTemplateService {
       } else if (term.type === 'getVariable') {
         const value = variables.get(term.name);
         if (value === undefined) {
-          return undefined;
+          if (logicMode === 'text' && isInsideLogicOrTerm(output, location.start)) {
+            replacement = '';
+          } else {
+            return undefined;
+          }
+        } else {
+          replacement = value;
         }
-        replacement = value;
       } else if (term.type === 'event') {
         if (term.path.length === 1 && isMilkyEventName(term.path[0])) {
           if (context.eventType !== term.path[0]) {
             if (logicMode === 'condition') {
               replacement = 'false';
+            } else if (isInsideLogicOrTerm(output, location.start)) {
+              replacement = '';
             } else {
               return undefined;
             }
@@ -139,21 +147,37 @@ export class QuestionTemplateService {
         } else {
           try {
             replacement = this.eventValueService.resolve(term.path, context);
-          } catch {
-            return undefined;
+          } catch (error) {
+            if (
+              logicMode === 'text' &&
+              isInsideLogicOrTerm(output, location.start) &&
+              isOptionalLogicValueError(error)
+            ) {
+              replacement = '';
+            } else {
+              return undefined;
+            }
           }
         }
       } else if (term.type === 'messageValue') {
         try {
           replacement = this.segmentValueService.resolve(term.segmentType, term.path, context);
-        } catch {
-          return undefined;
+        } catch (error) {
+          if (logicMode === 'text' && isInsideLogicOrTerm(output, location.start) && isOptionalLogicValueError(error)) {
+            replacement = '';
+          } else {
+            return undefined;
+          }
         }
       } else if (term.type === 'jsonValue') {
         try {
           replacement = this.jsonValueService.resolve(term.variableName, term.path, variables);
-        } catch {
-          return undefined;
+        } catch (error) {
+          if (logicMode === 'text' && isInsideLogicOrTerm(output, location.start) && isOptionalLogicValueError(error)) {
+            replacement = '';
+          } else {
+            return undefined;
+          }
         }
       } else if (term.type === 'logic') {
         try {

@@ -6,13 +6,22 @@ export class LogicService {
   constructor(private readonly random: () => number = Math.random) {}
 
   resolveText(operation: LogicOperation, values: string[]): string {
+    if (values.length < 2) {
+      throw new LexiconError('逻辑词条至少需要两个参数。');
+    }
+
+    if (operation === 'or') {
+      const availableValues = values.filter((value) => value !== '');
+      if (availableValues.length === 0) {
+        throw new LexiconError('逻辑.or没有可用参数。');
+      }
+      const index = Math.min(Math.floor(this.random() * availableValues.length), availableValues.length - 1);
+      return availableValues[Math.max(index, 0)];
+    }
+
     validateValues(values);
     if (operation === 'and') {
       return values.join('');
-    }
-    if (operation === 'or') {
-      const index = Math.min(Math.floor(this.random() * values.length), values.length - 1);
-      return values[Math.max(index, 0)];
     }
     throw new LexiconError('[逻辑.in] 只能用作 [逻辑.如果] 或 [逻辑.否则如果] 的条件。');
   }
@@ -25,6 +34,20 @@ export class LogicService {
     const booleanValues = values.map((value) => parseBoolean(value));
     return operation === 'or' ? booleanValues.some(Boolean) : booleanValues.every(Boolean);
   }
+}
+
+export function isOptionalLogicValueError(error: unknown): boolean {
+  if (!(error instanceof LexiconError)) {
+    return false;
+  }
+
+  return (
+    error.message.includes('尚未创建。') ||
+    error.message.startsWith('当前消息不存在“') ||
+    error.message.startsWith('事件字段“') ||
+    error.message.startsWith('消息段“') ||
+    error.message.startsWith('JSON 变量“')
+  );
 }
 
 function validateValues(values: string[]): void {

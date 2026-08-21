@@ -420,6 +420,13 @@
 - 变量未创建、内容不是有效 JSON 或字段不存在时返回明确错误；问题解析遇到这些错误时视为不匹配。
 - 开发版本更新为 `0.3.2`；`pnpm test` 共 42 项、`pnpm check`、`pnpm build` 和 `npm pack --dry-run --json` 均通过。
 
+## Logic OR optional candidates
+
+- 文本模式的 `[逻辑.or.<候选1>.<候选2>...]` 现在会跳过空文本、未创建变量和当前消息中不存在的字段。
+- 只剩一个可用候选时直接返回该候选，多个可用候选仍按原规则随机选择；全部不可用时返回明确错误。
+- 逻辑条件中的 `or` 仍要求布尔参数，缺失变量不会被静默转换为 `false`。
+- `pnpm test` 共 43 项、`pnpm check` 和 `pnpm build` 均通过。
+
 ## v0.3.2 release verification
 
 - 注解标签 `v0.3.2` 指向功能提交 `69eac6d`，并已推送到远程仓库。

@@ -9,6 +9,7 @@ import { findCountedLoopBlock } from '../parsers/counted-loop-parser';
 import {
   escapeTemplateText,
   findInnermostTerm,
+  isInsideLogicOrTerm,
   parseTemplateTerm,
   unescapeTemplateText,
 } from '../parsers/template-parser';
@@ -16,7 +17,7 @@ import { CountedLoopService } from './counted-loop-service';
 import { IncomingSegmentValueService } from './incoming-segment-value-service';
 import { JsonVariableValueService } from './json-variable-value-service';
 import type { LexiconService } from './lexicon-service';
-import { LogicService } from './logic-service';
+import { isOptionalLogicValueError, LogicService } from './logic-service';
 import { MessageSegmentBuildService } from './message-segment-build-service';
 import { MilkyEventValueService } from './milky-event-value-service';
 import { replaceVariables } from './template-variable-scope';
@@ -157,7 +158,16 @@ export class TemplateService {
         output = `${output.slice(0, location.start)}${escapeTemplateText(input)}${output.slice(location.end + 1)}`;
         continue;
       }
-      const replacement = await this.executeTerm(term, context, variables, logicMode);
+      let replacement: string;
+      try {
+        replacement = await this.executeTerm(term, context, variables, logicMode);
+      } catch (error) {
+        if (logicMode === 'text' && isInsideLogicOrTerm(output, location.start) && isOptionalLogicValueError(error)) {
+          replacement = '';
+        } else {
+          throw error;
+        }
+      }
       output = `${output.slice(0, location.start)}${replacement}${output.slice(location.end + 1)}`;
     }
   }

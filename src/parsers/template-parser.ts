@@ -53,6 +53,33 @@ export function findInnermostTerm(input: string): TermLocation | undefined {
   return undefined;
 }
 
+export function isInsideLogicOrTerm(input: string, position: number): boolean {
+  const openings: number[] = [];
+
+  for (let index = 0; index < input.length; index += 1) {
+    if (isEscaped(input, index)) {
+      continue;
+    }
+    if (input[index] === '[') {
+      openings.push(index);
+      continue;
+    }
+    if (input[index] !== ']') {
+      continue;
+    }
+
+    const start = openings.pop();
+    if (start === undefined || start >= position || position >= index) {
+      continue;
+    }
+    if (input.slice(start + 1, index).startsWith('逻辑.or.')) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function parseTemplateTerm(content: string): TemplateTerm {
   const parts = splitEscaped(content, '.');
   const namespace = parts.shift();

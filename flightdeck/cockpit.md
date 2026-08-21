@@ -1,6 +1,6 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 在真实群聊中验证 `fraq-plugin-lexicon` v0.3.2 的模板词条能力。
+Focus: 在真实群聊中验证 `fraq-plugin-lexicon` v0.3.2 的模板词条能力，尤其是 `逻辑.or` 可选候选。
 
 ## In flight
 
@@ -15,6 +15,7 @@ Focus: 在真实群聊中验证 `fraq-plugin-lexicon` v0.3.2 的模板词条能�
 - 在真实群聊中验证 `词库 查询 <词条ID>` 和 `词库 查询 <词库名> <词条ID>`。
 - 在真实群聊中验证 `词库 修改 <词条ID> [问 <新问题>] 答 <新回答>`。
 - 在真实群聊中验证显式逻辑条件分支、文本逻辑词条和嵌套解析。
+- 在真实群聊中验证 `[逻辑.or.[变量.读取.变量名].备用文本]` 以及消息段缺失时的回退。
 
 ## Open questions
 

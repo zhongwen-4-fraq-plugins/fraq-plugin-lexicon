@@ -540,6 +540,8 @@ test('逻辑词条显式区分文本操作和条件运算', () => {
 
   assert.equal(chooseFirst.resolveText('or', ['true', 'false']), 'true');
   assert.equal(chooseLast.resolveText('or', ['true', 'false']), 'false');
+  assert.equal(chooseFirst.resolveText('or', ['', '变量1', '文本1']), '变量1');
+  assert.equal(chooseLast.resolveText('or', ['', '变量1', '文本1']), '文本1');
   assert.equal(chooseFirst.resolveText('and', ['文本1', '文本2']), '文本1文本2');
   assert.throws(() => chooseFirst.resolveText('in', ['A', 'A']), /只能用作/);
 
@@ -593,6 +595,25 @@ test('逻辑条件支持问题、回答、可选分支和无限嵌套', async (c
     '',
   );
   await assert.rejects(() => harness.template.render('[逻辑.in.A.A]', groupContext), /只能用作/);
+});
+
+test('逻辑.or会跳过空值、未创建变量和不存在的消息段', async (context) => {
+  const harness = createHarness(context);
+
+  assert.equal(await harness.template.render('[逻辑.or.[变量.读取.未创建].备用文本]', groupContext), '备用文本');
+  assert.equal(
+    await harness.template.render('[变量.创建.空=][逻辑.or.[变量.读取.空].备用文本]', groupContext),
+    '备用文本',
+  );
+  assert.equal(
+    await harness.template.render('[逻辑.or.[消息.取值.mention.user_id].备用文本]', groupContext),
+    '备用文本',
+  );
+  await assert.rejects(() => harness.template.render('[变量.读取.未创建]', groupContext), /尚未创建/);
+  await assert.rejects(
+    () => harness.template.render('[逻辑.or.[变量.读取.未创建].[变量.读取.仍未创建]]', groupContext),
+    /没有可用参数/,
+  );
 });
 
 test('计次循环支持固定次数、变量次数和无限嵌套', async (context) => {
