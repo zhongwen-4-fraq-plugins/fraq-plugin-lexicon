@@ -210,10 +210,10 @@ function parseRequestInputTerm(parts: string[]): TemplateTerm {
 function parseMessageTerm(parts: string[]): TemplateTerm {
   const operation = parts.shift();
 
-  if (operation === '取值') {
+  if (operation === '读取') {
     const segmentType = parts.shift();
     if (!segmentType || parts.length === 0 || parts.some((part) => !part)) {
-      throw new LexiconError('消息取值词条格式应为 [消息.取值.<消息段类型>.<字段路径>]。');
+      throw new LexiconError('消息读取词条格式应为 [消息.读取.<消息段类型>.<字段路径>]。');
     }
     return { type: 'messageValue', segmentType, path: parts };
   }

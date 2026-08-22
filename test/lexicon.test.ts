@@ -241,7 +241,7 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     type: 'event',
     path: ['data', 'group_id'],
   });
-  assert.deepEqual(parseTemplateTerm('消息.取值.mention.user_id'), {
+  assert.deepEqual(parseTemplateTerm('消息.读取.mention.user_id'), {
     type: 'messageValue',
     segmentType: 'mention',
     path: ['user_id'],
@@ -298,7 +298,8 @@ test('模板词条支持嵌套定位、参数和转义', () => {
   assert.throws(() => parseTemplateTerm('逻辑.请求用户输入.请输入.超时提示='), /超时提示不能为空/);
   assert.throws(() => parseTemplateTerm('逻辑.请求用户输入.请输入.超时时间=30.超时时间=60'), /不能重复设置超时时间/);
   assert.throws(() => parseTemplateTerm('逻辑.or.唯一参数'), /逻辑词条格式/);
-  assert.throws(() => parseTemplateTerm('消息.取值.mention'), /消息取值词条格式/);
+  assert.throws(() => parseTemplateTerm('消息.读取.mention'), /消息读取词条格式/);
+  assert.throws(() => parseTemplateTerm('消息.取值.mention.user_id'), /不支持的消息操作：取值/);
   assert.throws(() => parseTemplateTerm('消息.构建.text.内容.多余'), /消息构建词条格式/);
   assert.throws(() => parseTemplateTerm('json.取值.A'), /JSON 取值词条格式/);
   assert.throws(() => parseTemplateTerm('json.读取.A.key'), /不支持的 JSON 操作/);
@@ -603,7 +604,7 @@ test('逻辑.or会跳过空值、未创建变量和不存在的消息段', async
     '备用文本',
   );
   assert.equal(
-    await harness.template.render('[逻辑.or.[消息.取值.mention.user_id].备用文本]', groupContext),
+    await harness.template.render('[逻辑.or.[消息.读取.mention.user_id].备用文本]', groupContext),
     '备用文本',
   );
   await assert.rejects(() => harness.template.render('[变量.读取.未创建]', groupContext), /尚未创建/);
@@ -848,8 +849,8 @@ test('消息段词条支持问题、回答、嵌套路径和 API 参数', async 
   harness.repository.addEntry(
     lexicon.id,
     'exact',
-    '[变量.创建.Q=[消息.取值.mention.user_id]][变量.读取.Q]',
-    '[消息.取值.reply.segments.0.data.text]-[消息.取值.mention.user_id]',
+    '[变量.创建.Q=[消息.读取.mention.user_id]][变量.读取.Q]',
+    '[消息.读取.reply.segments.0.data.text]-[消息.读取.mention.user_id]',
     1,
   );
 
@@ -857,7 +858,7 @@ test('消息段词条支持问题、回答、嵌套路径和 API 参数', async 
   assert.ok(match);
   assert.equal(await harness.template.render(match.answer, segmentContext, match.questionVariables), '回复内容-40004');
   await assert.rejects(
-    () => harness.template.render('[消息.取值.image.resource_id]', segmentContext),
+    () => harness.template.render('[消息.读取.image.resource_id]', segmentContext),
     /不存在“image”消息段/,
   );
 
@@ -879,7 +880,7 @@ test('消息段词条支持问题、回答、嵌套路径和 API 参数', async 
   );
   const template = new TemplateService(harness.service, actions, client);
 
-  await template.render('[api.get_group_member_info.user_id=[消息.取值.mention.user_id]]', segmentContext);
+  await template.render('[api.get_group_member_info.user_id=[消息.读取.mention.user_id]]', segmentContext);
 
   assert.deepEqual(calls, [
     {

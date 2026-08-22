@@ -73,7 +73,7 @@
 
 ```text
 [逻辑.or.[变量.读取.首选内容].备用文本]
-[逻辑.or.[消息.取值.mention.user_id].未艾特用户]
+[逻辑.or.[消息.读取.mention.user_id].未艾特用户]
 ```
 
 条件块中的 `or` 仍然只执行布尔逻辑，不会把缺失变量当作 `false`。
@@ -175,18 +175,18 @@
 ### 消息段词条
 
 ```text
-[消息.取值.<消息段类型>.<字段路径>]
-[消息.取值.mention.user_id]
-[消息.取值.reply.sender_id]
-[消息.取值.reply.segments.0.data.text]
+[消息.读取.<消息段类型>.<字段路径>]
+[消息.读取.mention.user_id]
+[消息.读取.reply.sender_id]
+[消息.读取.reply.segments.0.data.text]
 ```
 
-`消息.取值` 会读取当前消息中第一个指定类型的 IncomingSegment，字段路径从消息段的 `data` 开始，因此不需要再写一层 `data`。对象字段和数组下标都可继续嵌套读取；消息段或字段不存在时会返回明确错误。
+`消息.读取` 会读取当前消息中第一个指定类型的 IncomingSegment，字段路径从消息段的 `data` 开始，因此不需要再写一层 `data`。对象字段和数组下标都可继续嵌套读取；消息段或字段不存在时会返回明确错误。
 
 消息段值可以进入变量、问题和 API 参数。例如发送 `getinfo` 并艾特群成员时：
 
 ```text
-词库 添加 精确 问 getinfo 答 [api.get_group_member_info.user_id=[消息.取值.mention.user_id]]
+词库 添加 精确 问 getinfo 答 [api.get_group_member_info.user_id=[消息.读取.mention.user_id]]
 ```
 
 使用 `消息.构建.text.<内容>` 构建文本消息段，结果可以直接作为 API 的 `message` 参数，也可以继续嵌套变量和其他词条：

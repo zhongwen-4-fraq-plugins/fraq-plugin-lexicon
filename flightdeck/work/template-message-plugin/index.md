@@ -6,10 +6,11 @@
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
 - v0.3.3 已发布并安装到目标 Fraq；本轮文本模式 `逻辑.or` 优先回退变更已完成目标启动验证，待真实群聊验证。
+- 当前源码已将消息段读取语法改为 `[消息.读取.<类型>.<路径>]`，不兼容旧的 `[消息.取值...]`；尚未发布或安装到目标 Fraq。
 
 ## Next
 
-- 在真实群聊中验证 `[api.get_group_member_info.user_id=[消息.取值.mention.user_id]]` 和 `[api.send_group_message.message=[消息.构建.text.内容]]`。
+- 发布并安装本轮变更后，在真实群聊中验证 ID 3 的 `[消息.读取.mention.user_id]` 和 `[api.get_user_profile]`。
 - 在真实群聊中验证 `词库 查询 <词条ID>` 和 `词库 查询 <词库名> <词条ID>`。
 - 在真实群聊中验证 `词库 修改 <词条ID> [问 <新问题>] 答 <新回答>`。
 - 在真实群聊中验证 `[逻辑.判断]` 条件块、块外文本逻辑词条和无限嵌套解析。
@@ -28,7 +29,7 @@
 
 ## Read if
 
-- 编写使用文档时读取 `README.md`。
+- 修改 README 或使用文档时读取 `README.md` 和 `flightdeck/knowledge/docs/documentation-layout.md`。
 - 添加验证时读取 `test/smoke.ts`。
 - 再次发布并安装到目标 Fraq 时读取 `flightdeck/knowledge/fraq/target-app-integration.md`。
 
@@ -210,11 +211,11 @@
 
 ## v0.2.2 IncomingSegment templates
 
-- `[消息.取值.<segment type>.<field path>]` reads from the first matching current-message segment's `data` object.
-- Nested object fields and array indexes are supported, including reply segment paths such as `[消息.取值.reply.segments.0.data.text]`.
-- `消息.取值` terms work in questions and answers and can be nested into variables and API parameters; the old `[is.*]` syntax is removed.
+- `[消息.读取.<segment type>.<field path>]` reads from the first matching current-message segment's `data` object.
+- Nested object fields and array indexes are supported, including reply segment paths such as `[消息.读取.reply.segments.0.data.text]`.
+- `消息.读取` terms work in questions and answers and can be nested into variables and API parameters; the old `[is.*]` syntax is removed.
 - `[消息.构建.text.<content>]` builds a text message segment and can be nested into API `message` parameters or variables.
-- The original `get_group_member_info` failure can now be avoided with `[api.get_group_member_info.user_id=[消息.取值.mention.user_id]]`, which passes the actual mentioned QQ.
+- The original `get_group_member_info` failure can now be avoided with `[api.get_group_member_info.user_id=[消息.读取.mention.user_id]]`, which passes the actual mentioned QQ.
 - `pnpm check`, 20 tests, `pnpm build`, and `npm pack --dry-run --json` passed for v0.2.2 on 2026-08-17.
 
 ## v0.2.2 release verification
@@ -222,7 +223,7 @@
 - 注解标签 `v0.2.2` 指向功能提交 `c172ae6`，远程标签已存在。
 - npm Trusted Publisher 工作流运行 `32009080694` 已成功完成，npm `latest` 为 `fraq-plugin-lexicon@0.2.2`。
 - 目标项目 root/app 的 package manifest、pnpm lockfile、npm lockfile、`versions.yml`、活动 node_modules 和 Fraq 包缓存均已同步为 `0.2.2`。
-- 目标项目安装包包含 `[消息.取值.*]`、`[消息.构建.text.*]` 和消息段构建服务代码。
+- 目标项目当时安装包包含消息段字段读取、`[消息.构建.text.*]` 和消息段构建服务代码。
 - 目标 Fraq 已重新启动，成功加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649` 并重新连接 Milky WebSocket。
 
 ## v0.2.3 entry query command
@@ -444,3 +445,10 @@
 - 目标项目根目录与 `app` 的 package manifest、pnpm/npm 锁文件、`versions.yml`、缓存元数据和活动安装包均已同步为 `fraq-plugin-lexicon@0.3.3`。
 - 目标 Fraq 已重新启动并加载 `fraq-plugin-lexicon`，监听 `127.0.0.1:4649`，Milky WebSocket 已连接，WebUI 跟随跳转后返回 HTTP 200。
 - 目标根路径返回 HTTP 404 属于当前路由配置，服务监听和 WebUI 路由均正常；未发现遗留测试进程。
+
+## Message segment read syntax rename
+
+- 消息段字段语法从 `[消息.取值.<类型>.<路径>]` 破坏性重命名为 `[消息.读取.<类型>.<路径>]`，旧语法直接返回“不支持的消息操作：取值”。
+- ID 3 已保存为新语法；此前没有响应是因为 v0.3.3 解析器只识别旧语法，问题模板解析异常后按不匹配处理。
+- 帮助文本、使用文档、IncomingSegment 知识约定和全部消息段测试已同步更新。
+- `pnpm test` 43 项、`pnpm check` 和 `pnpm build` 均通过。
