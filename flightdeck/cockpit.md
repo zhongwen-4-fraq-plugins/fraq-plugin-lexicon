@@ -1,10 +1,10 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 条件模式的 `[逻辑.or...]` 已改为只接受完全匹配的小写 `true` 和 `false`；本地验证通过，尚未发布安装。
+Focus: 管理命令已迁移到 README 表格；严格 `[逻辑.or...]` 规则仍已本地验证、尚未发布安装。
 
 ## In flight
 
-- `template-message-plugin` — 目标 Fraq 仍为 `v0.3.4`；本地新增严格 `逻辑.or` 布尔规则，待后续发布安装
+- `template-message-plugin` — README 已增加管理命令表；目标 Fraq 仍为 `v0.3.4`，严格 `逻辑.or` 布尔规则待后续发布安装
 
 ## Next
 
