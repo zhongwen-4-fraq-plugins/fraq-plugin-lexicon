@@ -1,6 +1,6 @@
 import { LexiconError } from '../errors';
 
-export type LogicOperation = 'or' | 'and' | 'in' | '等于' | '不等于';
+export type LogicOperation = 'or' | 'and' | 'in' | 'notin' | '等于' | '不等于';
 
 export class LogicService {
   resolveText(operation: LogicOperation, values: string[]): string {
@@ -32,6 +32,9 @@ export class LogicService {
     validateValues(values);
     if (operation === 'in') {
       return values.slice(1).includes(values[0]);
+    }
+    if (operation === 'notin') {
+      return !values.slice(1).includes(values[0]);
     }
     const booleans = values.map((value) => parseStrictBoolean(operation, value));
     if (operation === 'or') {

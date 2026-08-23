@@ -263,6 +263,11 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     operation: 'in',
     values: ['A', 'B', 'A'],
   });
+  assert.deepEqual(parseTemplateTerm('逻辑.notin.A.B.C'), {
+    type: 'logic',
+    operation: 'notin',
+    values: ['A', 'B', 'C'],
+  });
   assert.deepEqual(parseTemplateTerm('逻辑.等于.A.A'), {
     type: 'logic',
     operation: '等于',
@@ -566,6 +571,8 @@ test('逻辑词条显式区分文本操作和条件运算', () => {
   assert.equal(logicService.resolveCondition('and', ['true', 'false']), false);
   assert.equal(logicService.resolveCondition('in', ['A', 'B', 'A']), true);
   assert.equal(logicService.resolveCondition('in', ['A', 'B', 'C']), false);
+  assert.equal(logicService.resolveCondition('notin', ['A', 'B', 'C']), true);
+  assert.equal(logicService.resolveCondition('notin', ['A', 'B', 'A']), false);
   assert.equal(logicService.resolveCondition('等于', ['A', 'A']), true);
   assert.equal(logicService.resolveCondition('等于', ['A', 'a']), false);
   assert.equal(logicService.resolveCondition('不等于', ['A', 'B']), true);
@@ -581,6 +588,7 @@ test('逻辑词条显式区分文本操作和条件运算', () => {
   assert.throws(() => logicService.resolveCondition('等于', ['A', 'B', 'C']), /两个非空参数/);
   assert.throws(() => logicService.resolveText('等于', ['A', 'A']), /只能用作/);
   assert.throws(() => logicService.resolveText('不等于', ['A', 'B']), /只能用作/);
+  assert.throws(() => logicService.resolveText('notin', ['A', 'B']), /只能用作/);
   assert.throws(() => logicService.resolveText('or', ['唯一参数']), /至少需要两个/);
 });
 
@@ -635,7 +643,12 @@ test('逻辑条件支持问题、回答、可选分支和无限嵌套', async (c
     await harness.template.render('[逻辑.判断][逻辑.不等于.A.B]不同[逻辑.否则]相同[逻辑.判断.结束]', groupContext),
     '不同',
   );
+  assert.equal(
+    await harness.template.render('[逻辑.判断][逻辑.notin.A.B.C]不包含[逻辑.否则]包含[逻辑.判断.结束]', groupContext),
+    '不包含',
+  );
   await assert.rejects(() => harness.template.render('[逻辑.in.A.A]', groupContext), /只能用作/);
+  await assert.rejects(() => harness.template.render('[逻辑.notin.A.B]', groupContext), /只能用作/);
   await assert.rejects(() => harness.template.render('[逻辑.等于.A.A]', groupContext), /只能用作/);
 });
 
