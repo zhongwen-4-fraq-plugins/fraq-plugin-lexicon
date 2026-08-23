@@ -33,6 +33,7 @@ type LogicMode = 'text' | 'condition' | 'loopCount';
 type RequestUserInput = (prompt: string) => Promise<void>;
 type ExecutableTemplateTerm = Exclude<
   ReturnType<typeof parseTemplateTerm>,
+  | { type: 'sleep'; milliseconds: number }
   | { type: 'requestInput'; prompt: string }
   | { type: 'loopControl'; control: 'break' | 'continue' }
   | { type: 'executionStop' }
@@ -149,6 +150,14 @@ export class TemplateService {
           throw new LexiconError('[词库.拒绝执行] 只能用于回答文本，不能用于逻辑条件或循环次数。');
         }
         throw new TemplateExecutionStopSignal(unescapeTemplateText(output.slice(0, location.start)));
+      }
+      if (term.type === 'sleep') {
+        if (logicMode !== 'text') {
+          throw new LexiconError('[逻辑.休眠.<秒数>] 只能用于回答文本，不能用于逻辑条件或循环次数。');
+        }
+        await sleep(term.milliseconds);
+        output = `${output.slice(0, location.start)}${output.slice(location.end + 1)}`;
+        continue;
       }
       if (term.type === 'loopControl') {
         if (logicMode !== 'text' || loopDepth === 0) {
@@ -306,4 +315,8 @@ export class TemplateService {
     }
     return match.answer;
   }
+}
+
+function sleep(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }

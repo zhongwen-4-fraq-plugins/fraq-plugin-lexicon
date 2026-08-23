@@ -192,6 +192,8 @@ export class QuestionTemplateService {
         return undefined;
       } else if (term.type === 'executionStop') {
         return undefined;
+      } else if (term.type === 'sleep') {
+        return undefined;
       } else {
         replacement = escapeTemplateText(`[${location.content}]`);
       }
@@ -254,7 +256,7 @@ export class QuestionTemplateService {
 }
 
 function hasQuestionTemplate(question: string): boolean {
-  return /(^|[^\\])\[(?:event\.|消息\.读取\.|json\.取值\.|变量\.(?:创建|读取)\.|逻辑\.|词库\.拒绝执行(?:\]|\.))/.test(
+  return /(^|[^\\])\[(?:event\.|消息\.读取\.|json\.取值\.|变量\.(?:创建|读取)\.|逻辑\.|词库\.拒绝执行(?:\]|\.)|逻辑\.休眠\.)/.test(
     question,
   );
 }

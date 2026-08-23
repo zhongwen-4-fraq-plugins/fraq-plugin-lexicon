@@ -252,6 +252,7 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     content: '内容',
   });
   assert.deepEqual(parseTemplateTerm('词库.拒绝执行'), { type: 'executionStop' });
+  assert.deepEqual(parseTemplateTerm('逻辑.休眠.1.5'), { type: 'sleep', milliseconds: 1500 });
   assert.deepEqual(parseTemplateTerm('逻辑.or.文本1.文本2'), {
     type: 'logic',
     operation: 'or',
@@ -302,6 +303,9 @@ test('模板词条支持嵌套定位、参数和转义', () => {
   assert.throws(() => parseTemplateTerm('消息.读取.mention'), /消息读取词条格式/);
   assert.throws(() => parseTemplateTerm('消息.取值.mention.user_id'), /不支持的消息操作：取值/);
   assert.throws(() => parseTemplateTerm('词库.拒绝执行.额外'), /词库词条格式/);
+  assert.throws(() => parseTemplateTerm('逻辑.休眠.0'), /有效的正数秒数/);
+  assert.throws(() => parseTemplateTerm('逻辑.休眠.不是数字'), /有效的正数秒数/);
+  assert.throws(() => parseTemplateTerm('逻辑.休眠.1.2.3'), /有效的正数秒数/);
   assert.throws(() => parseTemplateTerm('消息.构建.text.内容.多余'), /消息构建词条格式/);
   assert.throws(() => parseTemplateTerm('json.取值.A'), /JSON 取值词条格式/);
   assert.throws(() => parseTemplateTerm('json.读取.A.key'), /不支持的 JSON 操作/);
@@ -697,6 +701,18 @@ test('词库拒绝执行会停止当前回答并跳过后续词条', async (cont
   assert.equal(await template.render('前[逻辑.计次循环.3]A[词库.拒绝执行]B[逻辑.计次循环尾]后', groupContext), '前A');
   await assert.rejects(
     () => template.render('[逻辑.计次循环.[词库.拒绝执行]]A[逻辑.计次循环尾]', groupContext),
+    /只能用于回答文本/,
+  );
+});
+
+test('逻辑休眠会等待指定秒数后继续执行', async (context) => {
+  const harness = createHarness(context);
+  const startedAt = Date.now();
+
+  assert.equal(await harness.template.render('前[逻辑.休眠.0.02]后', groupContext), '前后');
+  assert.ok(Date.now() - startedAt >= 15);
+  await assert.rejects(
+    () => harness.template.render('[逻辑.判断][逻辑.and.[逻辑.休眠.0.01].true]不执行[逻辑.判断.结束]', groupContext),
     /只能用于回答文本/,
   );
 });
