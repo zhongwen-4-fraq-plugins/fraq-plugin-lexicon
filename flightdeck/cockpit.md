@@ -1,10 +1,10 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 新增 `[逻辑.休眠.<秒数>]` 回答等待控制；本地测试已通过，待检查、构建及发布安装后真实验证。
+Focus: `v0.3.4` 已准备打标签，包含 `[词库.拒绝执行]` 和 `[逻辑.休眠.<秒数>]`；待推送并安装到目标 Fraq。
 
 ## In flight
 
-- `template-message-plugin` — `v0.3.3` 仍安装在目标 Fraq；本地已完成 `消息.读取` 重命名并新增 `[词库.拒绝执行]`、`[逻辑.休眠]`，待后续发布安装
+- `template-message-plugin` — 本地发行目标 `v0.3.4`；目标 Fraq 仍安装 `v0.3.3`
 
 ## Next
 
