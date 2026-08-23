@@ -1,10 +1,10 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 管理命令已迁移到 README 表格；严格 `[逻辑.or...]` 规则仍已本地验证、尚未发布安装。
+Focus: 用法文档已新增按前缀分组、从短到长排列的词条速查表；严格 `[逻辑.or...]` 规则仍尚未发布安装。
 
 ## In flight
 
-- `template-message-plugin` — README 已增加管理命令表；目标 Fraq 仍为 `v0.3.4`，严格 `逻辑.or` 布尔规则待后续发布安装
+- `template-message-plugin` — README 已有管理命令表，用法文档已有完整词条速查；目标 Fraq 仍为 `v0.3.4`，严格 `逻辑.or` 布尔规则待后续发布安装
 
 ## Next
 
