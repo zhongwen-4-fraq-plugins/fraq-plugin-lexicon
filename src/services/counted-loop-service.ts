@@ -1,5 +1,6 @@
 import { LexiconError } from '../errors';
 import { CountedLoopControlSignal } from '../models/counted-loop';
+import { TemplateExecutionStopSignal } from '../models/template-execution';
 
 const DEFAULT_MAX_LOOP_ITERATIONS = 10_000;
 
@@ -25,6 +26,10 @@ export class CountedLoopService {
         output = this.append(output, await renderIteration());
       } catch (error) {
         if (!(error instanceof CountedLoopControlSignal)) {
+          if (error instanceof TemplateExecutionStopSignal) {
+            output = this.append(output, error.output);
+            throw new TemplateExecutionStopSignal(output);
+          }
           throw error;
         }
         output = this.append(output, error.output);
@@ -47,6 +52,10 @@ export class CountedLoopService {
         output = this.append(output, iterationOutput);
       } catch (error) {
         if (!(error instanceof CountedLoopControlSignal)) {
+          if (error instanceof TemplateExecutionStopSignal) {
+            output = this.append(output, error.output);
+            throw new TemplateExecutionStopSignal(output);
+          }
           throw error;
         }
         output = this.append(output, error.output);

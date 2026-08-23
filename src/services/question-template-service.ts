@@ -190,6 +190,8 @@ export class QuestionTemplateService {
         }
       } else if (term.type === 'requestInput') {
         return undefined;
+      } else if (term.type === 'executionStop') {
+        return undefined;
       } else {
         replacement = escapeTemplateText(`[${location.content}]`);
       }
@@ -252,7 +254,9 @@ export class QuestionTemplateService {
 }
 
 function hasQuestionTemplate(question: string): boolean {
-  return /(^|[^\\])\[(?:event\.|消息\.取值\.|json\.取值\.|变量\.(?:创建|读取)\.|逻辑\.)/.test(question);
+  return /(^|[^\\])\[(?:event\.|消息\.读取\.|json\.取值\.|变量\.(?:创建|读取)\.|逻辑\.|词库\.拒绝执行(?:\]|\.))/.test(
+    question,
+  );
 }
 
 function matchesText(question: string, matchMode: MatchMode, originalText: string): boolean {

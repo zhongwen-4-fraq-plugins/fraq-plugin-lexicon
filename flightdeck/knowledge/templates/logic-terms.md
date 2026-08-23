@@ -1,5 +1,5 @@
 # Logic condition blocks
-SUMMARY: Logic mode is explicit; counted loops support variable counts, nesting, nearest-loop break/continue, and a 10000-iteration limit; user-input terms keep per-request timeout behavior.
+SUMMARY: Logic mode is explicit; counted loops support variable counts, nesting, nearest-loop break/continue, and a 10000-iteration limit; user-input terms keep per-request timeout behavior; `[词库.拒绝执行]` stops the current answer without compatibility aliases.
 READ WHEN: before modifying logic template parsing, conditional branches, boolean aliases, user-input waiting, or question-side condition evaluation
 
 ---
@@ -31,3 +31,4 @@ READ WHEN: before modifying logic template parsing, conditional branches, boolea
 - Select the earliest outer block between conditionals and counted loops before executing ordinary terms; otherwise an inner conditional may execute once outside its loop instead of once per iteration.
 - Escape each completed loop result before reinserting it into the outer template so literal brackets are not executed again.
 - Loop controls are invalid outside a loop, inside boolean condition parameters, or inside a loop-count expression.
+- `[词库.拒绝执行]` stops the current answer immediately, preserves output and actions before it, skips all later text and terms, and does not affect later messages.

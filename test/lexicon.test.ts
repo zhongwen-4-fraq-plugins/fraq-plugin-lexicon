@@ -251,6 +251,7 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     segmentType: 'text',
     content: '内容',
   });
+  assert.deepEqual(parseTemplateTerm('词库.拒绝执行'), { type: 'executionStop' });
   assert.deepEqual(parseTemplateTerm('逻辑.or.文本1.文本2'), {
     type: 'logic',
     operation: 'or',
@@ -300,6 +301,7 @@ test('模板词条支持嵌套定位、参数和转义', () => {
   assert.throws(() => parseTemplateTerm('逻辑.or.唯一参数'), /逻辑词条格式/);
   assert.throws(() => parseTemplateTerm('消息.读取.mention'), /消息读取词条格式/);
   assert.throws(() => parseTemplateTerm('消息.取值.mention.user_id'), /不支持的消息操作：取值/);
+  assert.throws(() => parseTemplateTerm('词库.拒绝执行.额外'), /词库词条格式/);
   assert.throws(() => parseTemplateTerm('消息.构建.text.内容.多余'), /消息构建词条格式/);
   assert.throws(() => parseTemplateTerm('json.取值.A'), /JSON 取值词条格式/);
   assert.throws(() => parseTemplateTerm('json.读取.A.key'), /不支持的 JSON 操作/);
@@ -674,6 +676,29 @@ test('计次循环校验次数、作用域和问题模板', async (context) => {
   const lexicon = harness.service.createLexicon('循环问题', 'group', loopContext);
   harness.repository.addEntry(lexicon.id, 'exact', '[逻辑.计次循环.2]戳[逻辑.计次循环尾]我', '命中', 1);
   assert.ok(harness.service.matchMessage(loopContext));
+});
+
+test('词库拒绝执行会停止当前回答并跳过后续词条', async (context) => {
+  const harness = createHarness(context);
+  const calls: string[] = [];
+  const actions = new ApiActionRegistry();
+  actions.register('before', () => {
+    calls.push('before');
+    return '';
+  });
+  actions.register('after', () => {
+    calls.push('after');
+    return '';
+  });
+  const template = new TemplateService(harness.service, actions, {} as MilkyClient);
+
+  assert.equal(await template.render('[api.before]前[词库.拒绝执行]后[api.after]不输出', groupContext), '前');
+  assert.deepEqual(calls, ['before']);
+  assert.equal(await template.render('前[逻辑.计次循环.3]A[词库.拒绝执行]B[逻辑.计次循环尾]后', groupContext), '前A');
+  await assert.rejects(
+    () => template.render('[逻辑.计次循环.[词库.拒绝执行]]A[逻辑.计次循环尾]', groupContext),
+    /只能用于回答文本/,
+  );
 });
 
 test('请求用户输入会限定会话、保留变量并继续嵌套解析', async (context) => {

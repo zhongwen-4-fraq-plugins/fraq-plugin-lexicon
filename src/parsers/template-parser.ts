@@ -12,6 +12,7 @@ export type TemplateTerm =
   | { type: 'messageBuild'; segmentType: string; content: string }
   | { type: 'jsonValue'; variableName: string; path: string[] }
   | { type: 'lexicon'; name: string }
+  | { type: 'executionStop' }
   | { type: 'setVariable'; name: string; value: string }
   | { type: 'getVariable'; name: string };
 
@@ -91,6 +92,9 @@ export function parseTemplateTerm(content: string): TemplateTerm {
   const unescapedParts = parts.map(unescapePart);
 
   if (namespace === '词库') {
+    if (unescapedParts.length === 1 && unescapedParts[0] === '拒绝执行') {
+      return { type: 'executionStop' };
+    }
     if (unescapedParts.length !== 1 || !unescapedParts[0]) {
       throw new LexiconError('词库词条格式应为 [词库.<词库名>]。');
     }

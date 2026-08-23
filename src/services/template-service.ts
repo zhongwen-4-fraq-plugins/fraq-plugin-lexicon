@@ -4,6 +4,7 @@ import type { ApiActionRegistry } from '../actions/api-action-registry';
 import { LexiconError, UserInputTimeoutError } from '../errors';
 import { CountedLoopControlSignal } from '../models/counted-loop';
 import type { TemplateContext } from '../models/lexicon';
+import { TemplateExecutionStopSignal } from '../models/template-execution';
 import { findConditionalBlock, parseConditionalBlock } from '../parsers/conditional-template-parser';
 import { findCountedLoopBlock } from '../parsers/counted-loop-parser';
 import {
@@ -32,7 +33,9 @@ type LogicMode = 'text' | 'condition' | 'loopCount';
 type RequestUserInput = (prompt: string) => Promise<void>;
 type ExecutableTemplateTerm = Exclude<
   ReturnType<typeof parseTemplateTerm>,
-  { type: 'requestInput'; prompt: string } | { type: 'loopControl'; control: 'break' | 'continue' }
+  | { type: 'requestInput'; prompt: string }
+  | { type: 'loopControl'; control: 'break' | 'continue' }
+  | { type: 'executionStop' }
 >;
 
 export class TemplateService {
@@ -63,7 +66,14 @@ export class TemplateService {
     requestUserInput?: RequestUserInput,
   ): Promise<string> {
     const variables = new Map(initialVariables);
-    return this.renderInternal(template, context, variables, 'text', requestUserInput, 0);
+    try {
+      return await this.renderInternal(template, context, variables, 'text', requestUserInput, 0);
+    } catch (error) {
+      if (error instanceof TemplateExecutionStopSignal) {
+        return error.output;
+      }
+      throw error;
+    }
   }
 
   private async renderInternal(
@@ -107,14 +117,24 @@ export class TemplateService {
       }
 
       if (countedLoop && countedLoop.start === firstBlockStart && (!location || countedLoop.start <= location.start)) {
-        const replacement = await this.renderCountedLoop(
-          countedLoop.countExpression,
-          countedLoop.body,
-          context,
-          variables,
-          requestUserInput,
-          loopDepth,
-        );
+        let replacement: string;
+        try {
+          replacement = await this.renderCountedLoop(
+            countedLoop.countExpression,
+            countedLoop.body,
+            context,
+            variables,
+            requestUserInput,
+            loopDepth,
+          );
+        } catch (error) {
+          if (error instanceof TemplateExecutionStopSignal) {
+            throw new TemplateExecutionStopSignal(
+              `${unescapeTemplateText(output.slice(0, countedLoop.start))}${error.output}`,
+            );
+          }
+          throw error;
+        }
         output = `${output.slice(0, countedLoop.start)}${replacement}${output.slice(countedLoop.end + 1)}`;
         continue;
       }
@@ -124,6 +144,12 @@ export class TemplateService {
       }
 
       const term = parseTemplateTerm(location.content);
+      if (term.type === 'executionStop') {
+        if (logicMode !== 'text') {
+          throw new LexiconError('[词库.拒绝执行] 只能用于回答文本，不能用于逻辑条件或循环次数。');
+        }
+        throw new TemplateExecutionStopSignal(unescapeTemplateText(output.slice(0, location.start)));
+      }
       if (term.type === 'loopControl') {
         if (logicMode !== 'text' || loopDepth === 0) {
           throw new LexiconError('[循环.退出] 和 [循环.跳过] 只能用在计次循环内容中。');
