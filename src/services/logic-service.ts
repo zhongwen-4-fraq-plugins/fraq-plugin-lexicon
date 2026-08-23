@@ -1,6 +1,6 @@
 import { LexiconError } from '../errors';
 
-export type LogicOperation = 'or' | 'and' | 'in';
+export type LogicOperation = 'or' | 'and' | 'in' | '等于' | '不等于';
 
 export class LogicService {
   resolveText(operation: LogicOperation, values: string[]): string {
@@ -20,10 +20,15 @@ export class LogicService {
     if (operation === 'and') {
       return values.join('');
     }
-    throw new LexiconError('[逻辑.in] 只能用作 [逻辑.判断] 或 [逻辑.否则判断] 的条件。');
+    throw new LexiconError(`[逻辑.${operation}] 只能用作 [逻辑.判断] 或 [逻辑.否则判断] 的条件。`);
   }
 
   resolveCondition(operation: LogicOperation, values: string[]): boolean {
+    if (operation === '等于' || operation === '不等于') {
+      validateComparisonValues(operation, values);
+      return operation === '等于' ? values[0] === values[1] : values[0] !== values[1];
+    }
+
     validateValues(values);
     if (operation === 'in') {
       return values.slice(1).includes(values[0]);
@@ -56,7 +61,13 @@ function validateValues(values: string[]): void {
   }
 }
 
-function parseStrictBoolean(operation: Exclude<LogicOperation, 'in'>, value: string): boolean {
+function validateComparisonValues(operation: '等于' | '不等于', values: string[]): void {
+  if (values.length !== 2 || values.some((value) => value === '')) {
+    throw new LexiconError(`逻辑.${operation}条件只接受两个非空参数。`);
+  }
+}
+
+function parseStrictBoolean(operation: 'or' | 'and', value: string): boolean {
   if (value === 'true') {
     return true;
   }

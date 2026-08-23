@@ -263,6 +263,16 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     operation: 'in',
     values: ['A', 'B', 'A'],
   });
+  assert.deepEqual(parseTemplateTerm('逻辑.等于.A.A'), {
+    type: 'logic',
+    operation: '等于',
+    values: ['A', 'A'],
+  });
+  assert.deepEqual(parseTemplateTerm('逻辑.不等于.A.B'), {
+    type: 'logic',
+    operation: '不等于',
+    values: ['A', 'B'],
+  });
   assert.deepEqual(parseTemplateTerm('逻辑.请求用户输入.请输入名字'), {
     type: 'requestInput',
     prompt: '请输入名字',
@@ -306,6 +316,8 @@ test('模板词条支持嵌套定位、参数和转义', () => {
   assert.throws(() => parseTemplateTerm('逻辑.休眠.0'), /有效的正数秒数/);
   assert.throws(() => parseTemplateTerm('逻辑.休眠.不是数字'), /有效的正数秒数/);
   assert.throws(() => parseTemplateTerm('逻辑.休眠.1.2.3'), /有效的正数秒数/);
+  assert.throws(() => parseTemplateTerm('逻辑.等于.A'), /逻辑.等于词条格式/);
+  assert.throws(() => parseTemplateTerm('逻辑.不等于.A.B.C'), /逻辑.不等于词条格式/);
   assert.throws(() => parseTemplateTerm('消息.构建.text.内容.多余'), /消息构建词条格式/);
   assert.throws(() => parseTemplateTerm('json.取值.A'), /JSON 取值词条格式/);
   assert.throws(() => parseTemplateTerm('json.读取.A.key'), /不支持的 JSON 操作/);
@@ -554,6 +566,10 @@ test('逻辑词条显式区分文本操作和条件运算', () => {
   assert.equal(logicService.resolveCondition('and', ['true', 'false']), false);
   assert.equal(logicService.resolveCondition('in', ['A', 'B', 'A']), true);
   assert.equal(logicService.resolveCondition('in', ['A', 'B', 'C']), false);
+  assert.equal(logicService.resolveCondition('等于', ['A', 'A']), true);
+  assert.equal(logicService.resolveCondition('等于', ['A', 'a']), false);
+  assert.equal(logicService.resolveCondition('不等于', ['A', 'B']), true);
+  assert.equal(logicService.resolveCondition('不等于', ['A', 'A']), false);
   assert.throws(() => logicService.resolveCondition('or', ['1', 'true']), /只支持 true 或 false/);
   assert.throws(() => logicService.resolveCondition('or', ['TRUE', 'false']), /只支持 true 或 false/);
   assert.throws(() => logicService.resolveCondition('or', [' true ', 'false']), /只支持 true 或 false/);
@@ -562,6 +578,9 @@ test('逻辑词条显式区分文本操作和条件运算', () => {
   assert.throws(() => logicService.resolveCondition('and', ['TRUE', 'false']), /只支持 true 或 false/);
   assert.throws(() => logicService.resolveCondition('and', [' true ', 'false']), /只支持 true 或 false/);
   assert.throws(() => logicService.resolveCondition('and', ['是', 'true']), /只支持 true 或 false/);
+  assert.throws(() => logicService.resolveCondition('等于', ['A', 'B', 'C']), /两个非空参数/);
+  assert.throws(() => logicService.resolveText('等于', ['A', 'A']), /只能用作/);
+  assert.throws(() => logicService.resolveText('不等于', ['A', 'B']), /只能用作/);
   assert.throws(() => logicService.resolveText('or', ['唯一参数']), /至少需要两个/);
 });
 
@@ -571,7 +590,7 @@ test('逻辑条件支持问题、回答、可选分支和无限嵌套', async (c
   harness.repository.addEntry(
     lexicon.id,
     'exact',
-    '[逻辑.判断][逻辑.and.true.true]戳我[逻辑.否则]其他[逻辑.判断.结束]',
+    '[逻辑.判断][逻辑.等于.戳我.戳我]戳我[逻辑.否则]其他[逻辑.判断.结束]',
     '[逻辑.判断][逻辑.and.[逻辑.or.false.true].true]通过[逻辑.否则]失败[逻辑.判断.结束]',
     1,
   );
@@ -605,7 +624,19 @@ test('逻辑条件支持问题、回答、可选分支和无限嵌套', async (c
     await harness.template.render('[逻辑.判断][逻辑.and.true.false]不会输出[逻辑.判断.结束]', groupContext),
     '',
   );
+  assert.equal(
+    await harness.template.render(
+      '[变量.创建.A=内容][逻辑.判断][逻辑.等于.[变量.读取.A].内容]相同[逻辑.否则]不同[逻辑.判断.结束]',
+      groupContext,
+    ),
+    '相同',
+  );
+  assert.equal(
+    await harness.template.render('[逻辑.判断][逻辑.不等于.A.B]不同[逻辑.否则]相同[逻辑.判断.结束]', groupContext),
+    '不同',
+  );
   await assert.rejects(() => harness.template.render('[逻辑.in.A.A]', groupContext), /只能用作/);
+  await assert.rejects(() => harness.template.render('[逻辑.等于.A.A]', groupContext), /只能用作/);
 });
 
 test('逻辑.or会跳过空值、未创建变量和不存在的消息段', async (context) => {

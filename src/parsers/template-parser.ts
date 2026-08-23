@@ -4,7 +4,7 @@ import { isEscaped } from './template-syntax';
 
 export type TemplateTerm =
   | { type: 'api'; action: string; parameters: Record<string, string> }
-  | { type: 'logic'; operation: 'or' | 'and' | 'in'; values: string[] }
+  | { type: 'logic'; operation: 'or' | 'and' | 'in' | '等于' | '不等于'; values: string[] }
   | { type: 'sleep'; milliseconds: number }
   | { type: 'loopControl'; control: 'break' | 'continue' }
   | { type: 'requestInput'; prompt: string; timeoutSeconds?: number; timeoutMessage: string }
@@ -127,9 +127,15 @@ export function parseTemplateTerm(content: string): TemplateTerm {
     if (operation === '休眠') {
       return parseSleepTerm(unescapedParts);
     }
+    if (operation === '等于' || operation === '不等于') {
+      if (unescapedParts.length !== 2) {
+        throw new LexiconError(`逻辑.${operation}词条格式应为 [逻辑.${operation}.<参数1>.<参数2>]。`);
+      }
+      return { type: 'logic', operation, values: unescapedParts };
+    }
     if ((operation !== 'or' && operation !== 'and' && operation !== 'in') || unescapedParts.length < 2) {
       throw new LexiconError(
-        '逻辑词条格式应为 [逻辑.<or|and|in>.<参数1>.<参数2>...] 或 [逻辑.请求用户输入.<提示消息>.<超时时间=秒>.<超时提示=文本>]。',
+        '逻辑词条格式应为 [逻辑.<or|and|in>.<参数1>.<参数2>...]、[逻辑.<等于|不等于>.<参数1>.<参数2>] 或 [逻辑.请求用户输入.<提示消息>.<超时时间=秒>.<超时提示=文本>]。',
       );
     }
     return { type: 'logic', operation, values: unescapedParts };

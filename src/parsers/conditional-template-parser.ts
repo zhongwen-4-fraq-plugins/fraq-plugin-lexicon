@@ -119,8 +119,8 @@ function parseConditionBranch(content: string): ConditionalBranch {
   }
   const conditionEnd = findTermEnd(content, conditionStart);
   const condition = content.slice(conditionStart, conditionEnd + 1);
-  if (!/^\[逻辑\.(?:or|and|in)\./u.test(condition)) {
-    throw new LexiconError('条件必须使用 [逻辑.or]、[逻辑.and] 或 [逻辑.in]。');
+  if (!/^\[逻辑\.(?:or|and|in|等于|不等于)\./u.test(condition)) {
+    throw new LexiconError('条件必须使用 [逻辑.or]、[逻辑.and]、[逻辑.in]、[逻辑.等于] 或 [逻辑.不等于]。');
   }
   return { condition, content: content.slice(conditionEnd + 1) };
 }
