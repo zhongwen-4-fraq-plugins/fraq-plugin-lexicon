@@ -550,14 +550,18 @@ test('逻辑词条显式区分文本操作和条件运算', () => {
   assert.throws(() => logicService.resolveText('in', ['A', 'A']), /只能用作/);
 
   assert.equal(logicService.resolveCondition('or', ['false', 'true']), true);
-  assert.equal(logicService.resolveCondition('and', ['true', '1', '是']), true);
-  assert.equal(logicService.resolveCondition('and', ['true', '否']), false);
+  assert.equal(logicService.resolveCondition('and', ['true', 'true']), true);
+  assert.equal(logicService.resolveCondition('and', ['true', 'false']), false);
   assert.equal(logicService.resolveCondition('in', ['A', 'B', 'A']), true);
   assert.equal(logicService.resolveCondition('in', ['A', 'B', 'C']), false);
   assert.throws(() => logicService.resolveCondition('or', ['1', 'true']), /只支持 true 或 false/);
   assert.throws(() => logicService.resolveCondition('or', ['TRUE', 'false']), /只支持 true 或 false/);
   assert.throws(() => logicService.resolveCondition('or', [' true ', 'false']), /只支持 true 或 false/);
   assert.throws(() => logicService.resolveCondition('or', ['文本1', 'true']), /只支持 true 或 false/);
+  assert.throws(() => logicService.resolveCondition('and', ['1', 'true']), /只支持 true 或 false/);
+  assert.throws(() => logicService.resolveCondition('and', ['TRUE', 'false']), /只支持 true 或 false/);
+  assert.throws(() => logicService.resolveCondition('and', [' true ', 'false']), /只支持 true 或 false/);
+  assert.throws(() => logicService.resolveCondition('and', ['是', 'true']), /只支持 true 或 false/);
   assert.throws(() => logicService.resolveText('or', ['唯一参数']), /至少需要两个/);
 });
 

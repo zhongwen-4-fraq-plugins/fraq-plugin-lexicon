@@ -28,10 +28,11 @@ export class LogicService {
     if (operation === 'in') {
       return values.slice(1).includes(values[0]);
     }
+    const booleans = values.map((value) => parseStrictBoolean(operation, value));
     if (operation === 'or') {
-      return values.map((value) => parseStrictBoolean(value)).some(Boolean);
+      return booleans.some(Boolean);
     }
-    return values.map((value) => parseBooleanAlias(value)).every(Boolean);
+    return booleans.every(Boolean);
   }
 }
 
@@ -55,23 +56,12 @@ function validateValues(values: string[]): void {
   }
 }
 
-function parseStrictBoolean(value: string): boolean {
+function parseStrictBoolean(operation: Exclude<LogicOperation, 'in'>, value: string): boolean {
   if (value === 'true') {
     return true;
   }
   if (value === 'false') {
     return false;
   }
-  throw new LexiconError(`逻辑.or条件参数“${value}”只支持 true 或 false。`);
-}
-
-function parseBooleanAlias(value: string): boolean {
-  const normalized = value.trim().toLowerCase();
-  if (normalized === 'true' || normalized === '1' || normalized === '是' || normalized === '真') {
-    return true;
-  }
-  if (normalized === 'false' || normalized === '0' || normalized === '否' || normalized === '假') {
-    return false;
-  }
-  throw new LexiconError(`逻辑条件参数“${value}”不是布尔值。`);
+  throw new LexiconError(`逻辑.${operation}条件参数“${value}”只支持 true 或 false。`);
 }

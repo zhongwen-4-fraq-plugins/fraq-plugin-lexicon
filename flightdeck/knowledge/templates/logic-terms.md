@@ -1,5 +1,5 @@
 # Logic condition blocks
-SUMMARY: Logic mode is explicit; conditional `逻辑.or` accepts only exact lowercase `true` and `false`; counted loops support variable counts, nesting, nearest-loop break/continue, and a 10000-iteration limit; user-input terms keep per-request timeout behavior; `[逻辑.休眠.<秒数>]` waits in answer text; `[词库.拒绝执行]` stops the current answer without compatibility aliases.
+SUMMARY: Logic mode is explicit; conditional `逻辑.or` and `逻辑.and` accept only exact lowercase `true` and `false`; counted loops support variable counts, nesting, nearest-loop break/continue, and a 10000-iteration limit; user-input terms keep per-request timeout behavior; `[逻辑.休眠.<秒数>]` waits in answer text; `[词库.拒绝执行]` stops the current answer without compatibility aliases.
 READ WHEN: before modifying logic template parsing, conditional branches, boolean aliases, user-input waiting, or question-side condition evaluation
 
 ---
@@ -7,7 +7,7 @@ READ WHEN: before modifying logic template parsing, conditional branches, boolea
 - Text syntax is `[逻辑.or.<文本...>]` or `[逻辑.and.<文本...>]`; every operation requires at least two non-empty arguments.
 - Conditional syntax starts with `[逻辑.判断]`, may contain `[逻辑.否则判断]` and `[逻辑.否则]`, and ends with `[逻辑.判断.结束]`.
 - Every `判断` or `否则判断` marker must be followed immediately by one `[逻辑.or]`, `[逻辑.and]`, or `[逻辑.in]` term.
-- Boolean literals are `true/false`, `1/0`, `是/否`, and `真/假`; English values are case-insensitive.
+- Conditional `逻辑.or` and `逻辑.and` accept only exact lowercase `true` and `false`; never trim, normalize case, or accept numeric or Chinese aliases.
 - Outside conditions, `or` always returns the first non-empty argument in order and `and` always concatenates arguments; no type detection occurs.
 - Inside conditions, `or` and `and` require boolean arguments, while `in` compares the first argument with later candidates using exact equality.
 - `[逻辑.in]` is rejected outside a condition block.
@@ -33,4 +33,4 @@ READ WHEN: before modifying logic template parsing, conditional branches, boolea
 - Loop controls are invalid outside a loop, inside boolean condition parameters, or inside a loop-count expression.
 - `[词库.拒绝执行]` stops the current answer immediately, preserves output and actions before it, skips all later text and terms, and does not affect later messages.
 - `[逻辑.休眠.<秒数>]` waits the requested positive number of seconds, supports decimal seconds, and is invalid in questions, conditions, and loop-count expressions.
-- Conditional `[逻辑.or...]` accepts only exact lowercase `true` and `false`; do not normalize case, trim whitespace, or accept numeric/Chinese aliases. Conditional `逻辑.and` keeps its existing aliases unless explicitly changed.
+- Text-mode `逻辑.or` and `逻辑.and` keep their existing text behavior; the strict boolean rule applies only inside conditional blocks.
