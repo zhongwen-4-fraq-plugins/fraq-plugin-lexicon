@@ -554,7 +554,10 @@ test('逻辑词条显式区分文本操作和条件运算', () => {
   assert.equal(logicService.resolveCondition('and', ['true', '否']), false);
   assert.equal(logicService.resolveCondition('in', ['A', 'B', 'A']), true);
   assert.equal(logicService.resolveCondition('in', ['A', 'B', 'C']), false);
-  assert.throws(() => logicService.resolveCondition('or', ['文本1', 'true']), /不是布尔值/);
+  assert.throws(() => logicService.resolveCondition('or', ['1', 'true']), /只支持 true 或 false/);
+  assert.throws(() => logicService.resolveCondition('or', ['TRUE', 'false']), /只支持 true 或 false/);
+  assert.throws(() => logicService.resolveCondition('or', [' true ', 'false']), /只支持 true 或 false/);
+  assert.throws(() => logicService.resolveCondition('or', ['文本1', 'true']), /只支持 true 或 false/);
   assert.throws(() => logicService.resolveText('or', ['唯一参数']), /至少需要两个/);
 });
 

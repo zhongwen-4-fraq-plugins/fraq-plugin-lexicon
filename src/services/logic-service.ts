@@ -28,8 +28,10 @@ export class LogicService {
     if (operation === 'in') {
       return values.slice(1).includes(values[0]);
     }
-    const booleanValues = values.map((value) => parseBoolean(value));
-    return operation === 'or' ? booleanValues.some(Boolean) : booleanValues.every(Boolean);
+    if (operation === 'or') {
+      return values.map((value) => parseStrictBoolean(value)).some(Boolean);
+    }
+    return values.map((value) => parseBooleanAlias(value)).every(Boolean);
   }
 }
 
@@ -53,7 +55,17 @@ function validateValues(values: string[]): void {
   }
 }
 
-function parseBoolean(value: string): boolean {
+function parseStrictBoolean(value: string): boolean {
+  if (value === 'true') {
+    return true;
+  }
+  if (value === 'false') {
+    return false;
+  }
+  throw new LexiconError(`逻辑.or条件参数“${value}”只支持 true 或 false。`);
+}
+
+function parseBooleanAlias(value: string): boolean {
   const normalized = value.trim().toLowerCase();
   if (normalized === 'true' || normalized === '1' || normalized === '是' || normalized === '真') {
     return true;

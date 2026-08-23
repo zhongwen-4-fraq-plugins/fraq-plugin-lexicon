@@ -1,5 +1,5 @@
 # Logic condition blocks
-SUMMARY: Logic mode is explicit; counted loops support variable counts, nesting, nearest-loop break/continue, and a 10000-iteration limit; user-input terms keep per-request timeout behavior; `[逻辑.休眠.<秒数>]` waits in answer text; `[词库.拒绝执行]` stops the current answer without compatibility aliases.
+SUMMARY: Logic mode is explicit; conditional `逻辑.or` accepts only exact lowercase `true` and `false`; counted loops support variable counts, nesting, nearest-loop break/continue, and a 10000-iteration limit; user-input terms keep per-request timeout behavior; `[逻辑.休眠.<秒数>]` waits in answer text; `[词库.拒绝执行]` stops the current answer without compatibility aliases.
 READ WHEN: before modifying logic template parsing, conditional branches, boolean aliases, user-input waiting, or question-side condition evaluation
 
 ---
@@ -33,3 +33,4 @@ READ WHEN: before modifying logic template parsing, conditional branches, boolea
 - Loop controls are invalid outside a loop, inside boolean condition parameters, or inside a loop-count expression.
 - `[词库.拒绝执行]` stops the current answer immediately, preserves output and actions before it, skips all later text and terms, and does not affect later messages.
 - `[逻辑.休眠.<秒数>]` waits the requested positive number of seconds, supports decimal seconds, and is invalid in questions, conditions, and loop-count expressions.
+- Conditional `[逻辑.or...]` accepts only exact lowercase `true` and `false`; do not normalize case, trim whitespace, or accept numeric/Chinese aliases. Conditional `逻辑.and` keeps its existing aliases unless explicitly changed.
