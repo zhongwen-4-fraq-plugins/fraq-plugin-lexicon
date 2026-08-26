@@ -1,13 +1,14 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 已新增条件词条 `[逻辑.notin.x.x]`；严格逻辑布尔、等于/不等于和 notin 均本地验证通过，尚未发布安装。
+Focus: 已按 `fraqjs/market` 审核规则将插件分类从无效的 `utility` 修正为 `utilities`；严格逻辑布尔、等于/不等于和 notin 均本地验证通过，尚未发布安装。
 
 ## In flight
 
-- `template-message-plugin` — 目标 Fraq 仍为 `v0.3.4`；严格逻辑布尔规则及等于、不等于、notin 条件词条待后续发布安装
+- `template-message-plugin` — 目标 Fraq 仍为 `v0.3.4`；市场分类修正及严格逻辑布尔、等于、不等于、notin 条件词条待后续发布安装
 
 ## Next
 
+- 下次发布后确认 `fraqjs/registry` 的 `plugins.json` 已收录本插件且分类为 `utilities`。
 - 在真实群聊中验证 ID 3 的“获取陌生人信息@用户”。
 - 在真实群聊中验证 `[词库.拒绝执行]` 后的 API 和嵌套词条不执行。
 - 在真实群聊中验证 `[逻辑.休眠.<秒数>]` 等待后继续执行。

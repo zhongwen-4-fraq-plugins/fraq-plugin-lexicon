@@ -65,6 +65,6 @@
     "@fraqjs/fraq": "^0.14.0 || ^0.17.0"
   },
   "fraq": {
-    "category": "utility"
+    "category": "utilities"
   }
 }

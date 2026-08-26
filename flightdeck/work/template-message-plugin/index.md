@@ -8,6 +8,7 @@
 - v0.3.3 已发布并安装到目标 Fraq；本轮文本模式 `逻辑.or` 优先回退变更已完成目标启动验证，待真实群聊验证。
 - 当前源码已将消息段读取语法改为 `[消息.读取.<类型>.<路径>]`，不兼容旧的 `[消息.取值...]`；尚未发布或安装到目标 Fraq。
 - 当前发行版本为 `v0.3.4`，已发布、推送并安装到目标 Fraq；包含 `[词库.拒绝执行]` 和 `[逻辑.休眠.<秒数>]`。
+- 当前源码已将 `package.json` 的 `fraq.category` 从市场不接受的 `utility` 修正为 `utilities`；复刻市场转换后为 `unlisted: false`，尚未发布到 npm。
 - 当前源码已将条件模式的 `[逻辑.or...]` 和 `[逻辑.and...]` 改为只接受完全匹配的小写 `true` 和 `false`；尚未发布安装。
 - 当前源码已新增条件词条 `[逻辑.等于.<值1>.<值2>]` 和 `[逻辑.不等于.<值1>.<值2>]`；两者精确比较两个非空参数，尚未发布安装。
 - 当前源码已新增 `[逻辑.notin.<目标>.<候选...>]`；目标与全部候选都不相等时条件成立，尚未发布安装。
@@ -16,6 +17,7 @@
 
 ## Next
 
+- 下次发布后确认 `fraqjs/registry` 生成的 `plugins.json` 已收录本插件且分类为 `utilities`。
 - 发布并安装本轮变更后，在真实群聊中验证 ID 3 的 `[消息.读取.mention.user_id]` 和 `[api.get_user_profile]`。
 - 发布并安装本轮变更后，在真实群聊中验证 `[词库.拒绝执行]` 会阻止后续 API 和嵌套词条执行。
 - 发布并安装本轮变更后，在真实群聊中验证 `[逻辑.休眠.<秒数>]` 的整数、小数和后续继续执行。
@@ -37,6 +39,7 @@
 
 ## Read if
 
+- 修改 npm 插件信息或 Fraq 市场分类时读取 `flightdeck/knowledge/fraq/market-metadata.md`。
 - 修改 README 或使用文档时读取 `README.md` 和 `flightdeck/knowledge/docs/documentation-layout.md`。
 - 添加验证时读取 `test/smoke.ts`。
 - 再次发布并安装到目标 Fraq 时读取 `flightdeck/knowledge/fraq/target-app-integration.md`。
@@ -55,6 +58,7 @@
 - 已实现 `[api.send_group_nudge]`、`[api.send_friend_nudge]`、`[词库.<词库名>]`、无固定深度迭代解析和循环检测。
 - 已更新包信息、README、测试脚本和运行数据忽略规则。
 - 已补齐 npm 作者、仓库、主页、问题反馈、关键词、标准 ESM 导出和公开发布配置。
+- 已按 `fraqjs/market` 当前转换规则修正 npm 插件分类，避免生成结果被标记为 `unlisted`。
 - 已添加基于 GitHub OIDC 的 npm Trusted Publisher 发布工作流和配置说明。
 - 已添加 PR 自动审核工作流，覆盖质量门禁和同仓库评论汇总。
 - 已添加 BUG 与功能请求两个 GitHub Issue Form，并关闭空白 Issue。
@@ -66,6 +70,8 @@
 - `pnpm check`：Biome 与 TypeScript 检查通过。
 - `pnpm build`：构建成功并生成声明文件。
 - `npm pack --dry-run --json`：打包预览成功，仅包含 README、`dist` 和 `package.json`。
+- 复刻 `fraqjs/market` manifest 转换：分类为 `utilities`，仓库地址正确，`unlisted: false`。
+- 市场分类修正后 `pnpm check` 与 `npm pack --dry-run --json` 均通过。
 - `.github/workflows/publish.yml`：结构检查通过，并完成测试、检查、构建和打包预览验证。
 - `.github/workflows/pr-review.yml`：YAML 结构检查通过。
 - `.github/ISSUE_TEMPLATE/*.yml`：YAML 解析和表单字段结构检查通过。
