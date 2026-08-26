@@ -7,18 +7,16 @@
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
 - v0.3.3 已发布并安装到目标 Fraq；本轮文本模式 `逻辑.or` 优先回退变更已完成目标启动验证，待真实群聊验证。
 - 当前源码已将消息段读取语法改为 `[消息.读取.<类型>.<路径>]`，不兼容旧的 `[消息.取值...]`；尚未发布或安装到目标 Fraq。
-- 当前发行版本为 `v0.3.4`，已发布、推送并安装到目标 Fraq；包含 `[词库.拒绝执行]` 和 `[逻辑.休眠.<秒数>]`。
-- 本轮发布目标版本为 `v0.3.5`，将包含市场分类修正、严格逻辑布尔、等于/不等于和 notin 条件词条。
-- 当前源码已将 `package.json` 的 `fraq.category` 从市场不接受的 `utility` 修正为 `utilities`；复刻市场转换后为 `unlisted: false`，尚未发布到 npm。
-- 当前源码已将条件模式的 `[逻辑.or...]` 和 `[逻辑.and...]` 改为只接受完全匹配的小写 `true` 和 `false`；尚未发布安装。
-- 当前源码已新增条件词条 `[逻辑.等于.<值1>.<值2>]` 和 `[逻辑.不等于.<值1>.<值2>]`；两者精确比较两个非空参数，尚未发布安装。
-- 当前源码已新增 `[逻辑.notin.<目标>.<候选...>]`；目标与全部候选都不相等时条件成立，尚未发布安装。
+- 当前发行版本为 `v0.3.5`，已发布、推送并安装到目标 Fraq；包含市场分类修正、严格逻辑布尔、等于/不等于和 notin 条件词条。
+- `package.json` 的 `fraq.category` 已从市场不接受的 `utility` 修正为 `utilities`；npm 与目标 Fraq 缓存均为新分类，等待 `fraqjs/registry` 下一轮定时构建收录。
+- 条件模式的 `[逻辑.or...]` 和 `[逻辑.and...]` 已随 `v0.3.5` 发布，只接受完全匹配的小写 `true` 和 `false`。
+- 条件词条 `[逻辑.等于.<值1>.<值2>]`、`[逻辑.不等于.<值1>.<值2>]` 和 `[逻辑.notin.<目标>.<候选...>]` 已随 `v0.3.5` 发布安装。
 - README 已新增管理命令表；`docs/lexicon-usage.md` 改为引用该表并继续承载词条详细用法。
 - `docs/lexicon-usage.md` 已新增按前缀分组、从短到长排列的完整词条速查表，API 表不展开具体端点。
 
 ## Next
 
-- 下次发布后确认 `fraqjs/registry` 生成的 `plugins.json` 已收录本插件且分类为 `utilities`。
+- 等待 `fraqjs/registry` 下一轮定时构建后，确认 `plugins.json` 已收录本插件且分类为 `utilities`。
 - 发布并安装本轮变更后，在真实群聊中验证 ID 3 的 `[消息.读取.mention.user_id]` 和 `[api.get_user_profile]`。
 - 发布并安装本轮变更后，在真实群聊中验证 `[词库.拒绝执行]` 会阻止后续 API 和嵌套词条执行。
 - 发布并安装本轮变更后，在真实群聊中验证 `[逻辑.休眠.<秒数>]` 的整数、小数和后续继续执行。
@@ -520,3 +518,13 @@
 - `notin` 至少接收两个非空参数；首个参数与后续任意候选相等时为 `false`，与全部候选都不相等时为 `true`。
 - `notin` 仅能用于 `[逻辑.判断]` 或 `[逻辑.否则判断]`，条件块外直接使用会返回明确错误。
 - `pnpm test` 45 项、`pnpm check` 和 `pnpm build` 均通过。
+
+## v0.3.5 release verification
+
+- 发布提交 `23d5cc8` 已创建注解标签 `v0.3.5`，`main` 与标签均已推送到远程仓库。
+- GitHub Actions 发布运行 `33016254127` 成功完成；npm `latest` 与 GitHub Release 均为 `0.3.5`。
+- 目标应用根目录与 `app/` 的 package manifest、pnpm/npm 锁文件均已同步为 `fraq-plugin-lexicon@0.3.5`，`versions.yml` 也已更新为 `lexicon: 0.3.5`。
+- 目标活动包与 Fraq 缓存均为 `0.3.5` 且 `fraq.category` 为 `utilities`；Fraq 重启后 WebUI 返回 HTTP 200。
+- `fraqjs/registry` 最近一次构建早于本次发布，当前 `plugins.json` 尚未收录本插件，等待下一轮定时构建。
+- `app/node_modules/.ignored/fraq-plugin-lexicon` 仍是安装器保留的旧副本，活动解析路径不是该目录。
+- 本轮未发现遗留 `tsx --test` 或 `node --test` 测试进程。

@@ -1,14 +1,14 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 正在准备 `v0.3.5` 标签发布；包含市场分类修正、严格逻辑布尔、等于/不等于和 notin 条件词条。
+Focus: `v0.3.5` 已发布并安装到目标 Fraq；市场分类已修正为 `utilities`，等待 Registry 定时构建收录，真实群聊验证仍待进行。
 
 ## In flight
 
-- `template-message-plugin` — 目标 Fraq 仍为 `v0.3.4`；市场分类修正及严格逻辑布尔、等于、不等于、notin 条件词条待后续发布安装
+- `template-message-plugin` — 目标 Fraq 已运行 `v0.3.5`；市场 Registry 收录确认与真实群聊验证待继续
 
 ## Next
 
-- 下次发布后确认 `fraqjs/registry` 的 `plugins.json` 已收录本插件且分类为 `utilities`。
+- 等待 `fraqjs/registry` 下一轮定时构建后，确认 `plugins.json` 已收录本插件且分类为 `utilities`。
 - 在真实群聊中验证 ID 3 的“获取陌生人信息@用户”。
 - 在真实群聊中验证 `[词库.拒绝执行]` 后的 API 和嵌套词条不执行。
 - 在真实群聊中验证 `[逻辑.休眠.<秒数>]` 等待后继续执行。
