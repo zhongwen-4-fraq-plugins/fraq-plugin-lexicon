@@ -1,6 +1,6 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 已按 `fraqjs/market` 审核规则将插件分类从无效的 `utility` 修正为 `utilities`；严格逻辑布尔、等于/不等于和 notin 均本地验证通过，尚未发布安装。
+Focus: 正在准备 `v0.3.5` 标签发布；包含市场分类修正、严格逻辑布尔、等于/不等于和 notin 条件词条。
 
 ## In flight
 
