@@ -62,7 +62,7 @@
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "@fraqjs/fraq": "^0.14.0 || ^0.17.0"
+    "@fraqjs/fraq": ">=0.14.0 <0.18.0"
   },
   "fraq": {
     "category": "utilities"
