@@ -1,13 +1,14 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: `v0.3.5` 已发布并安装到目标 Fraq；市场分类已修正为 `utilities`，等待 Registry 定时构建收录，真实群聊验证仍待进行。
+Focus: `v0.3.5` 已发布并安装到目标 Fraq；文件打开词条已实现并待发布，市场分类仍等待 Registry 定时构建收录，真实群聊验证仍待进行。
 
 ## In flight
 
-- `template-message-plugin` — 目标 Fraq 已运行 `v0.3.5`；市场 Registry 收录确认与真实群聊验证待继续
+- `template-message-plugin` — 目标 Fraq 已运行 `v0.3.5`；文件打开词条已在源码和测试中完成，待构建、发布、安装；市场 Registry 收录确认与真实群聊验证待继续
 
 ## Next
 
+- 执行 `pnpm build` 与 `npm pack --dry-run --json`，发布并安装包含文件打开词条的新版本。
 - 等待 `fraqjs/registry` 下一轮定时构建后，确认 `plugins.json` 已收录本插件且分类为 `utilities`。
 - 在真实群聊中验证 ID 3 的“获取陌生人信息@用户”。
 - 在真实群聊中验证 `[词库.拒绝执行]` 后的 API 和嵌套词条不执行。

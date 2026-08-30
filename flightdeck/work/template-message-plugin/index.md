@@ -16,6 +16,7 @@
 
 ## Next
 
+- 执行 `pnpm build` 与 `npm pack --dry-run --json`，发布并安装包含文件打开词条的新版本。
 - 等待 `fraqjs/registry` 下一轮定时构建后，确认 `plugins.json` 已收录本插件且分类为 `utilities`。
 - 发布并安装本轮变更后，在真实群聊中验证 ID 3 的 `[消息.读取.mention.user_id]` 和 `[api.get_user_profile]`。
 - 发布并安装本轮变更后，在真实群聊中验证 `[词库.拒绝执行]` 会阻止后续 API 和嵌套词条执行。
@@ -34,6 +35,7 @@
 - `flightdeck/knowledge/fraq/plugin-api.md`
 - `flightdeck/knowledge/github/release-workflow.md`
 - `flightdeck/knowledge/templates/logic-terms.md`
+- `flightdeck/knowledge/code/file-template-safety.md`
 - `flightdeck/work/template-message-plugin/design.md`
 
 ## Read if
@@ -486,6 +488,13 @@
 - `versions.yml` 已更新为 `lexicon: 0.3.4`，Fraq 重启后缓存生成 `fraq-plugin-lexicon@0.3.4`，WebUI 返回 HTTP 200。
 - `app/node_modules/.ignored` 中仍有安装器保留的 `0.3.3` 旧副本；活动解析路径不是该副本，删除操作受当前安全策略阻止。
 - 本轮未发现遗留 `tsx --test` 或 `node --test` 测试进程。
+
+## File open term
+
+- 新增 `[文件.打开.<文件名>.<操作方式>]`，使用 Node `fs.open` 标志的 14 个中文模式，完成打开后返回 UTF-8 文件内容。
+- 文件路径限定为运行项目 `data` 目录内的相对普通文件；拒绝绝对路径、越界路径、符号链接和非普通文件。
+- 文件词条只能在回答中执行，问题模板保持字面不执行；写入类模式只执行创建、截断或追加打开，不接收写入内容。
+- `pnpm test` 46 项、`pnpm check` 已通过；待执行 `pnpm build` 和打包预览。
 
 ## Strict logic booleans
 

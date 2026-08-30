@@ -14,6 +14,7 @@ import { findConditionalBlock, parseConditionalBlock } from '../src/parsers/cond
 import { findCountedLoopBlock } from '../src/parsers/counted-loop-parser';
 import { parseManagementCommand } from '../src/parsers/management-command-parser';
 import { findInnermostTerm, parseTemplateTerm } from '../src/parsers/template-parser';
+import { FileService } from '../src/services/file-service';
 import { LexiconService } from '../src/services/lexicon-service';
 import { LogicService } from '../src/services/logic-service';
 import { MilkyApiService } from '../src/services/milky-api-service';
@@ -22,7 +23,7 @@ import { TemplateService } from '../src/services/template-service';
 import { UserInputService } from '../src/services/user-input-service';
 
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -237,6 +238,11 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     variableName: '响应',
     path: ['data', 'items', '0', 'name'],
   });
+  assert.deepEqual(parseTemplateTerm('文件.打开.notes\\.txt.读取'), {
+    type: 'fileOpen',
+    fileName: 'notes.txt',
+    mode: '读取',
+  });
   assert.deepEqual(parseTemplateTerm('event.data.group_id'), {
     type: 'event',
     path: ['data', 'group_id'],
@@ -327,7 +333,39 @@ test('模板词条支持嵌套定位、参数和转义', () => {
   assert.throws(() => parseTemplateTerm('json.取值.A'), /JSON 取值词条格式/);
   assert.throws(() => parseTemplateTerm('json.读取.A.key'), /不支持的 JSON 操作/);
   assert.throws(() => parseTemplateTerm('is.mention.user_id'), /不支持的词条命名空间/);
+  assert.throws(() => parseTemplateTerm('文件.打开.notes'), /文件打开词条格式/);
   assert.equal(findInnermostTerm('普通文本\\[不是词条\\]'), undefined);
+});
+
+test('文件打开词条按中文模式操作并限制在 data 目录', async (context) => {
+  const harness = createHarness(context);
+  const dataDirectory = mkdtempSync(join(tmpdir(), 'fraq-plugin-lexicon-data-'));
+  context.after(() => rmSync(dataDirectory, { recursive: true, force: true }));
+  writeFileSync(join(dataDirectory, 'notes.txt'), '原始内容', 'utf8');
+
+  const template = new TemplateService(harness.service, new ApiActionRegistry(), {} as MilkyClient, {
+    fileService: new FileService(dataDirectory),
+  });
+
+  assert.equal(await template.render('[文件.打开.notes\\.txt.读取]', groupContext), '原始内容');
+  for (const mode of ['读写', '同步读取', '同步读写', '追加写入', '追加读写', '同步追加写入', '同步追加读写']) {
+    assert.equal(await template.render(`[文件.打开.notes\\.txt.${mode}]`, groupContext), '原始内容');
+  }
+
+  for (const mode of ['覆盖写入', '覆盖读写']) {
+    const fileName = `${mode}.txt`;
+    writeFileSync(join(dataDirectory, fileName), '待清空', 'utf8');
+    assert.equal(await template.render(`[文件.打开.${mode}\\.txt.${mode}]`, groupContext), '');
+    assert.equal(readFileSync(join(dataDirectory, fileName), 'utf8'), '');
+  }
+
+  for (const mode of ['独占覆盖写入', '独占覆盖读写', '独占追加写入', '独占追加读写']) {
+    assert.equal(await template.render(`[文件.打开.${mode}\\.txt.${mode}]`, groupContext), '');
+    await assert.rejects(() => template.render(`[文件.打开.${mode}\\.txt.${mode}]`, groupContext), /打开文件.*失败/);
+  }
+
+  await assert.rejects(() => new FileService(dataDirectory).open('../outside.txt', '读取'), /不能超出 data 目录/);
+  await assert.rejects(() => template.render('[文件.打开.notes\\.txt.未知]', groupContext), /不支持的文件操作方式/);
 });
 
 test('逻辑判断块支持否则判断、否则和嵌套配对', () => {

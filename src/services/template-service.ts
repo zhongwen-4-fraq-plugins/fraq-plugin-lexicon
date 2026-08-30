@@ -15,6 +15,7 @@ import {
   unescapeTemplateText,
 } from '../parsers/template-parser';
 import { CountedLoopService } from './counted-loop-service';
+import { FileService } from './file-service';
 import { IncomingSegmentValueService } from './incoming-segment-value-service';
 import { JsonVariableValueService } from './json-variable-value-service';
 import type { LexiconService } from './lexicon-service';
@@ -27,6 +28,7 @@ import { UserInputService } from './user-input-service';
 export interface TemplateServiceOptions {
   maxOutputLength?: number;
   userInputService?: UserInputService;
+  fileService?: FileService;
 }
 
 type LogicMode = 'text' | 'condition' | 'loopCount';
@@ -48,6 +50,7 @@ export class TemplateService {
   private readonly logicService = new LogicService();
   private readonly countedLoopService: CountedLoopService;
   private readonly userInputService: UserInputService;
+  private readonly fileService: FileService;
 
   constructor(
     private readonly lexiconService: LexiconService,
@@ -58,6 +61,7 @@ export class TemplateService {
     this.maxOutputLength = options.maxOutputLength ?? 65_536;
     this.countedLoopService = new CountedLoopService(this.maxOutputLength);
     this.userInputService = options.userInputService ?? new UserInputService();
+    this.fileService = options.fileService ?? new FileService();
   }
 
   async render(
@@ -291,6 +295,10 @@ export class TemplateService {
 
     if (term.type === 'jsonValue') {
       return this.jsonValueService.resolve(term.variableName, term.path, variables);
+    }
+
+    if (term.type === 'fileOpen') {
+      return escapeTemplateText(await this.fileService.open(term.fileName, term.mode));
     }
 
     if (term.type === 'setVariable') {

@@ -12,6 +12,7 @@ export type TemplateTerm =
   | { type: 'messageValue'; segmentType: string; path: string[] }
   | { type: 'messageBuild'; segmentType: string; content: string }
   | { type: 'jsonValue'; variableName: string; path: string[] }
+  | { type: 'fileOpen'; fileName: string; mode: string }
   | { type: 'lexicon'; name: string }
   | { type: 'executionStop' }
   | { type: 'setVariable'; name: string; value: string }
@@ -172,6 +173,10 @@ export function parseTemplateTerm(content: string): TemplateTerm {
     return parseJsonTerm(unescapedParts);
   }
 
+  if (namespace === '文件') {
+    return parseFileTerm(unescapedParts);
+  }
+
   throw new LexiconError(`不支持的词条命名空间：${namespace || '空'}。`);
 }
 
@@ -279,6 +284,13 @@ function parseJsonTerm(parts: string[]): TemplateTerm {
     throw new LexiconError('JSON 取值词条格式应为 [json.取值.<变量名>.<字段路径>]。');
   }
   return { type: 'jsonValue', variableName: validateVariableName(variableName), path: parts };
+}
+
+function parseFileTerm(parts: string[]): TemplateTerm {
+  if (parts.length !== 3 || parts[0] !== '打开' || !parts[1] || !parts[2]) {
+    throw new LexiconError('文件打开词条格式应为 [文件.打开.<文件名>.<操作方式>]。');
+  }
+  return { type: 'fileOpen', fileName: parts[1], mode: parts[2] };
 }
 
 function parseVariableTerm(parts: string[]): TemplateTerm {

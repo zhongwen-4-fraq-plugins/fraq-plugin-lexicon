@@ -179,6 +179,8 @@ export class QuestionTemplateService {
             return undefined;
           }
         }
+      } else if (term.type === 'fileOpen') {
+        return undefined;
       } else if (term.type === 'logic') {
         try {
           replacement =
