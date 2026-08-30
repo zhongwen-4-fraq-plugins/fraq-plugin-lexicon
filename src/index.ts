@@ -7,6 +7,7 @@ import { LexiconRepository } from './data/lexicon-repository';
 import { createMessageContext, extractMessageText } from './data/milky-event-context';
 import { MILKY_EVENT_NAMES } from './data/milky-event-definitions';
 import { resolveCommandText } from './parsers/command-prefix-parser';
+import { FileService } from './services/file-service';
 import { LexiconService } from './services/lexicon-service';
 import { MilkyApiService } from './services/milky-api-service';
 import { PermissionService } from './services/permission-service';
@@ -16,6 +17,7 @@ import { UserInputService } from './services/user-input-service';
 import { join, resolve } from 'node:path';
 
 export interface FraqPluginLexiconOptions {
+  dataPath?: string;
   databasePath?: string;
   owners?: number[];
   maxOutputLength?: number;
@@ -25,7 +27,8 @@ export interface FraqPluginLexiconOptions {
 export const FraqPluginLexicon = definePlugin({
   name: 'fraq-plugin-lexicon',
   apply(ctx, options: FraqPluginLexiconOptions = {}) {
-    const databasePath = resolve(options.databasePath ?? join('data', 'fraq-plugin-lexicon.sqlite'));
+    const dataPath = resolve(options.dataPath ?? 'data');
+    const databasePath = resolve(options.databasePath ?? join(dataPath, 'fraq-plugin-lexicon.sqlite'));
     const repository = new LexiconRepository(databasePath);
     const lexiconService = new LexiconService(repository);
     lexiconService.ensureGlobalDefault(options.owners?.[0] ?? 0);
@@ -39,6 +42,7 @@ export const FraqPluginLexicon = definePlugin({
     const templateService = new TemplateService(lexiconService, actionRegistry, ctx.client, {
       maxOutputLength: options.maxOutputLength,
       userInputService,
+      fileService: new FileService(dataPath),
     });
     const controller = new LexiconController(lexiconService, templateService, permissionService);
     const eventController = new MilkyEventController(lexiconService, templateService, ctx.client, ctx.logger);

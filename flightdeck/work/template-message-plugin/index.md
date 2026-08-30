@@ -496,6 +496,12 @@
 - 文件词条只能在回答中执行，问题模板保持字面不执行；写入类模式只执行创建、截断或追加打开，不接收写入内容。
 - `pnpm test` 46 项、`pnpm check` 已通过；待执行 `pnpm build` 和打包预览。
 
+## Configurable data path
+
+- `FraqPluginLexiconOptions.dataPath` 现在可自定义文件词条根目录，默认仍为项目 `data`。
+- 未显式设置 `databasePath` 时，SQLite 数据库默认跟随 `dataPath`；显式数据库路径仍优先。
+- README 和词条用法文档已说明 `dataPath` 与 `databasePath` 的关系。
+
 ## Strict logic booleans
 
 - 条件模式的 `[逻辑.or...]` 和 `[逻辑.and...]` 现在都只接受完全匹配的小写 `true` 和 `false`。

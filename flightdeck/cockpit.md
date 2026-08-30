@@ -1,10 +1,10 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: `v0.3.5` 已发布并安装到目标 Fraq；文件打开词条已实现并待发布，市场分类仍等待 Registry 定时构建收录，真实群聊验证仍待进行。
+Focus: `v0.3.5` 已发布并安装到目标 Fraq；文件打开词条和 `dataPath` 自定义配置已实现并待发布，市场分类仍等待 Registry 定时构建收录，真实群聊验证仍待进行。
 
 ## In flight
 
-- `template-message-plugin` — 目标 Fraq 已运行 `v0.3.5`；文件打开词条已在源码和测试中完成，待构建、发布、安装；市场 Registry 收录确认与真实群聊验证待继续
+- `template-message-plugin` — 目标 Fraq 已运行 `v0.3.5`；文件打开词条及 `dataPath` 配置已在源码和测试中完成，待构建、发布、安装；市场 Registry 收录确认与真实群聊验证待继续
 
 ## Next
 

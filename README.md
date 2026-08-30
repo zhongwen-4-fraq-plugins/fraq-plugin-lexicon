@@ -16,12 +16,13 @@ const ctx = Context.fromUrl('http://localhost:30001');
 
 ctx.install(FraqPluginLexicon, {
   owners: [123456789],
+  dataPath: 'data',
   databasePath: 'data/fraq-plugin-lexicon.sqlite',
   userInputTimeoutMs: 30_000,
 });
 ```
 
-`owners` 是机器人主人的 QQ 号列表。默认数据库路径为 `data/fraq-plugin-lexicon.sqlite`。
+`owners` 是机器人主人的 QQ 号列表。`dataPath` 是插件数据目录，默认值为 `data`；文件词条只能访问该目录，未单独设置 `databasePath` 时 SQLite 数据库也会创建在该目录下。`databasePath` 可单独覆盖数据库文件路径，默认值为 `<dataPath>/fraq-plugin-lexicon.sqlite`。
 `maxOutputLength` 可调整单次解析结果的最大字符数，默认值为 `65536`。
 `userInputTimeoutMs` 可调整请求用户输入未指定词条级超时时间时的默认等待时间，默认值为 `30000` 毫秒。运行环境需要 Node.js 22.13 或更高版本。
 
