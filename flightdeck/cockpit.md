@@ -1,10 +1,10 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 开发版 `0.3.6` 已破坏性迁移到 Fraq `1.1.x`，不再兼容 Fraq `0.x`；新版 mock 集成测试、构建和打包预览均通过，待发布并升级目标应用验证。
+Focus: 开发版 `0.3.6` 已破坏性迁移到 Fraq `1.1.x`，不再兼容 Fraq `0.x`；PR 自动审核现仅安装完整依赖、使用 Fraq 官方 `@fraqjs/plugin-mock` 运行集成测试并更新同仓库 PR 评论，待发布并升级目标应用验证。
 
 ## In flight
 
-- `template-message-plugin` — 开发版 `0.3.6` 使用 Fraq `^1.1.0` 与 `@fraqjs/plugin-mock` `^1.1.0`，47 项测试、检查、构建和打包预览通过；待发布并将目标应用升级到 Fraq 1.1
+- `template-message-plugin` — 开发版 `0.3.6` 使用 Fraq `^1.1.0` 与 `@fraqjs/plugin-mock` `^1.1.0`，48 项测试、检查、构建和打包预览通过；PR 审核使用专用 mock 测试，待发布并将目标应用升级到 Fraq 1.1
 
 ## Next
 

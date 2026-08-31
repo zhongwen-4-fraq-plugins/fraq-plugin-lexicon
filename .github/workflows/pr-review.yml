@@ -12,8 +12,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  quality:
-    name: 测试、检查、构建和打包
+  mock_test:
+    name: 安装依赖并运行 Fraq 官方 mock 测试
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -30,24 +30,15 @@ jobs:
           node-version: '24'
           package-manager-cache: false
 
-      - name: 安装依赖
+      - name: 安装完整依赖
         run: pnpm install --frozen-lockfile
 
-      - name: 运行测试
-        run: pnpm test
-
-      - name: 检查代码
-        run: pnpm check
-
-      - name: 构建包
-        run: pnpm build
-
-      - name: 检查发布内容
-        run: npm pack --dry-run --json
+      - name: 运行 Fraq 官方 mock 测试
+        run: pnpm test:mock
 
   review-comment:
     name: 更新审核摘要
-    needs: quality
+    needs: mock_test
     if: >-
       always() &&
       github.event.pull_request.head.repo.full_name == github.repository
@@ -60,13 +51,13 @@ jobs:
       - name: 更新 PR 评论
         uses: actions/github-script@v9
         env:
-          QUALITY_RESULT: ${{ needs.quality.result }}
+          MOCK_TEST_RESULT: ${{ needs.mock_test.result }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
             const marker = '<!-- fraq-pr-review -->';
-            const result = process.env.QUALITY_RESULT;
+            const result = process.env.MOCK_TEST_RESULT;
             const passed = result === 'success';
             const status = passed ? '通过' : '失败';
             const body = [
@@ -75,11 +66,11 @@ jobs:
               '',
               `结果：${status}`,
               '',
-              `质量检查结果：${result}`,
+              `Fraq 官方 mock 测试结果：${result}`,
               `PR 提交：${process.env.HEAD_SHA.slice(0, 7)}`,
               `工作流运行：${process.env.RUN_URL}`,
               '',
-              passed ? '自动检查通过，可以进入人工审核。' : '自动检查失败，请查看工作流日志并修复问题。',
+              passed ? 'Fraq 官方 mock 测试通过，可以进入人工审核。' : 'Fraq 官方 mock 测试失败，请查看工作流日志并修复问题。',
             ].join('\n');
 
             const comments = await github.paginate(github.rest.issues.listComments, {

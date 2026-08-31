@@ -21,6 +21,7 @@
     "build": "tsdown",
     "check": "biome check . && tsc --noEmit",
     "test": "tsx --test test/*.test.ts test/*.test.mjs",
+    "test:mock": "tsx --test test/fraq-integration.test.ts",
     "prepack": "pnpm build"
   },
   "keywords": [

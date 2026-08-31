@@ -49,6 +49,7 @@
 
 ## Progress
 
+- PR 自动审核已收敛为安装完整锁定依赖、使用 Fraq 官方 `@fraqjs/plugin-mock` 运行 `pnpm test:mock`、更新同仓库 PR 评论三个阶段，不再在该工作流中执行检查、构建和打包预览。
 - 已将 `@fraqjs/fraq` peer dependency 从 `>=0.14.0 <0.18.0` 改为 `^1.1.0`，并以 `@fraqjs/plugin-mock` `^1.1.0` 替换废弃的 `@fraqjs/mock`。
 - 已确认 Fraq `1.1.0` 仍暴露 21 个事件和 65 个 Milky API，现有静态事件/API 定义通过类型检查完整覆盖。
 - 已将 `LexiconRepository` 注册为 Fraq 可释放服务，并新增真实 Context 安装与群消息收发集成测试。
@@ -72,7 +73,8 @@
 
 ## Verification
 
-- Fraq `1.1.0` 下 `pnpm test`：47 项测试全部通过，包含 `@fraqjs/plugin-mock` 集成测试。
+- Fraq `1.1.0` 下 `pnpm test`：48 项测试全部通过，包含 `@fraqjs/plugin-mock` 集成测试和 PR 工作流结构测试。
+- `pnpm test:mock`：专用 Fraq mock 集成测试通过，覆盖插件安装、群管理命令和群消息回复。
 - Fraq `1.1.0` 下 `pnpm check`：Biome 与 TypeScript 检查通过。
 - `pnpm build`：`0.3.6` 构建成功并生成声明文件。
 - `npm pack --dry-run --json`：`fraq-plugin-lexicon@0.3.6` 打包预览成功，包内仅含 README、`dist`、`docs` 和 `package.json`。

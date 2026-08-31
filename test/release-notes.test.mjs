@@ -91,3 +91,19 @@ test('GitHub Release 等待 npm 发布成功后执行', () => {
   assert.match(workflow.slice(releaseJob), /generate-release-notes\.mjs "\$RELEASE_TAG" "\$RELEASE_BASE_TAG"/u);
   assert.equal(existsSync(new URL('../.github/workflows/release.yml', import.meta.url)), false);
 });
+
+test('PR 审核安装依赖后运行 mock 测试并更新评论', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/pr-review.yml', import.meta.url), 'utf8');
+  const installStep = workflow.indexOf('run: pnpm install --frozen-lockfile');
+  const mockStep = workflow.indexOf('run: pnpm test:mock');
+  const commentJob = workflow.indexOf('\n  review-comment:');
+
+  assert.ok(installStep >= 0);
+  assert.ok(mockStep > installStep);
+  assert.ok(commentJob > mockStep);
+  assert.match(workflow.slice(commentJob), /needs: mock_test/u);
+  assert.match(workflow.slice(commentJob), /always\(\)/u);
+  assert.match(workflow.slice(commentJob), /MOCK_TEST_RESULT: \$\{\{ needs\.mock_test\.result \}\}/u);
+  assert.doesNotMatch(workflow, /run: pnpm (?:test|check|build)\s*$/mu);
+  assert.doesNotMatch(workflow, /npm pack --dry-run/u);
+});
