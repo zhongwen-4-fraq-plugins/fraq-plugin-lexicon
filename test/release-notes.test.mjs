@@ -107,3 +107,15 @@ test('PR 审核安装依赖后运行 mock 测试并更新评论', () => {
   assert.doesNotMatch(workflow, /run: pnpm (?:test|check|build)\s*$/mu);
   assert.doesNotMatch(workflow, /npm pack --dry-run/u);
 });
+
+test('GitHub Actions 使用实际存在的 action 主版本', () => {
+  const workflows = [
+    readFileSync(new URL('../.github/workflows/pr-review.yml', import.meta.url), 'utf8'),
+    readFileSync(new URL('../.github/workflows/publish.yml', import.meta.url), 'utf8'),
+  ].join('\n');
+
+  assert.match(workflows, /actions\/setup-node@v6/u);
+  assert.match(workflows, /pnpm\/action-setup@v4/u);
+  assert.doesNotMatch(workflows, /actions\/setup-node@v7/u);
+  assert.doesNotMatch(workflows, /pnpm\/action-setup@v6/u);
+});

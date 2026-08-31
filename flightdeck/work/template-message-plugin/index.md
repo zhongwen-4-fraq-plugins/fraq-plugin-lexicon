@@ -42,6 +42,7 @@
 
 ## Read if
 
+- 修改任何 GitHub Actions 工作流或 action 版本时读取 `flightdeck/knowledge/github/action-versions.md`。
 - 修改 npm 插件信息或 Fraq 市场分类时读取 `flightdeck/knowledge/fraq/market-metadata.md`。
 - 修改 README 或使用文档时读取 `README.md` 和 `flightdeck/knowledge/docs/documentation-layout.md`。
 - 添加 Fraq 运行时验证时读取 `test/fraq-integration.test.ts`。
@@ -49,6 +50,7 @@
 
 ## Progress
 
+- 已修正不存在的 `actions/setup-node@v7` 与 `pnpm/action-setup@v6`，PR 和发布工作流统一使用实际存在的 `setup-node@v6` 与 `pnpm/action-setup@v4`。
 - PR 自动审核已收敛为安装完整锁定依赖、使用 Fraq 官方 `@fraqjs/plugin-mock` 运行 `pnpm test:mock`、更新同仓库 PR 评论三个阶段，不再在该工作流中执行检查、构建和打包预览。
 - 已将 `@fraqjs/fraq` peer dependency 从 `>=0.14.0 <0.18.0` 改为 `^1.1.0`，并以 `@fraqjs/plugin-mock` `^1.1.0` 替换废弃的 `@fraqjs/mock`。
 - 已确认 Fraq `1.1.0` 仍暴露 21 个事件和 65 个 Milky API，现有静态事件/API 定义通过类型检查完整覆盖。
@@ -73,7 +75,7 @@
 
 ## Verification
 
-- Fraq `1.1.0` 下 `pnpm test`：48 项测试全部通过，包含 `@fraqjs/plugin-mock` 集成测试和 PR 工作流结构测试。
+- Fraq `1.1.0` 下 `pnpm test`：49 项测试全部通过，包含 `@fraqjs/plugin-mock` 集成测试、PR 工作流结构测试和 action 版本回归测试。
 - `pnpm test:mock`：专用 Fraq mock 集成测试通过，覆盖插件安装、群管理命令和群消息回复。
 - Fraq `1.1.0` 下 `pnpm check`：Biome 与 TypeScript 检查通过。
 - `pnpm build`：`0.3.6` 构建成功并生成声明文件。
