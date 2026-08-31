@@ -2,6 +2,8 @@
 
 ## State
 
+- 当前开发版本为 `0.3.6`，已破坏性切换到 Fraq `^1.1.0`，不再兼容 Fraq `0.x`。
+- 已用 `@fraqjs/plugin-mock` `1.1.0` 增加真实 Context 安装、群管理命令和群消息回复集成测试；SQLite 仓库会随 Context 停止自动释放。
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
 - MVP 已实现：多词库、SQLite、精确/包含匹配、权限、API 词条和词库递归词条。
@@ -16,7 +18,7 @@
 
 ## Next
 
-- 执行 `pnpm build` 与 `npm pack --dry-run --json`，发布并安装包含文件打开词条的新版本。
+- 发布 `0.3.6`，并将目标应用 Fraq 与 mock/插件依赖一起升级到 `1.1.x` 后安装验证；旧 Fraq `0.x` 不再作为安装目标。
 - 等待 `fraqjs/registry` 下一轮定时构建后，确认 `plugins.json` 已收录本插件且分类为 `utilities`。
 - 发布并安装本轮变更后，在真实群聊中验证 ID 3 的 `[消息.读取.mention.user_id]` 和 `[api.get_user_profile]`。
 - 发布并安装本轮变更后，在真实群聊中验证 `[词库.拒绝执行]` 会阻止后续 API 和嵌套词条执行。
@@ -42,11 +44,14 @@
 
 - 修改 npm 插件信息或 Fraq 市场分类时读取 `flightdeck/knowledge/fraq/market-metadata.md`。
 - 修改 README 或使用文档时读取 `README.md` 和 `flightdeck/knowledge/docs/documentation-layout.md`。
-- 添加验证时读取 `test/smoke.ts`。
+- 添加 Fraq 运行时验证时读取 `test/fraq-integration.test.ts`。
 - 再次发布并安装到目标 Fraq 时读取 `flightdeck/knowledge/fraq/target-app-integration.md`。
 
 ## Progress
 
+- 已将 `@fraqjs/fraq` peer dependency 从 `>=0.14.0 <0.18.0` 改为 `^1.1.0`，并以 `@fraqjs/plugin-mock` `^1.1.0` 替换废弃的 `@fraqjs/mock`。
+- 已确认 Fraq `1.1.0` 仍暴露 21 个事件和 65 个 Milky API，现有静态事件/API 定义通过类型检查完整覆盖。
+- 已将 `LexiconRepository` 注册为 Fraq 可释放服务，并新增真实 Context 安装与群消息收发集成测试。
 - 已确认项目基于 `@fraqjs/fraq`。
 - 已确认当前业务代码仅包含 `echo` 示例命令。
 - 已整理 Milky API、事件、消息段和兼容性规则。
@@ -67,6 +72,10 @@
 
 ## Verification
 
+- Fraq `1.1.0` 下 `pnpm test`：47 项测试全部通过，包含 `@fraqjs/plugin-mock` 集成测试。
+- Fraq `1.1.0` 下 `pnpm check`：Biome 与 TypeScript 检查通过。
+- `pnpm build`：`0.3.6` 构建成功并生成声明文件。
+- `npm pack --dry-run --json`：`fraq-plugin-lexicon@0.3.6` 打包预览成功，包内仅含 README、`dist`、`docs` 和 `package.json`。
 - `pnpm test`：6 个测试全部通过。
 - `pnpm check`：Biome 与 TypeScript 检查通过。
 - `pnpm build`：构建成功并生成声明文件。

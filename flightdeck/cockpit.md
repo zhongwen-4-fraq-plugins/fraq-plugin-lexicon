@@ -1,14 +1,14 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: `v0.3.5` 已发布并安装到目标 Fraq；文件打开词条和 `dataPath` 自定义配置已实现并待发布，市场分类仍等待 Registry 定时构建收录，真实群聊验证仍待进行。
+Focus: 开发版 `0.3.6` 已破坏性迁移到 Fraq `1.1.x`，不再兼容 Fraq `0.x`；新版 mock 集成测试、构建和打包预览均通过，待发布并升级目标应用验证。
 
 ## In flight
 
-- `template-message-plugin` — 目标 Fraq 已运行 `v0.3.5`；文件打开词条及 `dataPath` 配置已在源码和测试中完成，待构建、发布、安装；市场 Registry 收录确认与真实群聊验证待继续
+- `template-message-plugin` — 开发版 `0.3.6` 使用 Fraq `^1.1.0` 与 `@fraqjs/plugin-mock` `^1.1.0`，47 项测试、检查、构建和打包预览通过；待发布并将目标应用升级到 Fraq 1.1
 
 ## Next
 
-- 执行 `pnpm build` 与 `npm pack --dry-run --json`，发布并安装包含文件打开词条的新版本。
+- 发布 `0.3.6`，将目标应用升级到 Fraq `1.1.x` 并安装验证；不再保留 Fraq `0.x` 兼容。
 - 等待 `fraqjs/registry` 下一轮定时构建后，确认 `plugins.json` 已收录本插件且分类为 `utilities`。
 - 在真实群聊中验证 ID 3 的“获取陌生人信息@用户”。
 - 在真实群聊中验证 `[词库.拒绝执行]` 后的 API 和嵌套词条不执行。

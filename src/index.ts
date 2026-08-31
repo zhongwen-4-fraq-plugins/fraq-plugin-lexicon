@@ -26,10 +26,12 @@ export interface FraqPluginLexiconOptions {
 
 export const FraqPluginLexicon = definePlugin({
   name: 'fraq-plugin-lexicon',
+  provides: [LexiconRepository],
   apply(ctx, options: FraqPluginLexiconOptions = {}) {
     const dataPath = resolve(options.dataPath ?? 'data');
     const databasePath = resolve(options.databasePath ?? join(dataPath, 'fraq-plugin-lexicon.sqlite'));
     const repository = new LexiconRepository(databasePath);
+    ctx.provide(LexiconRepository, repository);
     const lexiconService = new LexiconService(repository);
     lexiconService.ensureGlobalDefault(options.owners?.[0] ?? 0);
     const permissionService = new PermissionService(options.owners ?? []);

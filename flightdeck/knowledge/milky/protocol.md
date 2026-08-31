@@ -9,7 +9,7 @@ READ WHEN: when implementing or debugging Milky API calls, event handling, or me
 - 官方文档当前展示 Milky `1.2`，协议包元数据显示版本为 `1.2.2`。
 - 官方提供中间表示（IR）、OpenAPI 文档和 JSON Schema，可用于生成类型、校验实现与对照协议结构。
 - TypeScript SDK 列表包含 `@fraqjs/fraq`，本项目通过 peer dependency 使用它。
-- Fraq `0.14.0` 与 `0.17.0` 当前均暴露 65 个英文 API 端点；其中 `persist_group_file` 在 Fraq 类型中标记为 Milky `1.3` 起提供，因此插件按当前 Fraq 客户端能力一并接入。
+- Fraq `1.1.0` 使用 Milky `1.3` 类型并暴露 65 个英文 API 端点，插件按当前 Fraq 客户端能力全部接入。
 
 ## 通信模型
 
@@ -21,7 +21,7 @@ READ WHEN: when implementing or debugging Milky API calls, event handling, or me
 ## 事件与消息
 
 - 所有事件都包含 `time`、`self_id` 和 `event_type`，具体事件再附带群、好友、请求或通知字段。
-- Fraq `0.17.0` 的 `EventMap` 当前包含 21 个事件；使用覆盖 `Record<keyof EventMap, true>` 的静态表可以在协议类型新增事件时让 TypeScript 报错。
+- Fraq `1.1.0` 的 `EventMap` 当前包含 21 个事件；使用覆盖 `Record<keyof EventMap, true>` 的静态表可以在协议类型新增事件时让 TypeScript 报错。
 - `fraq-plugin-lexicon` 使用 `[event.<event_type>]` 作为事件匹配文本，并使用 `[event.<字段路径>]` 读取事件对象；字段值进入模板前必须转义 `[] .= \\`。
 - 问题模板中的 `[event.<event_type>]` 应作为无输出的事件条件；问题匹配阶段只能执行事件与变量词条，API 和词库词条必须保持字面量，避免匹配消息时产生副作用。
 - 消息事件的 `data` 包含来源标识、发送者、时间、消息场景、消息序列号和消息段数组。
@@ -35,7 +35,7 @@ READ WHEN: when implementing or debugging Milky API calls, event handling, or me
 
 ## Fraq API 模板覆盖
 
-- `fraq-plugin-lexicon` 使用英文 snake_case 端点名，并以静态定义覆盖 Fraq `0.14.0` 与 `0.17.0` 的全部 65 个端点。
+- `fraq-plugin-lexicon` 使用英文 snake_case 端点名，并以静态定义覆盖 Fraq `1.1.0` 的全部 65 个端点。
 - API 默认参数先继承事件 `data` 中与端点参数同名的字段；目标 QQ 再按艾特、回复发送者、`user_id`、`sender_id`、`operator_id`、`initiator_id` 和当前发送者的顺序选择。
 - 回复或当前消息中的消息段、媒体资源、文件和合并转发字段可作为 API 参数默认值；用户显式参数始终覆盖事件默认值。
 - API 参数与返回值可进入变量模板，并通过迭代解析继续无限嵌套；返回 JSON 会转义模板控制字符，避免被误识别为词条。

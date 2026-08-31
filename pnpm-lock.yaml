@@ -9,15 +9,15 @@ importers:
   .:
     dependencies:
       '@fraqjs/fraq':
-        specifier: '>=0.14.0 <0.18.0'
-        version: 0.17.0
+        specifier: ^1.1.0
+        version: 1.1.0
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.5.4
         version: 2.5.4
-      '@fraqjs/mock':
-        specifier: ^0.1.0
-        version: 0.1.0(@fraqjs/fraq@0.17.0)
+      '@fraqjs/plugin-mock':
+        specifier: ^1.1.0
+        version: 1.1.0(@fraqjs/fraq@1.1.0)(@fraqjs/kernel@1.1.0)
       '@types/node':
         specifier: ^24.13.3
         version: 24.13.3
@@ -255,19 +255,20 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@fraqjs/fraq@0.17.0':
-    resolution: {integrity: sha512-AWDf5isRDLX1xIHqubU+l2SDa5Jp694UJjTJabMMbc0cnupPTmg9p12/y6+u1w8w+6S2iIMuAEMlid62M1cHEg==}
+  '@fraqjs/fraq@1.1.0':
+    resolution: {integrity: sha512-YPEGDOUHsf7y0gkNjMuzDB4v6DNvfqRs51QfM/zI1H/fBqF+kLdvFwHQirYgIJe4KDNfvEcvbX1s1ObJXp43rQ==}
     engines: {node: '>=22'}
 
-  '@fraqjs/kernel@0.1.0':
-    resolution: {integrity: sha512-Ob64cHAXVWD1m7Hf37APYnBhXuEsOIfqryLofS8x2hCFFERaehOBmKJCONtVyjpGPAPl6IVa/anBnsjEWnLliA==}
+  '@fraqjs/kernel@1.1.0':
+    resolution: {integrity: sha512-FyNBCBsb8Zfn6nm39NlxtZwM4+uBQOrJKWlTcF4DGC/v9r8/xlTCuwo3DI6mRpuVNtNjw8P/9+SSIPLyC4tDtA==}
     engines: {node: '>=22'}
 
-  '@fraqjs/mock@0.1.0':
-    resolution: {integrity: sha512-Gzkfj/A6AIyaCwntQfXCTMhW3ztvq/dOrEoxLSJILEEKlb4J5petFGyQvRW8B4KFlcBgBx3BKVrEanr7uPUdrg==}
-    deprecated: Mock functionality has been rewritten into a plugin. Please use @fraqjs/plugin-mock instead.
+  '@fraqjs/plugin-mock@1.1.0':
+    resolution: {integrity: sha512-DrPdYgTlxqbY+faZOIy4+Un0XH9yXPKyNCXhAE3O0g2SeWz2MiVrsN6/4RUydJV/TIz0JLKugN612VwtkEfvOg==}
+    engines: {node: '>=22'}
     peerDependencies:
-      '@fraqjs/fraq': ^0.6.0
+      '@fraqjs/fraq': ^1.1.0
+      '@fraqjs/kernel': ^1.1.0
 
   '@napi-rs/wasm-runtime@1.1.6':
     resolution: {integrity: sha512-ZLv/JdUfkvOy9eCnnBaGfiO+XimbjebAeO+MRQqD/B+FR1tnRN0tpKSJHRbE8sFfS6aqsXZ67TQjfwfsxULVbg==}
@@ -814,16 +815,19 @@ snapshots:
   '@esbuild/win32-x64@0.28.1':
     optional: true
 
-  '@fraqjs/fraq@0.17.0':
+  '@fraqjs/fraq@1.1.0':
     dependencies:
-      '@fraqjs/kernel': 0.1.0
+      '@fraqjs/kernel': 1.1.0
       mitt: 3.0.1
 
-  '@fraqjs/kernel@0.1.0': {}
-
-  '@fraqjs/mock@0.1.0(@fraqjs/fraq@0.17.0)':
+  '@fraqjs/kernel@1.1.0':
     dependencies:
-      '@fraqjs/fraq': 0.17.0
+      mitt: 3.0.1
+
+  '@fraqjs/plugin-mock@1.1.0(@fraqjs/fraq@1.1.0)(@fraqjs/kernel@1.1.0)':
+    dependencies:
+      '@fraqjs/fraq': 1.1.0
+      '@fraqjs/kernel': 1.1.0
 
   '@napi-rs/wasm-runtime@1.1.6(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)':
     dependencies:

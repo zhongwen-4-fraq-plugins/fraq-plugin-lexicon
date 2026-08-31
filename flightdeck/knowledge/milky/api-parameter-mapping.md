@@ -8,7 +8,7 @@ READ WHEN: when a Milky API template reports unsupported, missing, or incorrect 
 
 - `ApiParams<Endpoint>` 使用 Fraq 的 `request_ZodInput`，带协议默认值的字段通常是可选字段。
 - 运行时定义需要同时保存参数类型和可选性，否则无法在调用前准确报告缺失的必填参数。
-- Fraq 0.14 与 0.17 暴露的 65 个端点名称、参数名称、类型和可选性一致。
+- Fraq 1.1 暴露 65 个端点；静态定义通过 `ApiParams` 映射校验每个参数的名称、类型和可选性。
 
 ## 事件默认值
 

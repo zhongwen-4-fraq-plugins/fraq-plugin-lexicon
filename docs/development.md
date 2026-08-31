@@ -8,6 +8,8 @@ pnpm check
 pnpm build
 ```
 
+测试依赖 Fraq `1.1.x` 与 `@fraqjs/plugin-mock` `1.1.x`；`pnpm test` 会运行真实 Context 安装和群消息收发集成测试。
+
 ## Trusted Publisher 发布
 
 工作流文件为 `.github/workflows/publish.yml`。推送版本 tag 后，同一工作流会先运行测试、检查、构建和 `npm publish`；只有 npm 发布任务成功完成，才会继续生成发布说明并创建或更新 GitHub Release。

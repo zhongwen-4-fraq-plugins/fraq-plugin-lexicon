@@ -1,3 +1,5 @@
+import { serviceToken } from '@fraqjs/fraq';
+
 import type { Lexicon, LexiconEntry, LexiconScopeType, MatchedLexiconEntry, MatchMode } from '../models/lexicon';
 
 import { mkdirSync } from 'node:fs';
@@ -30,6 +32,8 @@ interface MatchedEntryRow extends EntryRow {
 }
 
 export class LexiconRepository {
+  static readonly token = serviceToken<LexiconRepository>('fraq-plugin-lexicon/LexiconRepository');
+
   private readonly database: DatabaseSync;
 
   constructor(databasePath: string) {
@@ -42,6 +46,10 @@ export class LexiconRepository {
 
   close(): void {
     this.database.close();
+  }
+
+  dispose(): void {
+    this.close();
   }
 
   createLexicon(name: string, scopeType: LexiconScopeType, scopeId: number, createdBy: number): Lexicon {

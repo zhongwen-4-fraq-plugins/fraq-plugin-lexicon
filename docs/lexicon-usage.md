@@ -346,7 +346,7 @@
 
 API 返回空对象时不输出文本；其他返回值会序列化为 JSON，并可通过变量继续参与嵌套解析。完整端点定义位于 `src/data/milky-api-definitions.ts`。
 
-本插件已适配 Fraq 0.14 与 0.17 暴露的全部 65 个 Milky API，具体参数请参考 [Milky 协议 API](https://milky.ntqqrev.org/api/system)。
+本插件已适配 Fraq 1.1 暴露的全部 65 个 Milky API，不兼容 Fraq 0.x，具体参数请参考 [Milky 协议 API](https://milky.ntqqrev.org/api/system)。
 
 ### 词库词条
 
