@@ -1,4 +1,5 @@
 import { createMockContext, inseg } from '@fraqjs/plugin-mock';
+import RandomPlugin from '@fraqjs/plugin-random';
 
 import FraqPluginLexicon from '../src/index';
 
@@ -14,6 +15,7 @@ test('Fraq 1.1 可以安装插件并通过 mock 完成群消息回复', async ()
   const groupId = 12345;
   const ctx = createMockContext({ logHandler: () => {} });
 
+  ctx.install(RandomPlugin);
   ctx.install(FraqPluginLexicon, { dataPath, owners: [ownerId] });
 
   try {

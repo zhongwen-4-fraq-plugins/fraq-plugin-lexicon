@@ -1,4 +1,5 @@
 import type { MilkyClient } from '@fraqjs/fraq';
+import { RandomService } from '@fraqjs/plugin-random';
 
 import type { ApiActionRegistry } from '../actions/api-action-registry';
 import { LexiconError, UserInputTimeoutError } from '../errors';
@@ -57,6 +58,7 @@ export class TemplateService {
     private readonly actionRegistry: ApiActionRegistry,
     private readonly client: MilkyClient,
     options: TemplateServiceOptions = {},
+    private readonly randomService: RandomService = new RandomService(),
   ) {
     this.maxOutputLength = options.maxOutputLength ?? 65_536;
     this.countedLoopService = new CountedLoopService(this.maxOutputLength);
@@ -295,6 +297,12 @@ export class TemplateService {
 
     if (term.type === 'jsonValue') {
       return this.jsonValueService.resolve(term.variableName, term.path, variables);
+    }
+
+    if (term.type === 'random') {
+      return String(
+        term.kind === 'int' ? this.randomService.int(term.min, term.max) : this.randomService.range(term.min, term.max),
+      );
     }
 
     if (term.type === 'fileOpen') {

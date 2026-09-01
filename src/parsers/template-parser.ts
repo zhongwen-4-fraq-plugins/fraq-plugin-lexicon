@@ -16,7 +16,8 @@ export type TemplateTerm =
   | { type: 'lexicon'; name: string }
   | { type: 'executionStop' }
   | { type: 'setVariable'; name: string; value: string }
-  | { type: 'getVariable'; name: string };
+  | { type: 'getVariable'; name: string }
+  | { type: 'random'; kind: 'int' | 'range'; min: number; max: number };
 
 export interface TermLocation {
   start: number;
@@ -173,6 +174,10 @@ export function parseTemplateTerm(content: string): TemplateTerm {
     return parseJsonTerm(unescapedParts);
   }
 
+  if (namespace === '随机') {
+    return parseRandomTerm(unescapedParts);
+  }
+
   if (namespace === '文件') {
     return parseFileTerm(unescapedParts);
   }
@@ -284,6 +289,37 @@ function parseJsonTerm(parts: string[]): TemplateTerm {
     throw new LexiconError('JSON 取值词条格式应为 [json.取值.<变量名>.<字段路径>]。');
   }
   return { type: 'jsonValue', variableName: validateVariableName(variableName), path: parts };
+}
+
+function parseRandomTerm(parts: string[]): TemplateTerm {
+  const kind = parts.shift();
+  if (kind !== 'int' && kind !== 'range') {
+    throw new LexiconError('随机词条类型必须是 int 或 range。');
+  }
+  if (parts.length !== 2 || parts.some((part) => !part)) {
+    throw new LexiconError(`随机.${kind}词条格式应为 [随机.${kind}.<最小值>.<最大值>]。`);
+  }
+
+  const min = parseRandomInteger(parts[0], '最小值');
+  const max = parseRandomInteger(parts[1], '最大值');
+  if (kind === 'int' && max <= min) {
+    throw new LexiconError('随机.int 的最大值必须大于最小值。');
+  }
+  if (kind === 'range' && max < min) {
+    throw new LexiconError('随机.range 的最大值不能小于最小值。');
+  }
+  return { type: 'random', kind, min, max };
+}
+
+function parseRandomInteger(value: string, label: string): number {
+  if (!/^-?\d+$/u.test(value)) {
+    throw new LexiconError(`随机${label}必须是安全整数。`);
+  }
+  const number = Number(value);
+  if (!Number.isSafeInteger(number)) {
+    throw new LexiconError(`随机${label}必须是安全整数。`);
+  }
+  return number;
 }
 
 function parseFileTerm(parts: string[]): TemplateTerm {

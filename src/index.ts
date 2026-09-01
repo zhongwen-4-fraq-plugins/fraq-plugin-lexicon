@@ -1,4 +1,5 @@
 import { definePlugin } from '@fraqjs/fraq';
+import { RandomService } from '@fraqjs/plugin-random';
 
 import { ApiActionRegistry } from './actions/api-action-registry';
 import { LexiconController } from './core/lexicon-controller';
@@ -26,6 +27,7 @@ export interface FraqPluginLexiconOptions {
 
 export const FraqPluginLexicon = definePlugin({
   name: 'fraq-plugin-lexicon',
+  inject: { random: RandomService },
   provides: [LexiconRepository],
   apply(ctx, options: FraqPluginLexiconOptions = {}) {
     const dataPath = resolve(options.dataPath ?? 'data');
@@ -41,11 +43,17 @@ export const FraqPluginLexicon = definePlugin({
     );
     const userInputService = new UserInputService(options.userInputTimeoutMs);
 
-    const templateService = new TemplateService(lexiconService, actionRegistry, ctx.client, {
-      maxOutputLength: options.maxOutputLength,
-      userInputService,
-      fileService: new FileService(dataPath),
-    });
+    const templateService = new TemplateService(
+      lexiconService,
+      actionRegistry,
+      ctx.client,
+      {
+        maxOutputLength: options.maxOutputLength,
+        userInputService,
+        fileService: new FileService(dataPath),
+      },
+      ctx.random,
+    );
     const controller = new LexiconController(lexiconService, templateService, permissionService);
     const eventController = new MilkyEventController(lexiconService, templateService, ctx.client, ctx.logger);
 

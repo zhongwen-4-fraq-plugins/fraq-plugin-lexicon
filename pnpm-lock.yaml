@@ -18,6 +18,9 @@ importers:
       '@fraqjs/plugin-mock':
         specifier: ^1.1.0
         version: 1.1.0(@fraqjs/fraq@1.1.0)(@fraqjs/kernel@1.1.0)
+      '@fraqjs/plugin-random':
+        specifier: ^1.1.0
+        version: 1.1.0(@fraqjs/kernel@1.1.0)
       '@types/node':
         specifier: ^24.13.3
         version: 24.13.3
@@ -268,6 +271,11 @@ packages:
     engines: {node: '>=22'}
     peerDependencies:
       '@fraqjs/fraq': ^1.1.0
+      '@fraqjs/kernel': ^1.1.0
+
+  '@fraqjs/plugin-random@1.1.0':
+    resolution: {integrity: sha512-jq3R+7vjnkK38N4t4QmXvARLHNE44e1jUZZJUNusJZrfpG2UcnUKqqWJ4gdjTTc9WZD8D+SCUKAJSTDxvZABXA==}
+    peerDependencies:
       '@fraqjs/kernel': ^1.1.0
 
   '@napi-rs/wasm-runtime@1.1.6':
@@ -827,6 +835,10 @@ snapshots:
   '@fraqjs/plugin-mock@1.1.0(@fraqjs/fraq@1.1.0)(@fraqjs/kernel@1.1.0)':
     dependencies:
       '@fraqjs/fraq': 1.1.0
+      '@fraqjs/kernel': 1.1.0
+
+  '@fraqjs/plugin-random@1.1.0(@fraqjs/kernel@1.1.0)':
+    dependencies:
       '@fraqjs/kernel': 1.1.0
 
   '@napi-rs/wasm-runtime@1.1.6(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)':

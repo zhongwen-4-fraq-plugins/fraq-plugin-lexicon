@@ -1,4 +1,5 @@
 import { type EventMap, Logger, type MilkyClient, type Session } from '@fraqjs/fraq';
+import { RandomService } from '@fraqjs/plugin-random';
 
 import { ApiActionRegistry } from '../src/actions/api-action-registry';
 import { LexiconController } from '../src/core/lexicon-controller';
@@ -238,6 +239,23 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     variableName: '响应',
     path: ['data', 'items', '0', 'name'],
   });
+  assert.deepEqual(parseTemplateTerm('随机.int.1.10'), {
+    type: 'random',
+    kind: 'int',
+    min: 1,
+    max: 10,
+  });
+  assert.deepEqual(parseTemplateTerm('随机.range.-2.2'), {
+    type: 'random',
+    kind: 'range',
+    min: -2,
+    max: 2,
+  });
+  assert.throws(() => parseTemplateTerm('随机.float.0.1'), /随机词条类型/);
+  assert.throws(() => parseTemplateTerm('随机.int.1'), /随机\.int词条格式/);
+  assert.throws(() => parseTemplateTerm('随机.int.1.1'), /随机\.int/);
+  assert.throws(() => parseTemplateTerm('随机.range.1.0'), /随机\.range/);
+  assert.throws(() => parseTemplateTerm('随机.range.1.1.2'), /随机\.range词条格式/);
   assert.deepEqual(parseTemplateTerm('文件.打开.notes\\.txt.读取'), {
     type: 'fileOpen',
     fileName: 'notes.txt',
@@ -335,6 +353,17 @@ test('模板词条支持嵌套定位、参数和转义', () => {
   assert.throws(() => parseTemplateTerm('is.mention.user_id'), /不支持的词条命名空间/);
   assert.throws(() => parseTemplateTerm('文件.打开.notes'), /文件打开词条格式/);
   assert.equal(findInnermostTerm('普通文本\\[不是词条\\]'), undefined);
+});
+
+test('随机词条使用 Fraq RandomService 生成区间随机数', async (context) => {
+  const harness = createHarness(context);
+  const random = new RandomService({ seed: 12345, sequence: 67890 });
+  const template = new TemplateService(harness.service, new ApiActionRegistry(), {} as MilkyClient, {}, random);
+
+  const intResult = Number(await template.render('[随机.int.5.15]', groupContext));
+  const rangeResult = Number(await template.render('[随机.range.5.15]', groupContext));
+  assert.ok(intResult >= 5 && intResult < 15);
+  assert.ok(rangeResult >= 5 && rangeResult <= 15);
 });
 
 test('文件打开词条按中文模式操作并限制在 data 目录', async (context) => {

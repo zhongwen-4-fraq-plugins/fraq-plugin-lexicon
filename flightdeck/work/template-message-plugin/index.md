@@ -50,6 +50,10 @@
 
 ## Progress
 
+- 新增 `[随机.int.<最小值>.<最大值>]` 和 `[随机.range.<最小值>.<最大值>]` 模板，调用 Fraq `@fraqjs/plugin-random` 的 `RandomService`，支持安全整数校验和官方区间语义。
+- `@fraqjs/plugin-random` `^1.1.0` 已加入开发依赖与 peer dependency；解析器、渲染器、官方 mock 集成和文档均已更新。
+- `pnpm test` 共 50 项、`pnpm test:mock`、`pnpm check` 和 `pnpm build` 均通过。
+
 - PR 评论会在实际运行 mock 时附带默认折叠的测试输出；日志去除 ANSI 控制码、限制为末尾 12000 字符，并通过 Base64 job output 安全传递。
 - PR 自动审核现在通过 GitHub API 仅读取本次 PR 的改动文件，流程为识别改动、按需运行 Fraq 官方 mock、更新同仓库 PR 评论；只在源码、依赖、构建配置或官方 mock 测试变化时安装依赖并测试。
 - 已修正不存在的 `actions/setup-node@v7` 与 `pnpm/action-setup@v6`，PR 和发布工作流统一使用实际存在的 `setup-node@v6` 与 `pnpm/action-setup@v4`。

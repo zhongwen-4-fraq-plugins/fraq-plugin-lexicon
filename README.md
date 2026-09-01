@@ -7,15 +7,17 @@
 ## 安装
 
 ```bash
-pnpm add fraq-plugin-lexicon
+pnpm add fraq-plugin-lexicon @fraqjs/plugin-random
 ```
 
 ```ts
 import { Context } from '@fraqjs/fraq';
+import RandomPlugin from '@fraqjs/plugin-random';
 import FraqPluginLexicon from 'fraq-plugin-lexicon';
 
 const ctx = Context.fromUrl('http://localhost:30001');
 
+ctx.install(RandomPlugin);
 ctx.install(FraqPluginLexicon, {
   owners: [123456789],
   dataPath: 'data',
