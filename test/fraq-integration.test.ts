@@ -1,6 +1,5 @@
 import { createMockContext, inseg } from '@fraqjs/plugin-mock';
-import RandomPlugin from '@fraqjs/plugin-random';
-import { RandomService } from '@fraqjs/plugin-random';
+import RandomPlugin, { RandomService } from '@fraqjs/plugin-random';
 
 import FraqPluginLexicon from '../src/index';
 
