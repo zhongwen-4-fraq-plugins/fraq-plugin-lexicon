@@ -44,6 +44,22 @@ test('Fraq 1.1 可以安装插件并通过 mock 完成群消息回复', async ()
         },
       },
     ]);
+    ctx.mock.apiCalls.length = 0;
+    await ctx.mock.receiveGroup({ groupId, userId: ownerId }, [
+      inseg.text('璇嶅簱 娣诲姞 绮剧‘ 闂?闅忔満娴嬭瘯 绛?[闅忔満.range.7.7]'),
+    ]);
+    ctx.mock.apiCalls.length = 0;
+    await ctx.mock.receiveGroup({ groupId, userId: ownerId }, [inseg.text('闅忔満娴嬭瘯')]);
+
+    assert.deepEqual(ctx.mock.apiCalls, [
+      {
+        endpoint: 'send_group_message',
+        params: {
+          group_id: groupId,
+          message: [{ type: 'text', data: { text: '7' } }],
+        },
+      },
+    ]);
   } finally {
     await ctx.stop();
     rmSync(dataPath, { recursive: true, force: true });
