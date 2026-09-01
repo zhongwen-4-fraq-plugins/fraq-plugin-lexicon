@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-test('Fraq 1.1 可以安装插件并通过 mock 完成群消息回复', async () => {
+test('Fraq 1.1 可以安装插件并通过官方 mock 完成群消息回复', async () => {
   const dataPath = mkdtempSync(join(tmpdir(), 'fraq-plugin-lexicon-integration-'));
   const ownerId = 10001;
   const groupId = 12345;

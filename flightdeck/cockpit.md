@@ -1,6 +1,6 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 开发版 `0.3.7` 已迁移到 Fraq `1.1.x`；PR 自动审核仅审核本次改动文件，按需执行 Fraq 官方 mock，并以结果标题、折叠日志和摘要表格更新评论；模板现支持 Fraq random 的 `int`、`range`、`bool` 与 `float` 随机数词条，待发布后升级目标应用验证。
+Focus: 正在通过 `test/pr-review-template` 分支真实验证新版 PR 审核评论；开发版 `0.3.7` 已迁移到 Fraq `1.1.x`，模板支持 Fraq random 的 `int`、`range`、`bool` 与 `float` 随机数词条。
 
 ## In flight
 
