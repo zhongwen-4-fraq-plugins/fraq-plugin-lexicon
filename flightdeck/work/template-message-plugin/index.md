@@ -2,7 +2,7 @@
 
 ## State
 
-- 当前开发版本为 `0.3.6`，已破坏性切换到 Fraq `^1.1.0`，不再兼容 Fraq `0.x`。
+- 当前开发版本为 `0.3.7`，已破坏性切换到 Fraq `^1.1.0`，不再兼容 Fraq `0.x`。
 - 已用 `@fraqjs/plugin-mock` `1.1.0` 增加真实 Context 安装、群管理命令和群消息回复集成测试；SQLite 仓库会随 Context 停止自动释放。
 - 用户希望把 `fraq-plugin-lexicon` 实现为支持精确/模糊匹配的词库插件。
 - 回答内容包含可执行词条；词条需要支持无固定深度的嵌套解析。
@@ -50,9 +50,11 @@
 
 ## Progress
 
-- 新增 `[随机.int.<最小值>.<最大值>]` 和 `[随机.range.<最小值>.<最大值>]` 模板，调用 Fraq `@fraqjs/plugin-random` 的 `RandomService`，支持安全整数校验和官方区间语义。
+- 新增 `[随机.int.<最小值>.<最大值>]`、`[随机.range.<最小值>.<最大值>]`、`[随机.bool[.<概率>]]` 和 `[随机.float]` 模板，调用 Fraq `@fraqjs/plugin-random` 的 `RandomService`，支持安全参数校验和官方语义。
 - `@fraqjs/plugin-random` `^1.1.0` 已加入开发依赖与 peer dependency；解析器、渲染器、官方 mock 集成和文档均已更新。
 - `pnpm test` 共 50 项、`pnpm test:mock`、`pnpm check` 和 `pnpm build` 均通过。
+- 当前开发版本更新为 `0.3.7`，待发布新的随机模板补丁版本。
+- 已补充 Fraq 官方 `[随机.bool]`、`[随机.bool.<概率>]` 和 `[随机.float]`，并修复小数概率按点号分段解析的问题；全部验证通过。
 - 发布前验证已完成：`pnpm test` 50 项、`pnpm check`、`pnpm build` 和 `npm pack --dry-run --json` 均通过；准备创建并推送 `v0.3.6`。
 
 - PR 评论会在实际运行 mock 时附带默认折叠的测试输出；日志去除 ANSI 控制码、限制为末尾 12000 字符，并通过 Base64 job output 安全传递。

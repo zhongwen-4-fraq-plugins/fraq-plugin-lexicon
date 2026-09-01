@@ -251,7 +251,13 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     min: -2,
     max: 2,
   });
-  assert.throws(() => parseTemplateTerm('随机.float.0.1'), /随机词条类型/);
+  assert.deepEqual(parseTemplateTerm('随机.float'), { type: 'random', kind: 'float' });
+  assert.deepEqual(parseTemplateTerm('随机.bool'), { type: 'random', kind: 'bool' });
+  assert.deepEqual(parseTemplateTerm('随机.bool.0.25'), { type: 'random', kind: 'bool', probability: 0.25 });
+  assert.throws(() => parseTemplateTerm('随机.float.0.1'), /随机\.float/);
+  assert.throws(() => parseTemplateTerm('随机.bool.1.2'), /随机\.bool/);
+  assert.throws(() => parseTemplateTerm('随机.bool.-0.1'), /随机\.bool/);
+  assert.throws(() => parseTemplateTerm('随机.bool.1.1'), /随机\.bool/);
   assert.throws(() => parseTemplateTerm('随机.int.1'), /随机\.int词条格式/);
   assert.throws(() => parseTemplateTerm('随机.int.1.1'), /随机\.int/);
   assert.throws(() => parseTemplateTerm('随机.range.1.0'), /随机\.range/);
@@ -362,8 +368,12 @@ test('随机词条使用 Fraq RandomService 生成区间随机数', async (conte
 
   const intResult = Number(await template.render('[随机.int.5.15]', groupContext));
   const rangeResult = Number(await template.render('[随机.range.5.15]', groupContext));
+  const floatResult = Number(await template.render('[随机.float]', groupContext));
+  const boolResult = await template.render('[随机.bool.1]', groupContext);
   assert.ok(intResult >= 5 && intResult < 15);
   assert.ok(rangeResult >= 5 && rangeResult <= 15);
+  assert.ok(floatResult >= 0 && floatResult < 1);
+  assert.equal(boolResult, 'true');
 });
 
 test('文件打开词条按中文模式操作并限制在 data 目录', async (context) => {

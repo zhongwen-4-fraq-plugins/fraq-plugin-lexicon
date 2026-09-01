@@ -17,7 +17,9 @@ export type TemplateTerm =
   | { type: 'executionStop' }
   | { type: 'setVariable'; name: string; value: string }
   | { type: 'getVariable'; name: string }
-  | { type: 'random'; kind: 'int' | 'range'; min: number; max: number };
+  | { type: 'random'; kind: 'int' | 'range'; min: number; max: number }
+  | { type: 'random'; kind: 'float' }
+  | { type: 'random'; kind: 'bool'; probability?: number };
 
 export interface TermLocation {
   start: number;
@@ -293,8 +295,24 @@ function parseJsonTerm(parts: string[]): TemplateTerm {
 
 function parseRandomTerm(parts: string[]): TemplateTerm {
   const kind = parts.shift();
+  if (kind === 'float') {
+    if (parts.length !== 0) {
+      throw new LexiconError('随机.float 词条格式应为 [随机.float]。');
+    }
+    return { type: 'random', kind: 'float' };
+  }
+  if (kind === 'bool') {
+    if (parts.length === 0) {
+      return { type: 'random', kind: 'bool' };
+    }
+    if (parts.some((part) => !part)) {
+      throw new LexiconError('随机.bool 词条格式应为 [随机.bool] 或 [随机.bool.<概率>]。');
+    }
+    const probability = parseRandomProbability(parts.join('.'));
+    return { type: 'random', kind: 'bool', probability };
+  }
   if (kind !== 'int' && kind !== 'range') {
-    throw new LexiconError('随机词条类型必须是 int 或 range。');
+    throw new LexiconError('随机词条类型必须是 int、range、bool 或 float。');
   }
   if (parts.length !== 2 || parts.some((part) => !part)) {
     throw new LexiconError(`随机.${kind}词条格式应为 [随机.${kind}.<最小值>.<最大值>]。`);
@@ -309,6 +327,14 @@ function parseRandomTerm(parts: string[]): TemplateTerm {
     throw new LexiconError('随机.range 的最大值不能小于最小值。');
   }
   return { type: 'random', kind, min, max };
+}
+
+function parseRandomProbability(value: string): number {
+  const probability = Number(value);
+  if (!Number.isFinite(probability) || probability < 0 || probability > 1) {
+    throw new LexiconError('随机.bool 的概率必须是 0 到 1 之间的数字。');
+  }
+  return probability;
 }
 
 function parseRandomInteger(value: string, label: string): number {

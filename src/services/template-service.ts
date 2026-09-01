@@ -300,6 +300,14 @@ export class TemplateService {
     }
 
     if (term.type === 'random') {
+      if (term.kind === 'float') {
+        return String(this.randomService.float());
+      }
+      if (term.kind === 'bool') {
+        return String(
+          term.probability === undefined ? this.randomService.bool() : this.randomService.bool(term.probability),
+        );
+      }
       return String(
         term.kind === 'int' ? this.randomService.int(term.min, term.max) : this.randomService.range(term.min, term.max),
       );
