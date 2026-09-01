@@ -18,8 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
-      changed_files: ${{ steps.changes.outputs.changed_files }}
-      changed_count: ${{ steps.changes.outputs.changed_count }}
       mock_required: ${{ steps.changes.outputs.mock_required }}
       mock_output_base64: ${{ steps.mock.outputs.mock_output_base64 }}
 
@@ -51,8 +49,6 @@ jobs:
               mockPaths.some((pattern) => pattern.test(filename)),
             );
 
-            core.setOutput('changed_files', JSON.stringify(filenames));
-            core.setOutput('changed_count', String(filenames.length));
             core.setOutput('mock_required', String(mockRequired));
 
       - name: 安装 pnpm
@@ -104,13 +100,12 @@ jobs:
     permissions:
       contents: read
       issues: write
+      pull-requests: write
 
     steps:
       - name: 更新 PR 评论
         uses: actions/github-script@v9
         env:
-          CHANGED_FILES: ${{ needs.mock_test.outputs.changed_files }}
-          CHANGED_COUNT: ${{ needs.mock_test.outputs.changed_count }}
           MOCK_REQUIRED: ${{ needs.mock_test.outputs.mock_required }}
           MOCK_OUTPUT_BASE64: ${{ needs.mock_test.outputs.mock_output_base64 }}
           MOCK_JOB_RESULT: ${{ needs.mock_test.result }}
@@ -119,13 +114,18 @@ jobs:
         with:
           script: |
             const marker = '<!-- fraq-pr-review -->';
-            const changedFiles = JSON.parse(process.env.CHANGED_FILES || '[]');
-            const changedCount = Number(process.env.CHANGED_COUNT || changedFiles.length);
             const mockRequired = process.env.MOCK_REQUIRED === 'true';
             const jobResult = process.env.MOCK_JOB_RESULT;
             const result = jobResult !== 'success' ? jobResult : mockRequired ? 'success' : 'skipped';
             const passed = result === 'success' || result === 'skipped';
-            const status = passed ? '通过' : '失败';
+            const title = passed
+              ? '# 自动审核通过，请等待人工审核/合并'
+              : '# 自动审核失败，请修复后重新提交';
+            const mockStatus = result === 'success'
+              ? '测试成功'
+              : result === 'skipped'
+                ? '未运行（本次改动无需测试）'
+                : '测试失败';
             const mockOutput = process.env.MOCK_OUTPUT_BASE64
               ? Buffer.from(process.env.MOCK_OUTPUT_BASE64, 'base64').toString('utf8')
               : '';
@@ -133,42 +133,26 @@ jobs:
               .replaceAll('&', '&amp;')
               .replaceAll('<', '&lt;')
               .replaceAll('>', '&gt;');
-            const shownFiles = changedFiles.slice(0, 100);
-            const changedFileLines = shownFiles.map((filename) => `- \`${filename}\``);
-            if (changedCount > shownFiles.length) {
-              changedFileLines.push(`- 另有 ${changedCount - shownFiles.length} 个文件，请在 PR Files changed 中查看。`);
-            }
-            const mockOutputLines = mockRequired
-              ? [
-                  '',
-                  '<details>',
-                  '<summary>查看 Fraq 官方 mock 测试输出</summary>',
-                  '',
-                  '<pre>',
-                  escapedMockOutput || '未捕获到 mock 测试输出。',
-                  '</pre>',
-                  '</details>',
-                ]
-              : [];
+            const mockLog = mockRequired
+              ? escapedMockOutput || '未捕获到 Fraq mock 测试日志。'
+              : '本次改动无需运行 Fraq mock 测试。';
             const body = [
               marker,
-              '## 自动 PR 审核',
+              title,
               '',
-              `结果：${status}`,
+              '<details>',
+              '<summary>Fraq mock 测试日志</summary>',
               '',
-              `本次改动文件：${changedCount} 个`,
-              ...changedFileLines,
+              '<pre>',
+              mockLog,
+              '</pre>',
+              '</details>',
               '',
-              `Fraq 官方 mock 测试：${result}`,
-              `PR 提交：${process.env.HEAD_SHA.slice(0, 7)}`,
-              `工作流运行：${process.env.RUN_URL}`,
-              '',
-              result === 'skipped'
-                ? '改动未触及插件源码、依赖或 mock 测试，无需运行 Fraq mock。'
-                : passed
-                  ? '与本次改动相关的 Fraq 官方 mock 测试通过，可以进入人工审核。'
-                  : '与本次改动相关的 Fraq 官方 mock 测试失败，请查看工作流日志并修复问题。',
-              ...mockOutputLines,
+              '| 项目 | 内容 |',
+              '| :--: | :--: |',
+              `| Fraq mock 测试结果 | ${mockStatus} |`,
+              `| PR 提交 hash 值 | \`${process.env.HEAD_SHA.slice(0, 7)}\` |`,
+              `| 本次自动测试记录 | [点击这里查看](${process.env.RUN_URL}) |`,
             ].join('\n');
 
             const comments = await github.paginate(github.rest.issues.listComments, {

@@ -1,14 +1,14 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 开发版 `0.3.7` 已迁移到 Fraq `1.1.x`；PR 自动审核仅审核本次改动文件，按需执行 Fraq 官方 mock，并在评论中折叠展示测试输出；模板现支持 Fraq random 的 `int`、`range`、`bool` 与 `float` 随机数词条，待发布后升级目标应用验证。
+Focus: 开发版 `0.3.7` 已迁移到 Fraq `1.1.x`；PR 自动审核仅审核本次改动文件，按需执行 Fraq 官方 mock，并以结果标题、折叠日志和摘要表格更新评论；模板现支持 Fraq random 的 `int`、`range`、`bool` 与 `float` 随机数词条，待发布后升级目标应用验证。
 
 ## In flight
 
-- `template-message-plugin` — 开发版 `0.3.6` 使用 Fraq `^1.1.0` 与 `@fraqjs/plugin-mock` `^1.1.0`，49 项测试、检查、构建和打包预览通过；PR 审核使用专用 mock 测试，待发布并将目标应用升级到 Fraq 1.1
+- `template-message-plugin` — 开发版 `0.3.7` 使用 Fraq `^1.1.0` 与 `@fraqjs/plugin-mock` `^1.1.0`，50 项测试通过；PR 审核使用专用 mock 测试和表格化评论，待发布并将目标应用升级到 Fraq 1.1
 
 ## Next
 
-- 发布 `0.3.6`，将目标应用升级到 Fraq `1.1.x` 并安装验证；不再保留 Fraq `0.x` 兼容。
+- 发布 `0.3.7`，将目标应用升级到 Fraq `1.1.x` 并安装验证；不再保留 Fraq `0.x` 兼容。
 - 等待 `fraqjs/registry` 下一轮定时构建后，确认 `plugins.json` 已收录本插件且分类为 `utilities`。
 - 在真实群聊中验证 ID 3 的“获取陌生人信息@用户”。
 - 在真实群聊中验证 `[词库.拒绝执行]` 后的 API 和嵌套词条不执行。

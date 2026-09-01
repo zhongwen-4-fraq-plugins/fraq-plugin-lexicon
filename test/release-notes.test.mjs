@@ -109,7 +109,7 @@ test('PR 审核仅对运行相关改动执行 mock 并更新评论', () => {
   assert.match(workflow, /if: steps\.changes\.outputs\.mock_required == 'true'/u);
   assert.match(workflow.slice(commentJob), /needs: mock_test/u);
   assert.match(workflow.slice(commentJob), /always\(\)/u);
-  assert.match(workflow.slice(commentJob), /CHANGED_FILES: \$\{\{ needs\.mock_test\.outputs\.changed_files \}\}/u);
+  assert.match(workflow.slice(commentJob), /pull-requests: write/u);
   assert.match(workflow, /mock_output_base64: \$\{\{ steps\.mock\.outputs\.mock_output_base64 \}\}/u);
   assert.match(workflow, /pnpm test:mock 2>&1 \| tee mock-output\.log/u);
   assert.match(workflow, /TEST_STATUS=\$\{PIPESTATUS\[0\]\}/u);
@@ -119,10 +119,15 @@ test('PR 审核仅对运行相关改动执行 mock 并更新评论', () => {
     /MOCK_OUTPUT_BASE64: \$\{\{ needs\.mock_test\.outputs\.mock_output_base64 \}\}/u,
   );
   assert.match(workflow.slice(commentJob), /MOCK_JOB_RESULT: \$\{\{ needs\.mock_test\.result \}\}/u);
-  assert.match(workflow.slice(commentJob), /本次改动文件/u);
+  assert.match(workflow.slice(commentJob), /# 自动审核通过，请等待人工审核\/合并/u);
+  assert.match(workflow.slice(commentJob), /# 自动审核失败，请修复后重新提交/u);
   assert.match(workflow.slice(commentJob), /<details>/u);
-  assert.match(workflow.slice(commentJob), /查看 Fraq 官方 mock 测试输出/u);
+  assert.match(workflow.slice(commentJob), /<summary>Fraq mock 测试日志<\/summary>/u);
   assert.match(workflow.slice(commentJob), /<pre>/u);
+  assert.match(workflow.slice(commentJob), /\| 项目 \| 内容 \|/u);
+  assert.match(workflow.slice(commentJob), /\| Fraq mock 测试结果 \| \$\{mockStatus\} \|/u);
+  assert.match(workflow.slice(commentJob), /\| PR 提交 hash 值 \|/u);
+  assert.match(workflow.slice(commentJob), /\| 本次自动测试记录 \| \[点击这里查看\]/u);
   assert.doesNotMatch(workflow, /run: pnpm (?:test|check|build)\s*$/mu);
   assert.doesNotMatch(workflow, /npm pack --dry-run/u);
 });
