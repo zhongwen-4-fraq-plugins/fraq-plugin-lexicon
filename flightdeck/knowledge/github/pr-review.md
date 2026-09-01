@@ -1,5 +1,5 @@
 # GitHub PR 自动审核检查表
-SUMMARY: Use pull_request for untrusted PR code, install the complete locked dependency set, run the dedicated integration test with Fraq's official `@fraqjs/plugin-mock`, and grant write permission only to the same-repository comment job.
+SUMMARY: Review only files changed by the PR, run Fraq's official mock test only when runtime-relevant paths changed, and grant write permission only to the same-repository comment job.
 READ WHEN: before creating or modifying a GitHub pull request review workflow
 
 ---
@@ -13,8 +13,9 @@ READ WHEN: before creating or modifying a GitHub pull request review workflow
 
 ## Mock 门禁
 
-- 使用 `pnpm install --frozen-lockfile` 安装 Fraq、`@fraqjs/plugin-mock` 和全部锁定依赖。
-- 固定运行 `pnpm test:mock`，只执行基于 Fraq 官方 `@fraqjs/plugin-mock` 的真实 Context 安装与消息收发集成测试。
+- 通过 `pulls.listFiles` 获取 PR base/head 的实际改动文件，不使用不完整的浅克隆 diff。
+- 仅当改动触及 `src/`、`test/fraq-integration.test.ts`、`package.json`、`pnpm-lock.yaml`、`tsconfig.json` 或 `tsdown.config.ts` 时安装锁定依赖并运行 `pnpm test:mock`。
+- 纯文档、工作流和其他不影响插件运行的改动跳过 mock，但仍在评论中列出并审核本次变更文件。
 - mock 测试失败时测试 job 失败，PR 可以将该 job 设为 required check。
 - 使用 PR 编号做 concurrency key，新提交到达时取消旧检查。
 
@@ -22,6 +23,7 @@ READ WHEN: before creating or modifying a GitHub pull request review workflow
 
 - 使用隐藏 marker 定位机器人自己的评论。
 - 同一 PR 后续提交更新已有摘要，不重复创建评论。
+- 评论列出本次 PR 的改动文件，并说明 mock 是成功、失败还是因无相关改动而跳过。
 - 评论 job 使用 `always()`，这样 mock 测试失败时仍能报告失败结果。
 
 ## 官方资料

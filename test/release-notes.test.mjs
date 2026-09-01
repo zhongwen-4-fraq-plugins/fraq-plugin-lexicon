@@ -92,18 +92,26 @@ test('GitHub Release 等待 npm 发布成功后执行', () => {
   assert.equal(existsSync(new URL('../.github/workflows/release.yml', import.meta.url)), false);
 });
 
-test('PR 审核安装依赖后运行 mock 测试并更新评论', () => {
+test('PR 审核仅对运行相关改动执行 mock 并更新评论', () => {
   const workflow = readFileSync(new URL('../.github/workflows/pr-review.yml', import.meta.url), 'utf8');
+  const changesStep = workflow.indexOf('uses: actions/github-script@v9');
   const installStep = workflow.indexOf('run: pnpm install --frozen-lockfile');
   const mockStep = workflow.indexOf('run: pnpm test:mock');
   const commentJob = workflow.indexOf('\n  review-comment:');
 
-  assert.ok(installStep >= 0);
+  assert.ok(changesStep >= 0);
+  assert.ok(installStep > changesStep);
   assert.ok(mockStep > installStep);
   assert.ok(commentJob > mockStep);
+  assert.match(workflow, /pull-requests: read/u);
+  assert.match(workflow, /github\.rest\.pulls\.listFiles/u);
+  assert.match(workflow, /mock_required/u);
+  assert.match(workflow, /if: steps\.changes\.outputs\.mock_required == 'true'/u);
   assert.match(workflow.slice(commentJob), /needs: mock_test/u);
   assert.match(workflow.slice(commentJob), /always\(\)/u);
-  assert.match(workflow.slice(commentJob), /MOCK_TEST_RESULT: \$\{\{ needs\.mock_test\.result \}\}/u);
+  assert.match(workflow.slice(commentJob), /CHANGED_FILES: \$\{\{ needs\.mock_test\.outputs\.changed_files \}\}/u);
+  assert.match(workflow.slice(commentJob), /MOCK_JOB_RESULT: \$\{\{ needs\.mock_test\.result \}\}/u);
+  assert.match(workflow.slice(commentJob), /本次改动文件/u);
   assert.doesNotMatch(workflow, /run: pnpm (?:test|check|build)\s*$/mu);
   assert.doesNotMatch(workflow, /npm pack --dry-run/u);
 });

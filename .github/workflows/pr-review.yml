@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: pr-review-${{ github.event.pull_request.number }}
@@ -13,27 +14,63 @@ concurrency:
 
 jobs:
   mock_test:
-    name: 安装依赖并运行 Fraq 官方 mock 测试
+    name: 审核改动并运行相关 mock 测试
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      changed_files: ${{ steps.changes.outputs.changed_files }}
+      changed_count: ${{ steps.changes.outputs.changed_count }}
+      mock_required: ${{ steps.changes.outputs.mock_required }}
 
     steps:
       - name: 检出代码
         uses: actions/checkout@v6
 
+      - name: 获取 PR 改动文件
+        id: changes
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              per_page: 100,
+            });
+            const filenames = files.map((file) => file.filename);
+            const mockPaths = [
+              /^src\//u,
+              /^test\/fraq-integration\.test\.ts$/u,
+              /^package\.json$/u,
+              /^pnpm-lock\.yaml$/u,
+              /^tsconfig\.json$/u,
+              /^tsdown\.config\.ts$/u,
+            ];
+            const mockRequired = filenames.some((filename) =>
+              mockPaths.some((pattern) => pattern.test(filename)),
+            );
+
+            core.setOutput('changed_files', JSON.stringify(filenames));
+            core.setOutput('changed_count', String(filenames.length));
+            core.setOutput('mock_required', String(mockRequired));
+
       - name: 安装 pnpm
+        if: steps.changes.outputs.mock_required == 'true'
         uses: pnpm/action-setup@v4
 
       - name: 安装 Node.js
+        if: steps.changes.outputs.mock_required == 'true'
         uses: actions/setup-node@v6
         with:
           node-version: '24'
           package-manager-cache: false
 
       - name: 安装完整依赖
+        if: steps.changes.outputs.mock_required == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: 运行 Fraq 官方 mock 测试
+        if: steps.changes.outputs.mock_required == 'true'
         run: pnpm test:mock
 
   review-comment:
@@ -51,26 +88,45 @@ jobs:
       - name: 更新 PR 评论
         uses: actions/github-script@v9
         env:
-          MOCK_TEST_RESULT: ${{ needs.mock_test.result }}
+          CHANGED_FILES: ${{ needs.mock_test.outputs.changed_files }}
+          CHANGED_COUNT: ${{ needs.mock_test.outputs.changed_count }}
+          MOCK_REQUIRED: ${{ needs.mock_test.outputs.mock_required }}
+          MOCK_JOB_RESULT: ${{ needs.mock_test.result }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
             const marker = '<!-- fraq-pr-review -->';
-            const result = process.env.MOCK_TEST_RESULT;
-            const passed = result === 'success';
+            const changedFiles = JSON.parse(process.env.CHANGED_FILES || '[]');
+            const changedCount = Number(process.env.CHANGED_COUNT || changedFiles.length);
+            const mockRequired = process.env.MOCK_REQUIRED === 'true';
+            const jobResult = process.env.MOCK_JOB_RESULT;
+            const result = jobResult !== 'success' ? jobResult : mockRequired ? 'success' : 'skipped';
+            const passed = result === 'success' || result === 'skipped';
             const status = passed ? '通过' : '失败';
+            const shownFiles = changedFiles.slice(0, 100);
+            const changedFileLines = shownFiles.map((filename) => `- \`${filename}\``);
+            if (changedCount > shownFiles.length) {
+              changedFileLines.push(`- 另有 ${changedCount - shownFiles.length} 个文件，请在 PR Files changed 中查看。`);
+            }
             const body = [
               marker,
               '## 自动 PR 审核',
               '',
               `结果：${status}`,
               '',
-              `Fraq 官方 mock 测试结果：${result}`,
+              `本次改动文件：${changedCount} 个`,
+              ...changedFileLines,
+              '',
+              `Fraq 官方 mock 测试：${result}`,
               `PR 提交：${process.env.HEAD_SHA.slice(0, 7)}`,
               `工作流运行：${process.env.RUN_URL}`,
               '',
-              passed ? 'Fraq 官方 mock 测试通过，可以进入人工审核。' : 'Fraq 官方 mock 测试失败，请查看工作流日志并修复问题。',
+              result === 'skipped'
+                ? '改动未触及插件源码、依赖或 mock 测试，无需运行 Fraq mock。'
+                : passed
+                  ? '与本次改动相关的 Fraq 官方 mock 测试通过，可以进入人工审核。'
+                  : '与本次改动相关的 Fraq 官方 mock 测试失败，请查看工作流日志并修复问题。',
             ].join('\n');
 
             const comments = await github.paginate(github.rest.issues.listComments, {

@@ -50,8 +50,8 @@
 
 ## Progress
 
+- PR 自动审核现在通过 GitHub API 仅读取本次 PR 的改动文件，流程为识别改动、按需运行 Fraq 官方 mock、更新同仓库 PR 评论；只在源码、依赖、构建配置或官方 mock 测试变化时安装依赖并测试。
 - 已修正不存在的 `actions/setup-node@v7` 与 `pnpm/action-setup@v6`，PR 和发布工作流统一使用实际存在的 `setup-node@v6` 与 `pnpm/action-setup@v4`。
-- PR 自动审核已收敛为安装完整锁定依赖、使用 Fraq 官方 `@fraqjs/plugin-mock` 运行 `pnpm test:mock`、更新同仓库 PR 评论三个阶段，不再在该工作流中执行检查、构建和打包预览。
 - 已将 `@fraqjs/fraq` peer dependency 从 `>=0.14.0 <0.18.0` 改为 `^1.1.0`，并以 `@fraqjs/plugin-mock` `^1.1.0` 替换废弃的 `@fraqjs/mock`。
 - 已确认 Fraq `1.1.0` 仍暴露 21 个事件和 65 个 Milky API，现有静态事件/API 定义通过类型检查完整覆盖。
 - 已将 `LexiconRepository` 注册为 Fraq 可释放服务，并新增真实 Context 安装与群消息收发集成测试。

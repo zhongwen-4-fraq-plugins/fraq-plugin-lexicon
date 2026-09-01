@@ -31,8 +31,8 @@ pnpm build
 
 工作流文件为 `.github/workflows/pr-review.yml`，会在 PR 创建、重新打开、更新提交或标记为可审查时运行：
 
-- 使用 `pnpm install --frozen-lockfile` 安装 Fraq、`@fraqjs/plugin-mock` 和全部测试依赖。
-- 使用 `pnpm test:mock` 调用 Fraq 官方 `@fraqjs/plugin-mock`，运行真实 Context 安装和群消息收发测试。
-- 测试结束后更新同一仓库 PR 的审核摘要评论。
+- 读取 PR 的实际改动文件，只审核并在评论中列出本次 PR 的变更。
+- 改动触及 `src/`、插件依赖、构建配置或官方 mock 测试时，才安装依赖并运行 `pnpm test:mock`。
+- 纯文档、工作流或其他不影响插件运行的改动会跳过 mock，并在同一仓库 PR 评论中说明原因。
 
-mock 测试失败会让 PR 工作流失败。同一仓库的 PR 会自动更新一条审核摘要评论；来自 fork 的 PR 仍会安装依赖并运行 mock 测试，但不会尝试写评论。
+相关 mock 测试失败会让 PR 工作流失败。同一仓库的 PR 会自动更新一条审核摘要评论；来自 fork 的 PR 仍会审核改动并按需运行 mock，但不会尝试写评论。
