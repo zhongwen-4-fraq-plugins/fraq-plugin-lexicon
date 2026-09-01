@@ -21,6 +21,7 @@ jobs:
       changed_files: ${{ steps.changes.outputs.changed_files }}
       changed_count: ${{ steps.changes.outputs.changed_count }}
       mock_required: ${{ steps.changes.outputs.mock_required }}
+      mock_output_base64: ${{ steps.mock.outputs.mock_output_base64 }}
 
     steps:
       - name: 检出代码
@@ -70,8 +71,28 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: 运行 Fraq 官方 mock 测试
+        id: mock
         if: steps.changes.outputs.mock_required == 'true'
-        run: pnpm test:mock
+        shell: bash
+        run: |
+          set +e
+          pnpm test:mock 2>&1 | tee mock-output.log
+          TEST_STATUS=${PIPESTATUS[0]}
+
+          node --input-type=module <<'NODE'
+          import { appendFileSync, readFileSync } from 'node:fs';
+
+          const ansiPattern = /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[\dA-PR-TZcf-nq-uy=><~])+\x07)|(?:(?:\d{1,4}(?:[;:]\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]))/gu;
+          const output = readFileSync('mock-output.log', 'utf8').replace(ansiPattern, '');
+          const maxLength = 12000;
+          const truncated = output.length > maxLength
+            ? `...前面的输出已省略...\n${output.slice(-maxLength)}`
+            : output;
+          const encoded = Buffer.from(truncated, 'utf8').toString('base64');
+          appendFileSync(process.env.GITHUB_OUTPUT, `mock_output_base64=${encoded}\n`);
+          NODE
+
+          exit "$TEST_STATUS"
 
   review-comment:
     name: 更新审核摘要
@@ -91,6 +112,7 @@ jobs:
           CHANGED_FILES: ${{ needs.mock_test.outputs.changed_files }}
           CHANGED_COUNT: ${{ needs.mock_test.outputs.changed_count }}
           MOCK_REQUIRED: ${{ needs.mock_test.outputs.mock_required }}
+          MOCK_OUTPUT_BASE64: ${{ needs.mock_test.outputs.mock_output_base64 }}
           MOCK_JOB_RESULT: ${{ needs.mock_test.result }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -104,11 +126,30 @@ jobs:
             const result = jobResult !== 'success' ? jobResult : mockRequired ? 'success' : 'skipped';
             const passed = result === 'success' || result === 'skipped';
             const status = passed ? '通过' : '失败';
+            const mockOutput = process.env.MOCK_OUTPUT_BASE64
+              ? Buffer.from(process.env.MOCK_OUTPUT_BASE64, 'base64').toString('utf8')
+              : '';
+            const escapedMockOutput = mockOutput
+              .replaceAll('&', '&amp;')
+              .replaceAll('<', '&lt;')
+              .replaceAll('>', '&gt;');
             const shownFiles = changedFiles.slice(0, 100);
             const changedFileLines = shownFiles.map((filename) => `- \`${filename}\``);
             if (changedCount > shownFiles.length) {
               changedFileLines.push(`- 另有 ${changedCount - shownFiles.length} 个文件，请在 PR Files changed 中查看。`);
             }
+            const mockOutputLines = mockRequired
+              ? [
+                  '',
+                  '<details>',
+                  '<summary>查看 Fraq 官方 mock 测试输出</summary>',
+                  '',
+                  '<pre>',
+                  escapedMockOutput || '未捕获到 mock 测试输出。',
+                  '</pre>',
+                  '</details>',
+                ]
+              : [];
             const body = [
               marker,
               '## 自动 PR 审核',
@@ -127,6 +168,7 @@ jobs:
                 : passed
                   ? '与本次改动相关的 Fraq 官方 mock 测试通过，可以进入人工审核。'
                   : '与本次改动相关的 Fraq 官方 mock 测试失败，请查看工作流日志并修复问题。',
+              ...mockOutputLines,
             ].join('\n');
 
             const comments = await github.paginate(github.rest.issues.listComments, {

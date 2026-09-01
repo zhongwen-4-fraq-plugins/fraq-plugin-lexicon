@@ -50,6 +50,7 @@
 
 ## Progress
 
+- PR 评论会在实际运行 mock 时附带默认折叠的测试输出；日志去除 ANSI 控制码、限制为末尾 12000 字符，并通过 Base64 job output 安全传递。
 - PR 自动审核现在通过 GitHub API 仅读取本次 PR 的改动文件，流程为识别改动、按需运行 Fraq 官方 mock、更新同仓库 PR 评论；只在源码、依赖、构建配置或官方 mock 测试变化时安装依赖并测试。
 - 已修正不存在的 `actions/setup-node@v7` 与 `pnpm/action-setup@v6`，PR 和发布工作流统一使用实际存在的 `setup-node@v6` 与 `pnpm/action-setup@v4`。
 - 已将 `@fraqjs/fraq` peer dependency 从 `>=0.14.0 <0.18.0` 改为 `^1.1.0`，并以 `@fraqjs/plugin-mock` `^1.1.0` 替换废弃的 `@fraqjs/mock`。

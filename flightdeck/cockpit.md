@@ -1,6 +1,6 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 开发版 `0.3.6` 已迁移到 Fraq `1.1.x`；PR 自动审核仅审核本次改动文件，并只在运行相关路径变化时执行 Fraq 官方 mock，待发布并升级目标应用验证。
+Focus: 开发版 `0.3.6` 已迁移到 Fraq `1.1.x`；PR 自动审核仅审核本次改动文件，按需执行 Fraq 官方 mock，并在评论中折叠展示测试输出，待发布并升级目标应用验证。
 
 ## In flight
 

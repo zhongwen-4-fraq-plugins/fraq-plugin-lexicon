@@ -24,6 +24,7 @@ READ WHEN: before creating or modifying a GitHub pull request review workflow
 - 使用隐藏 marker 定位机器人自己的评论。
 - 同一 PR 后续提交更新已有摘要，不重复创建评论。
 - 评论列出本次 PR 的改动文件，并说明 mock 是成功、失败还是因无相关改动而跳过。
+- 实际运行 mock 时捕获 stdout/stderr，去除 ANSI 控制码并截断到安全长度，再以 Base64 job output 传给评论 job；评论使用默认折叠的 `<details>` + `<pre>` 展示。
 - 评论 job 使用 `always()`，这样 mock 测试失败时仍能报告失败结果。
 
 ## 官方资料

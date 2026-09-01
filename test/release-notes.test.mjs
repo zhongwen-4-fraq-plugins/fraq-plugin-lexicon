@@ -96,7 +96,7 @@ test('PR 审核仅对运行相关改动执行 mock 并更新评论', () => {
   const workflow = readFileSync(new URL('../.github/workflows/pr-review.yml', import.meta.url), 'utf8');
   const changesStep = workflow.indexOf('uses: actions/github-script@v9');
   const installStep = workflow.indexOf('run: pnpm install --frozen-lockfile');
-  const mockStep = workflow.indexOf('run: pnpm test:mock');
+  const mockStep = workflow.indexOf('pnpm test:mock 2>&1 | tee mock-output.log');
   const commentJob = workflow.indexOf('\n  review-comment:');
 
   assert.ok(changesStep >= 0);
@@ -110,8 +110,19 @@ test('PR 审核仅对运行相关改动执行 mock 并更新评论', () => {
   assert.match(workflow.slice(commentJob), /needs: mock_test/u);
   assert.match(workflow.slice(commentJob), /always\(\)/u);
   assert.match(workflow.slice(commentJob), /CHANGED_FILES: \$\{\{ needs\.mock_test\.outputs\.changed_files \}\}/u);
+  assert.match(workflow, /mock_output_base64: \$\{\{ steps\.mock\.outputs\.mock_output_base64 \}\}/u);
+  assert.match(workflow, /pnpm test:mock 2>&1 \| tee mock-output\.log/u);
+  assert.match(workflow, /TEST_STATUS=\$\{PIPESTATUS\[0\]\}/u);
+  assert.match(workflow, /output\.length > maxLength/u);
+  assert.match(
+    workflow.slice(commentJob),
+    /MOCK_OUTPUT_BASE64: \$\{\{ needs\.mock_test\.outputs\.mock_output_base64 \}\}/u,
+  );
   assert.match(workflow.slice(commentJob), /MOCK_JOB_RESULT: \$\{\{ needs\.mock_test\.result \}\}/u);
   assert.match(workflow.slice(commentJob), /本次改动文件/u);
+  assert.match(workflow.slice(commentJob), /<details>/u);
+  assert.match(workflow.slice(commentJob), /查看 Fraq 官方 mock 测试输出/u);
+  assert.match(workflow.slice(commentJob), /<pre>/u);
   assert.doesNotMatch(workflow, /run: pnpm (?:test|check|build)\s*$/mu);
   assert.doesNotMatch(workflow, /npm pack --dry-run/u);
 });
