@@ -104,6 +104,7 @@ test('PR 审核仅对运行相关改动执行 mock 并更新评论', () => {
   assert.ok(mockStep > installStep);
   assert.ok(commentJob > mockStep);
   assert.match(workflow, /pull-requests: read/u);
+  assert.match(workflow.slice(commentJob), /issues: write[\s\S]*pull-requests: write/u);
   assert.match(workflow, /github\.rest\.pulls\.listFiles/u);
   assert.match(workflow, /mock_required/u);
   assert.match(workflow, /if: steps\.changes\.outputs\.mock_required == 'true'/u);
