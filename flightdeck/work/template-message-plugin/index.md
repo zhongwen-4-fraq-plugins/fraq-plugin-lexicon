@@ -61,6 +61,7 @@
 - PR 自动审核现在通过 GitHub API 仅读取本次 PR 的改动文件，流程为识别改动、按需运行 Fraq 官方 mock、更新同仓库 PR 评论；只在源码、依赖、构建配置或官方 mock 测试变化时安装依赖并测试。
 - PR 审核评论现使用成功/失败一级标题、始终存在的折叠 Fraq mock 日志，以及包含测试结果、PR 提交 hash 和工作流链接的三行表格；评论 job 具备 `issues: write` 与 `pull-requests: write`。
 - `test/pr-review-template` 分支用于真实验证新版 PR 审核评论，并通过调整 Fraq 集成测试名称触发官方 mock 门禁。
+- `docs/lexicon-usage.md` 的文件词条速查表下方现直接展示 14 种中文操作方式、Node.js 标志及行为；详细说明引用该表，不重复维护。
 - 已修正不存在的 `actions/setup-node@v7` 与 `pnpm/action-setup@v6`，PR 和发布工作流统一使用实际存在的 `setup-node@v6` 与 `pnpm/action-setup@v4`。
 - 已将 `@fraqjs/fraq` peer dependency 从 `>=0.14.0 <0.18.0` 改为 `^1.1.0`，并以 `@fraqjs/plugin-mock` `^1.1.0` 替换废弃的 `@fraqjs/mock`。
 - 已确认 Fraq `1.1.0` 仍暴露 21 个事件和 65 个 Milky API，现有静态事件/API 定义通过类型检查完整覆盖。
