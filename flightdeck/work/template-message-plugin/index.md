@@ -46,9 +46,10 @@
 
 - 新增 `[请求.<请求方式>.url.<URL>]`，支持 GET、HEAD、POST、PUT、PATCH、DELETE、OPTIONS。
 - `参数` 和 `请求头` 使用 JSON 对象；GET/HEAD 参数进入查询串，其余方法进入 JSON 请求体。
-- `超时时间=秒` 为词条级参数，默认 10 秒，最长 300 秒；响应正文限制 1 MiB。
+- `超时时间=秒` 为词条级参数，默认 10 秒，最长 300 秒；响应正文限制 1 MiB；`result=text|json` 控制响应类型，默认文本，JSON 模式会验证并序列化响应内容。
 - 请求只允许公网 HTTP/HTTPS，拒绝凭据、重定向、本机、私网、链路本地和组播地址，并在 DNS 解析后复查地址。
-- `pnpm test` 51 项通过，`pnpm build` 通过；全量 `pnpm check` 仍受既有集成测试换行格式提示影响。
+- `result=text` 返回解码后的响应文本；`result=json` 解析并序列化响应 JSON，供变量和 `[json.取值]` 继续使用；无效模式或无效 JSON 均返回明确错误。
+- `pnpm exec biome check`（相关源文件与测试）、`pnpm exec tsc --noEmit`、`pnpm test`（51 项）和 `pnpm build` 均通过；全量 `pnpm check` 仍受既有集成测试换行格式提示影响。
 
 ## Read if
 

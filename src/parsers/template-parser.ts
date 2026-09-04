@@ -19,6 +19,7 @@ export type TemplateTerm =
       url: string;
       parameters?: string;
       headers?: string;
+      result: 'text' | 'json';
       timeoutSeconds: number;
     }
   | { type: 'lexicon'; name: string }
@@ -368,7 +369,7 @@ function parseFileTerm(parts: string[]): TemplateTerm {
 }
 
 const REQUEST_METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']);
-const REQUEST_ARGUMENTS = new Set(['参数', '请求头', '超时时间']);
+const REQUEST_ARGUMENTS = new Set(['参数', '请求头', 'result', '超时时间']);
 
 function parseRequestTerm(parts: string[]): TemplateTerm {
   const method = parts.shift()?.toUpperCase();
@@ -423,12 +424,17 @@ function parseRequestTerm(parts: string[]): TemplateTerm {
   if (!Number.isFinite(timeoutSeconds) || timeoutSeconds <= 0 || timeoutSeconds > 300) {
     throw new LexiconError('请求超时时间必须是 0 到 300 秒之间的正数。');
   }
+  const result = argumentsMap.get('result') ?? 'text';
+  if (result !== 'text' && result !== 'json') {
+    throw new LexiconError('请求 result 只能是 text 或 json。');
+  }
   return {
     type: 'request',
     method,
     url,
     parameters: argumentsMap.get('参数'),
     headers: argumentsMap.get('请求头'),
+    result,
     timeoutSeconds,
   };
 }

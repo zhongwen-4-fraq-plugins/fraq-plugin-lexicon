@@ -201,7 +201,7 @@ function helpText(): string {
     '[消息.读取.<消息段类型>.<字段路径>] 读取当前消息的首个同类型消息段，例如 [消息.读取.mention.user_id]。',
     '[消息.构建.text.<内容>] 构建文本消息段，可嵌套到 API 的 message 参数。',
     '[文件.打开.<文件名>.<操作方式>] 在项目 data 目录内打开文件并返回 UTF-8 内容，详细操作方式请查看使用文档。',
-    '[请求.<GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS>.url.<参数=JSON>.<请求头=JSON>.<超时时间=秒>] 请求网络 URL 并返回响应正文。',
+    '[请求.<GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS>.url.<参数=JSON>.<请求头=JSON>.<result=text|json>.<超时时间=秒>] 请求网络 URL 并返回响应内容。',
     '[逻辑.or.<文本1>.<文本2>...] 按顺序优先返回第一个可用参数。',
     '[逻辑.and.<文本1>.<文本2>...] 在条件外依次拼接。',
     '[逻辑.休眠.<秒数>] 按秒等待后继续执行，支持小数秒。',

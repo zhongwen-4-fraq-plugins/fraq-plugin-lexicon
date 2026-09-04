@@ -333,7 +333,7 @@ export class TemplateService {
         ? await this.renderInternal(term.headers, context, variables, 'text', undefined, 0)
         : undefined;
       return escapeTemplateText(
-        await this.requestService.execute(term.method, url, parameters, headers, term.timeoutSeconds),
+        await this.requestService.execute(term.method, url, parameters, headers, term.result, term.timeoutSeconds),
       );
     }
 

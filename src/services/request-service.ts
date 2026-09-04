@@ -5,6 +5,7 @@ import { isIP } from 'node:net';
 
 const DEFAULT_TIMEOUT_SECONDS = 10;
 const MAX_RESPONSE_BYTES = 1_048_576;
+export type RequestResultType = 'text' | 'json';
 
 export class RequestService {
   constructor(
@@ -17,6 +18,7 @@ export class RequestService {
     rawUrl: string,
     parameters: string | undefined,
     headers: string | undefined,
+    resultType: RequestResultType,
     timeoutSeconds = DEFAULT_TIMEOUT_SECONDS,
   ): Promise<string> {
     const url = this.parseUrl(rawUrl);
@@ -48,7 +50,7 @@ export class RequestService {
       if (!response.ok) {
         throw new LexiconError(`请求返回 HTTP ${response.status}：${text.slice(0, 200)}`);
       }
-      return text;
+      return resultType === 'json' ? formatJsonResult(text) : text;
     } catch (error) {
       if (error instanceof LexiconError) {
         throw error;
@@ -100,6 +102,19 @@ export class RequestService {
       }
       throw new LexiconError(`解析请求域名失败：${error instanceof Error ? error.message : String(error)}`);
     }
+  }
+}
+
+function formatJsonResult(text: string): string {
+  try {
+    const result = JSON.parse(text) as unknown;
+    const serialized = JSON.stringify(result);
+    if (serialized === undefined) {
+      throw new Error('结果不能序列化为 JSON');
+    }
+    return serialized;
+  } catch (error) {
+    throw new LexiconError(`请求响应不是有效的 JSON：${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
