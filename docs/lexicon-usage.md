@@ -73,6 +73,15 @@
 | --- | --- |
 | `[文件.打开.<文件名>.<操作方式>]` | 在项目的 `data` 目录内按指定方式打开文件，并返回 UTF-8 文本内容 |
 
+### `请求` 开头
+
+| 词条 | 作用 |
+| --- | --- |
+| `[请求.<请求方式>.url.<URL>]` | 请求 HTTP/HTTPS URL 并返回响应正文 |
+| `[请求.<请求方式>.url.<URL>.参数=<JSON>]` | 为请求设置 JSON 参数；GET/HEAD 拼接到查询串，其余方法发送 JSON 请求体 |
+| `[请求.<请求方式>.url.<URL>.请求头=<JSON>]` | 设置 JSON 请求头对象 |
+| `[请求.<请求方式>.url.<URL>.超时时间=<秒>]` | 设置本次请求超时时间，省略时为 10 秒 |
+
 ### `api` 开头
 
 | 词条 | 作用 |
@@ -371,6 +380,18 @@
 API 返回空对象时不输出文本；其他返回值会序列化为 JSON，并可通过变量继续参与嵌套解析。完整端点定义位于 `src/data/milky-api-definitions.ts`。
 
 本插件已适配 Fraq 1.1 暴露的全部 65 个 Milky API，不兼容 Fraq 0.x，具体参数请参考 [Milky 协议 API](https://milky.ntqqrev.org/api/system)。
+
+### 网络请求词条
+
+使用 `[请求.<请求方式>.url.<URL>]` 请求公网 HTTP/HTTPS 地址并返回响应正文。请求方式支持 `GET`、`HEAD`、`POST`、`PUT`、`PATCH`、`DELETE` 和 `OPTIONS`；请求默认超时 10 秒，可通过 `超时时间=秒` 在词条中覆盖：
+
+```text
+[请求.GET.url.https://example.com]
+[请求.GET.url.https://example.com.参数={"q":"fraq"}.请求头={"Accept":"application/json"}.超时时间=10]
+[变量.创建.响应=[请求.POST.url.https://example.com/api.参数={"name":"小明"}]][json.取值.响应.id]
+```
+
+`参数` 和 `请求头` 必须是 JSON 对象；GET/HEAD 将参数加入查询字符串，其他请求方式将参数作为 JSON 请求体。请求词条只能在回答中执行，URL 仅允许公网 HTTP/HTTPS，禁止本机和内网地址；响应超过 1 MiB、非 2xx、网络失败或超时都会返回明确错误。URL、参数和请求头中的点号可使用 `\\.` 转义，动态内容可嵌套变量及其他只读词条。
 
 ### 词库词条
 

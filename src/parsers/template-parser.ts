@@ -13,6 +13,14 @@ export type TemplateTerm =
   | { type: 'messageBuild'; segmentType: string; content: string }
   | { type: 'jsonValue'; variableName: string; path: string[] }
   | { type: 'fileOpen'; fileName: string; mode: string }
+  | {
+      type: 'request';
+      method: string;
+      url: string;
+      parameters?: string;
+      headers?: string;
+      timeoutSeconds: number;
+    }
   | { type: 'lexicon'; name: string }
   | { type: 'executionStop' }
   | { type: 'setVariable'; name: string; value: string }
@@ -184,6 +192,10 @@ export function parseTemplateTerm(content: string): TemplateTerm {
     return parseFileTerm(unescapedParts);
   }
 
+  if (namespace === '请求') {
+    return parseRequestTerm(unescapedParts);
+  }
+
   throw new LexiconError(`不支持的词条命名空间：${namespace || '空'}。`);
 }
 
@@ -353,6 +365,72 @@ function parseFileTerm(parts: string[]): TemplateTerm {
     throw new LexiconError('文件打开词条格式应为 [文件.打开.<文件名>.<操作方式>]。');
   }
   return { type: 'fileOpen', fileName: parts[1], mode: parts[2] };
+}
+
+const REQUEST_METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']);
+const REQUEST_ARGUMENTS = new Set(['参数', '请求头', '超时时间']);
+
+function parseRequestTerm(parts: string[]): TemplateTerm {
+  const method = parts.shift()?.toUpperCase();
+  if (!method || !REQUEST_METHODS.has(method)) {
+    throw new LexiconError(
+      '请求词条格式应为 [请求.<GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS>.url.<参数=JSON>.<请求头=JSON>.<超时时间=秒>]。',
+    );
+  }
+  if (parts.shift() !== 'url') {
+    throw new LexiconError(
+      '请求词条格式应为 [请求.<GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS>.url.<参数=JSON>.<请求头=JSON>.<超时时间=秒>]。',
+    );
+  }
+
+  const urlParts: string[] = [];
+  const argumentsMap = new Map<string, string>();
+  while (parts.length > 0) {
+    const part = parts.shift() as string;
+    const separator = part.indexOf('=');
+    const name = separator < 0 ? part : part.slice(0, separator);
+    if (!REQUEST_ARGUMENTS.has(name)) {
+      if (argumentsMap.size > 0) {
+        throw new LexiconError(`请求词条参数“${part}”格式错误。`);
+      }
+      urlParts.push(part);
+      continue;
+    }
+    if (separator < 0) {
+      throw new LexiconError(`请求词条参数“${name}”应使用 ${name}=值 格式。`);
+    }
+    if (argumentsMap.has(name)) {
+      throw new LexiconError(`请求词条参数“${name}”重复。`);
+    }
+    let value = part.slice(separator + 1);
+    while (parts.length > 0) {
+      const next = parts[0];
+      const nextName = next.slice(0, next.indexOf('='));
+      if (next.indexOf('=') >= 0 && REQUEST_ARGUMENTS.has(nextName)) {
+        break;
+      }
+      value += `.${parts.shift()}`;
+    }
+    argumentsMap.set(name, value);
+  }
+
+  const url = urlParts.join('.');
+  if (!url) {
+    throw new LexiconError('请求词条缺少 URL。');
+  }
+  const timeoutValue = argumentsMap.get('超时时间');
+  const timeoutSeconds = timeoutValue === undefined ? 10 : Number(timeoutValue);
+  if (!Number.isFinite(timeoutSeconds) || timeoutSeconds <= 0 || timeoutSeconds > 300) {
+    throw new LexiconError('请求超时时间必须是 0 到 300 秒之间的正数。');
+  }
+  return {
+    type: 'request',
+    method,
+    url,
+    parameters: argumentsMap.get('参数'),
+    headers: argumentsMap.get('请求头'),
+    timeoutSeconds,
+  };
 }
 
 function parseVariableTerm(parts: string[]): TemplateTerm {

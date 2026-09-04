@@ -1,10 +1,11 @@
 # Cockpit — fraq-plugin-lexicon
 
-Focus: 开发版 `0.3.7` 已迁移到 Fraq `1.1.x`；PR 自动审核仅审核本次改动文件，按需执行 Fraq 官方 mock，并以结果标题、折叠日志和摘要表格更新评论；模板现支持 Fraq random 的 `int`、`range`、`bool` 与 `float` 随机数词条，待发布后升级目标应用验证。
+Focus: 开发版 `0.3.7` 已迁移到 Fraq `1.1.x`；模板现支持 Fraq random 的 `int`、`range`、`bool` 与 `float` 随机数词条，以及带 JSON 参数、请求头和词条级超时的公网网络请求词条，待发布后升级目标应用验证。
 
 ## In flight
 
 - `template-message-plugin` — 开发版 `0.3.7` 使用 Fraq `^1.1.0` 与 `@fraqjs/plugin-mock` `^1.1.0`，50 项测试通过；PR 审核使用专用 mock 测试和表格化评论，待发布并将目标应用升级到 Fraq 1.1
+- `template-message-plugin` — 已新增 `[请求.<请求方式>.url.<URL>...]` 网络请求词条，51 项测试通过，待发布并在真实群聊验证公网请求。
 
 ## Next
 

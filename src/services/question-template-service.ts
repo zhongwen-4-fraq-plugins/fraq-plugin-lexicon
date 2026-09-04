@@ -181,6 +181,8 @@ export class QuestionTemplateService {
         }
       } else if (term.type === 'fileOpen') {
         return undefined;
+      } else if (term.type === 'request') {
+        return undefined;
       } else if (term.type === 'logic') {
         try {
           replacement =
@@ -258,7 +260,7 @@ export class QuestionTemplateService {
 }
 
 function hasQuestionTemplate(question: string): boolean {
-  return /(^|[^\\])\[(?:event\.|消息\.读取\.|json\.取值\.|变量\.(?:创建|读取)\.|逻辑\.|词库\.拒绝执行(?:\]|\.)|逻辑\.休眠\.)/.test(
+  return /(^|[^\\])\[(?:event\.|消息\.读取\.|json\.取值\.|变量\.(?:创建|读取)\.|逻辑\.|请求\.|词库\.拒绝执行(?:\]|\.)|逻辑\.休眠\.)/.test(
     question,
   );
 }

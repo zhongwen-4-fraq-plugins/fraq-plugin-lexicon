@@ -26,6 +26,7 @@
 - 在真实群聊中验证 `词库 查询 <词条ID>` 和 `词库 查询 <词库名> <词条ID>`。
 - 在真实群聊中验证 `词库 修改 <词条ID> [问 <新问题>] 答 <新回答>`。
 - 在真实群聊中验证 `[逻辑.判断]` 条件块、块外文本逻辑词条和无限嵌套解析。
+- 发布并安装网络请求词条后，在真实群聊验证公网 URL、参数/请求头和词条级超时；不验证或放行内网地址。
 
 ## Read now
 
@@ -38,7 +39,16 @@
 - `flightdeck/knowledge/github/release-workflow.md`
 - `flightdeck/knowledge/templates/logic-terms.md`
 - `flightdeck/knowledge/code/file-template-safety.md`
+- `flightdeck/knowledge/code/request-template-safety.md`
 - `flightdeck/work/template-message-plugin/design.md`
+
+## Network request term
+
+- 新增 `[请求.<请求方式>.url.<URL>]`，支持 GET、HEAD、POST、PUT、PATCH、DELETE、OPTIONS。
+- `参数` 和 `请求头` 使用 JSON 对象；GET/HEAD 参数进入查询串，其余方法进入 JSON 请求体。
+- `超时时间=秒` 为词条级参数，默认 10 秒，最长 300 秒；响应正文限制 1 MiB。
+- 请求只允许公网 HTTP/HTTPS，拒绝凭据、重定向、本机、私网、链路本地和组播地址，并在 DNS 解析后复查地址。
+- `pnpm test` 51 项通过，`pnpm build` 通过；全量 `pnpm check` 仍受既有集成测试换行格式提示影响。
 
 ## Read if
 

@@ -23,6 +23,7 @@ import type { LexiconService } from './lexicon-service';
 import { isOptionalLogicValueError, LogicService } from './logic-service';
 import { MessageSegmentBuildService } from './message-segment-build-service';
 import { MilkyEventValueService } from './milky-event-value-service';
+import { RequestService } from './request-service';
 import { replaceVariables } from './template-variable-scope';
 import { UserInputService } from './user-input-service';
 
@@ -30,6 +31,7 @@ export interface TemplateServiceOptions {
   maxOutputLength?: number;
   userInputService?: UserInputService;
   fileService?: FileService;
+  requestService?: RequestService;
 }
 
 type LogicMode = 'text' | 'condition' | 'loopCount';
@@ -52,6 +54,7 @@ export class TemplateService {
   private readonly countedLoopService: CountedLoopService;
   private readonly userInputService: UserInputService;
   private readonly fileService: FileService;
+  private readonly requestService: RequestService;
 
   constructor(
     private readonly lexiconService: LexiconService,
@@ -64,6 +67,7 @@ export class TemplateService {
     this.countedLoopService = new CountedLoopService(this.maxOutputLength);
     this.userInputService = options.userInputService ?? new UserInputService();
     this.fileService = options.fileService ?? new FileService();
+    this.requestService = options.requestService ?? new RequestService();
   }
 
   async render(
@@ -315,6 +319,22 @@ export class TemplateService {
 
     if (term.type === 'fileOpen') {
       return escapeTemplateText(await this.fileService.open(term.fileName, term.mode));
+    }
+
+    if (term.type === 'request') {
+      if (logicMode !== 'text') {
+        throw new LexiconError('[请求.<请求方式>.url...] 只能用于回答文本。');
+      }
+      const url = await this.renderInternal(term.url, context, variables, 'text', undefined, 0);
+      const parameters = term.parameters
+        ? await this.renderInternal(term.parameters, context, variables, 'text', undefined, 0)
+        : undefined;
+      const headers = term.headers
+        ? await this.renderInternal(term.headers, context, variables, 'text', undefined, 0)
+        : undefined;
+      return escapeTemplateText(
+        await this.requestService.execute(term.method, url, parameters, headers, term.timeoutSeconds),
+      );
     }
 
     if (term.type === 'setVariable') {

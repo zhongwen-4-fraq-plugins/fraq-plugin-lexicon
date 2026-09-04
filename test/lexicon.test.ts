@@ -20,6 +20,7 @@ import { LexiconService } from '../src/services/lexicon-service';
 import { LogicService } from '../src/services/logic-service';
 import { MilkyApiService } from '../src/services/milky-api-service';
 import { PermissionService } from '../src/services/permission-service';
+import { RequestService } from '../src/services/request-service';
 import { TemplateService } from '../src/services/template-service';
 import { UserInputService } from '../src/services/user-input-service';
 
@@ -267,6 +268,27 @@ test('模板词条支持嵌套定位、参数和转义', () => {
     fileName: 'notes.txt',
     mode: '读取',
   });
+  assert.deepEqual(
+    parseTemplateTerm(
+      '请求.GET.url.https://example.com.参数={"q":"fraq"}.请求头={"Accept":"application/json"}.超时时间=10',
+    ),
+    {
+      type: 'request',
+      method: 'GET',
+      url: 'https://example.com',
+      parameters: '{"q":"fraq"}',
+      headers: '{"Accept":"application/json"}',
+      timeoutSeconds: 10,
+    },
+  );
+  assert.deepEqual(parseTemplateTerm('请求.post.url.https://example.com'), {
+    type: 'request',
+    method: 'POST',
+    url: 'https://example.com',
+    parameters: undefined,
+    headers: undefined,
+    timeoutSeconds: 10,
+  });
   assert.deepEqual(parseTemplateTerm('event.data.group_id'), {
     type: 'event',
     path: ['data', 'group_id'],
@@ -358,6 +380,7 @@ test('模板词条支持嵌套定位、参数和转义', () => {
   assert.throws(() => parseTemplateTerm('json.读取.A.key'), /不支持的 JSON 操作/);
   assert.throws(() => parseTemplateTerm('is.mention.user_id'), /不支持的词条命名空间/);
   assert.throws(() => parseTemplateTerm('文件.打开.notes'), /文件打开词条格式/);
+  assert.throws(() => parseTemplateTerm('请求.GET.url.https://example.com.超时时间=0'), /超时时间/);
   assert.equal(findInnermostTerm('普通文本\\[不是词条\\]'), undefined);
 });
 
@@ -405,6 +428,35 @@ test('文件打开词条按中文模式操作并限制在 data 目录', async (c
 
   await assert.rejects(() => new FileService(dataDirectory).open('../outside.txt', '读取'), /不能超出 data 目录/);
   await assert.rejects(() => template.render('[文件.打开.notes\\.txt.未知]', groupContext), /不支持的文件操作方式/);
+});
+
+test('请求词条执行 HTTP 请求、支持参数请求头和词条级超时', async () => {
+  const calls: Array<{ url: string; init?: RequestInit }> = [];
+  const requestService = new RequestService(
+    async (input, init) => {
+      calls.push({ url: String(input), init });
+      return new Response('响应内容', { status: 200 });
+    },
+    (async () => [{ address: '93.184.216.34', family: 4 }]) as never,
+  );
+  const service = new TemplateService({} as never, new ApiActionRegistry(), {} as MilkyClient, { requestService });
+
+  assert.equal(
+    await service.render(
+      '[请求.GET.url.https://example.com/search.参数={"q":"fraq"}.请求头={"X-Test":"yes"}.超时时间=10]',
+      groupContext,
+    ),
+    '响应内容',
+  );
+  assert.equal(calls[0].url, 'https://example.com/search?q=fraq');
+  assert.deepEqual(Object.fromEntries(new Headers(calls[0].init?.headers).entries()), { 'x-test': 'yes' });
+  assert.equal(calls[0].init?.body, undefined);
+
+  await assert.rejects(() => service.render('[请求.GET.url.http://127.0.0.1]', groupContext), /本机或内网/);
+  await assert.rejects(
+    () => service.render('[请求.GET.url.https://example.com.参数=无效]', groupContext),
+    /参数必须是有效的 JSON/,
+  );
 });
 
 test('逻辑判断块支持否则判断、否则和嵌套配对', () => {
